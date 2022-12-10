@@ -16,6 +16,7 @@
 #include "duckdb/parallel/thread_context.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 namespace duckdb {
 
@@ -246,6 +247,7 @@ bool Executor::NextExecutor() {
 		return false;
 	}
 	root_pipelines[root_pipeline_idx]->Reset();
+	std::cout << "[Executor] init root_executor here, pipeline size: " << root_pipelines.size() << std::endl;
 	root_executor = make_unique<PipelineExecutor>(context, *root_pipelines[root_pipeline_idx]);
 	root_pipeline_idx++;
 	return true;
@@ -290,12 +292,10 @@ void Executor::Initialize(PhysicalOperator *plan) {
 }
 
 void Executor::InitializeInternal(PhysicalOperator *plan) {
-
 	auto &scheduler = TaskScheduler::GetScheduler(context);
 	{
 		lock_guard<mutex> elock(executor_lock);
 		physical_plan = plan;
-
 		this->profiler = ClientData::Get(context).profiler;
 		profiler->Initialize(physical_plan);
 		this->producer = scheduler.CreateProducer();
@@ -525,8 +525,10 @@ unique_ptr<DataChunk> Executor::FetchChunk() {
 	D_ASSERT(physical_plan);
 
 	auto chunk = make_unique<DataChunk>();
+	std::cout << "[Executor] Initialize chunk here" << std::endl;
 	root_executor->InitializeChunk(*chunk);
 	while (true) {
+		std::cout << "[Executor] Before ExecutePull: " << std::endl;
 		root_executor->ExecutePull(*chunk);
 		if (chunk->size() == 0) {
 			root_executor->PullFinalize();

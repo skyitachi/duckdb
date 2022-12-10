@@ -17,6 +17,8 @@
 #include "duckdb/common/types/column_data_collection.hpp"
 #include "duckdb/function/table/read_csv.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 Connection::Connection(DatabaseInstance &database) : context(make_shared<ClientContext>(database.shared_from_this())) {

@@ -2,6 +2,8 @@
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/common/limits.hpp"
 
+#include "duckdb/common/debug_util.h"
+
 namespace duckdb {
 
 PipelineExecutor::PipelineExecutor(ClientContext &context_p, Pipeline &pipeline_p)
@@ -39,6 +41,17 @@ bool PipelineExecutor::Execute(idx_t max_chunks) {
 	D_ASSERT(pipeline.sink);
 	bool exhausted_source = false;
 	auto &source_chunk = pipeline.operators.empty() ? final_chunk : *intermediate_chunks[0];
+	auto* source = pipeline.GetSource();
+	std::cout << "[PipelineExecutor]: pipe name:\n" << pipeline.ToString()
+	          << ", source operator: \n" << source->ToString() << ", sink operator: \n" << pipeline.sink->ToString() << std::endl;
+
+	std::cout << "[PipelineExecutor]: middle operators size: " << pipeline.operators.size() << std::endl;
+	for (auto* op: pipeline.GetOperators()) {
+		if (op != source && op != pipeline.sink) {
+			std::cout << "middle operator: \n" << op->ToString();
+		}
+	}
+
 	for (idx_t i = 0; i < max_chunks; i++) {
 		if (IsFinished()) {
 			break;
@@ -49,6 +62,7 @@ bool PipelineExecutor::Execute(idx_t max_chunks) {
 			exhausted_source = true;
 			break;
 		}
+		std::cout << "[PipelineExecutor] after FetchFromSource chunk size: " << source_chunk.size() << std::endl;
 		auto result = ExecutePushInternal(source_chunk);
 		if (result == OperatorResultType::FINISHED) {
 			D_ASSERT(IsFinished());
@@ -357,6 +371,7 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 
 void PipelineExecutor::FetchFromSource(DataChunk &result) {
 	StartOperator(pipeline.source);
+	// NOTE: GetData的含义是啥
 	pipeline.source->GetData(context, result, *pipeline.source_state, *local_source_state);
 	if (result.size() != 0 && requires_batch_index) {
 		auto next_batch_index =

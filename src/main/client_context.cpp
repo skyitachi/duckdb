@@ -44,6 +44,8 @@
 #include "duckdb/common/progress_bar.hpp"
 #include "duckdb/main/error_manager.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 struct ActiveQueryContext {

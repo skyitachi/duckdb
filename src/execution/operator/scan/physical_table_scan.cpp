@@ -6,6 +6,7 @@
 #include "duckdb/transaction/transaction.hpp"
 
 #include <utility>
+#include <iostream>
 
 namespace duckdb {
 

@@ -32,7 +32,7 @@ if(AMALGAMATION_BUILD)
   link_extension_libraries(duckdb)
 
   add_library(duckdb_static STATIC
-              "${PROJECT_SOURCE_DIR}/src/amalgamation/duckdb.cpp")
+              "${PROJECT_SOURCE_DIR}/src/amalgamation/duckdb.cpp" include/duckdb/common/debug_util.h)
   target_link_libraries(duckdb_static ${DUCKDB_SYSTEM_LIBS})
   link_threads(duckdb_static)
   link_extension_libraries(duckdb_static)
@@ -72,12 +72,12 @@ else()
       duckdb_fastpforlib
       duckdb_mbedtls)
 
-  add_library(duckdb SHARED ${ALL_OBJECT_FILES})
+  add_library(duckdb SHARED ${ALL_OBJECT_FILES} common/debug_util.cpp include/duckdb/common/debug_util.h)
   target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
 
-  add_library(duckdb_static STATIC ${ALL_OBJECT_FILES})
+  add_library(duckdb_static STATIC ${ALL_OBJECT_FILES} include/duckdb/common/debug_util.h)
   target_link_libraries(duckdb_static ${DUCKDB_LINK_LIBS})
   link_threads(duckdb_static)
   link_extension_libraries(duckdb_static)

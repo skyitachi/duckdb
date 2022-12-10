@@ -894,3 +894,6 @@ if(NOT "${EXTERNAL_EXTENSION_DIRECTORIES}" STREQUAL "")
     add_subdirectory(${EXTERNAL_EXTENSION_DIRECTORY} "extension/${EXTERNAL_EXTENSION_NAME}")
   endforeach()
 endif()
+
+add_subdirectory(examples/embedded-c++)
+#add_subdirectory(examples/standalone-plan)

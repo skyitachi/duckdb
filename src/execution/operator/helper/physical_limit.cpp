@@ -7,6 +7,10 @@
 #include "duckdb/common/types/batched_data_collection.hpp"
 #include "duckdb/execution/operator/helper/physical_streaming_limit.hpp"
 
+#include <iostream>
+#include <execinfo.h>
+#include <stdio.h>
+
 namespace duckdb {
 
 PhysicalLimit::PhysicalLimit(vector<LogicalType> types, idx_t limit, idx_t offset,
@@ -99,6 +103,7 @@ SinkResultType PhysicalLimit::Sink(ExecutionContext &context, GlobalSinkState &g
 	auto &limit = state.limit;
 	auto &offset = state.offset;
 
+	std::cout << "[debug_execute] in sink function: " << input.size() << std::endl;
 	idx_t max_element;
 	if (!ComputeOffset(context, input, limit, offset, state.current_offset, max_element, limit_expression.get(),
 	                   offset_expression.get())) {
@@ -108,6 +113,7 @@ SinkResultType PhysicalLimit::Sink(ExecutionContext &context, GlobalSinkState &g
 	if (max_cardinality < input.size()) {
 		input.SetCardinality(max_cardinality);
 	}
+	std::cout << "[PhysicalLimit] sink append input into state" << std::endl;
 	state.data.Append(input, lstate.batch_index);
 	state.current_offset += input.size();
 	return SinkResultType::NEED_MORE_INPUT;
@@ -144,6 +150,8 @@ unique_ptr<GlobalSourceState> PhysicalLimit::GetGlobalSourceState(ClientContext 
 
 void PhysicalLimit::GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate_p,
                             LocalSourceState &lstate) const {
+	std::cout << "[debug_execute]" << " in the PhysicalLimit GetData, source: " << IsSource() <<
+	    ", sink: " << IsSink() << ", data_chunk size: " << chunk.size() << std::endl;
 	auto &gstate = (LimitGlobalState &)*sink_state;
 	auto &state = (LimitSourceState &)gstate_p;
 	while (state.current_offset < gstate.limit + gstate.offset) {
@@ -152,6 +160,7 @@ void PhysicalLimit::GetData(ExecutionContext &context, DataChunk &chunk, GlobalS
 			state.initialized = true;
 		}
 		gstate.data.Scan(state.scan_state, chunk);
+		std::cout << "[debug_execute] after scan chunk size: " << chunk.size() << std::endl;
 		if (chunk.size() == 0) {
 			break;
 		}

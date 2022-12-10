@@ -181,6 +181,7 @@ OperatorResultType PerfectHashJoinExecutor::ProbePerfectHashTable(ExecutionConte
 		result_vector.Reference(build_vec);
 		result_vector.Slice(state.build_sel_vec, probe_sel_count);
 	}
+	std::cout << "[PerfectHashJoinExecutor] result chunk size: " << result.size() << std::endl;
 	return OperatorResultType::NEED_MORE_INPUT;
 }
 

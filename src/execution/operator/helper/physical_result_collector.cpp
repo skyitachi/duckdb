@@ -8,6 +8,9 @@
 #include "duckdb/parallel/meta_pipeline.hpp"
 #include "duckdb/parallel/pipeline.hpp"
 
+#include "duckdb/common/debug_util.h"
+#include <iostream>
+
 namespace duckdb {
 
 PhysicalResultCollector::PhysicalResultCollector(PreparedStatementData &data)
@@ -49,6 +52,7 @@ void PhysicalResultCollector::BuildPipelines(Pipeline &current, MetaPipeline &me
 
 	// single operator: the operator becomes the data source of the current pipeline
 	auto &state = meta_pipeline.GetState();
+	// NOTE: 这里会设置pipeline的source
 	state.SetPipelineSource(current, this);
 
 	// we create a new pipeline starting from the child

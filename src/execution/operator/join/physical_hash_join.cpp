@@ -13,6 +13,8 @@
 #include "duckdb/storage/buffer_manager.hpp"
 #include "duckdb/storage/storage_manager.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 PhysicalHashJoin::PhysicalHashJoin(LogicalOperator &op, unique_ptr<PhysicalOperator> left,
@@ -187,6 +189,7 @@ SinkResultType PhysicalHashJoin::Sink(ExecutionContext &context, GlobalSinkState
                                       DataChunk &input) const {
 	auto &gstate = (HashJoinGlobalSinkState &)gstate_p;
 	auto &lstate = (HashJoinLocalSinkState &)lstate_p;
+	std::cout << "[PhysicalHashJoin] sink called: input chunk size: " << input.size() << std::endl;
 
 	// resolve the join keys for the right chunk
 	lstate.join_keys.Reset();
@@ -457,6 +460,8 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 	D_ASSERT(sink.finalized);
 	D_ASSERT(!sink.scanned_data);
 
+
+	std::cout << "[PhysicalHashJoin] ExecuteInternal" << std::endl;
 	// some initialization for external hash join
 	if (sink.external && !state.initialized) {
 		if (!sink.probe_spill) {
@@ -472,6 +477,8 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 
 	if (sink.perfect_join_executor) {
 		D_ASSERT(!sink.external);
+		std::cout << "[PhysicalHashJoin] ExecuteInternal: in perfect_join_executor: input size: "
+		          << input.size() << std::endl;
 		return sink.perfect_join_executor->ProbePerfectHashTable(context, input, chunk, *state.perfect_hash_join_state);
 	}
 
@@ -500,6 +507,8 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 		state.scan_structure = sink.hash_table->ProbeAndSpill(state.join_keys, input, *sink.probe_spill,
 		                                                      state.spill_state, state.spill_chunk);
 	} else {
+		std::cout << "[PhysicalHashJoin] ExecuteInternal probe: join_keys size: "
+		          << state.join_keys.size() << std::endl;
 		state.scan_structure = sink.hash_table->Probe(state.join_keys);
 	}
 	state.scan_structure->Next(state.join_keys, input, chunk);
@@ -754,13 +763,16 @@ void HashJoinLocalSourceState::ExecuteTask(HashJoinGlobalSinkState &sink, HashJo
                                            DataChunk &chunk) {
 	switch (local_stage) {
 	case HashJoinSourceStage::BUILD:
+		std::cout << "[HashJoinLocalSourceState]: ExternalBuild\n";
 		ExternalBuild(sink, gstate);
 		break;
 	case HashJoinSourceStage::PROBE:
 		ExternalProbe(sink, gstate, chunk);
+		std::cout << "[HashJoinLocalSourceState]: ExternalProbe\n";
 		break;
 	case HashJoinSourceStage::SCAN_HT:
 		ExternalScanHT(sink, gstate, chunk);
+		std::cout << "[HashJoinLocalSourceState]: ExternalScanHT\n";
 		break;
 	default:
 		throw InternalException("Unexpected HashJoinSourceStage in ExecuteTask!");
@@ -852,6 +864,7 @@ void PhysicalHashJoin::GetData(ExecutionContext &context, DataChunk &chunk, Glob
 	auto &lstate = (HashJoinLocalSourceState &)lstate_p;
 	sink.scanned_data = true;
 
+	std::cout << "[PhysicalHashJoin] GetData called" << std::endl;
 	if (!sink.external) {
 		if (IsRightOuterJoin(join_type)) {
 			{
