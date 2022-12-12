@@ -2,6 +2,7 @@
 
 #include <execinfo.h>
 #include <stdio.h>
+#include <iostream>
 
 using namespace duckdb;
 
@@ -16,19 +17,60 @@ void debug_backtrace() {
 
 }
 
+void datachunk_example(Connection& conn) {
+	DataChunk dataChunk;
+	auto& context = conn.context;
+	std::vector<LogicalType> types = {LogicalType::SMALLINT, LogicalType::BIGINT};
+	dataChunk.Initialize(*context.get(), types.begin(), types.end(), 10);
+	std::cout << "dataChunk size: " << dataChunk.size() << " column count: " << dataChunk.ColumnCount() << std::endl;
+	Vector v1(LogicalType::SMALLINT);
+	Vector v2(LogicalType::BIGINT);
+	v1.SetVectorType(VectorType::FLAT_VECTOR);
+	v2.SetVectorType(VectorType::FLAT_VECTOR);
+	for (int i = 0; i < 10; i++) {
+		Value v(LogicalType::SMALLINT);
+		v = i;
+		dataChunk.SetValue(0, i, v);
+	}
+	for (int i = 0; i < 10; i++) {
+		Value v(LogicalType::BIGINT);
+		v = i;
+		dataChunk.SetValue(1, i, v);
+	}
+
+	dataChunk.SetCardinality(10);
+
+	std::cout << "after setting dataChunk size: " << dataChunk.size() << " column count: " << dataChunk.ColumnCount() << std::endl;
+	dataChunk.Print();
+
+	DataChunk chunk2;
+	chunk2.Move(dataChunk);
+
+	std::cout << "chunk2: " << chunk2.ColumnCount() << std::endl;
+	std::cout << "after move: " << dataChunk.ColumnCount() << std::endl;
+
+	DataChunk chunk3;
+	chunk3.Initialize(*context.get(), types.begin(), types.end(), 10);
+	chunk2.Copy(chunk3);
+	std::cout << "copy chunk3: " << chunk3.ColumnCount() << std::endl;
+	std::cout << "after copy: " << chunk2.ColumnCount() << std::endl;
+
+}
+
 int main() {
 	DBConfig config{};
 	DuckDB db(nullptr);
 
 	Connection con(db);
 
+	datachunk_example(con);
 //	con.Query("CREATE TABLE integers(i INTEGER)");
 //	con.Query("INSERT INTO integers VALUES (3)");
 //	con.Query("INSERT INTO integers VALUES (5)");
-	con.Query("CREATE TABLE actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
-	con.Query("CREATE TABLE film_actor(actor_id INTEGER, film_id INTEGER)");
-	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
-	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
+//	con.Query("CREATE TABLE actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+//	con.Query("CREATE TABLE film_actor(actor_id INTEGER, film_id INTEGER)");
+//	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+//	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
 //	{
 //		auto result = con.Query("select * from actor");
 //		result->Print();
@@ -37,10 +79,10 @@ int main() {
 //		auto result = con.Query("select * from film_actor");
 //		result->Print();
 //	}
-	auto sql = "select actor.actor_id, film_id, first_name from actor join film_actor on film_actor.actor_id=actor.actor_id";
-
-	auto plan = con.ExtractPlan(sql);
-	plan ->Print();
+//	auto sql = "select actor.actor_id, film_id, first_name from actor join film_actor on film_actor.actor_id=actor.actor_id";
+//
+//	auto plan = con.ExtractPlan(sql);
+//	plan ->Print();
 
 //	auto result = con.Query("select actor.actor_id, film_id, first_name from actor join film_actor on film_actor.actor_id=actor.actor_id");
 //
