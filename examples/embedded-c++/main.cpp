@@ -54,6 +54,16 @@ void datachunk_example(Connection& conn) {
 	chunk2.Copy(chunk3);
 	std::cout << "copy chunk3: " << chunk3.ColumnCount() << std::endl;
 	std::cout << "after copy: " << chunk2.ColumnCount() << std::endl;
+	chunk3.Print();
+	{
+		// slice example
+		sel_t* selects = new sel_t[]{2, 4};
+		SelectionVector selectionVector(selects);
+		DataChunk slice_chunk;
+		slice_chunk.Slice(selectionVector, 2);
+		std::cout << "slice chunk\n";
+		slice_chunk.Print();
+	}
 
 }
 
