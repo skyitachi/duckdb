@@ -34,7 +34,7 @@ void datachunk_example(Connection& conn) {
 	}
 	for (int i = 0; i < 10; i++) {
 		Value v(LogicalType::BIGINT);
-		v = i;
+		v = i * 10;
 		dataChunk.SetValue(1, i, v);
 	}
 
@@ -57,13 +57,36 @@ void datachunk_example(Connection& conn) {
 	chunk3.Print();
 	{
 		// slice example
-		sel_t* selects = new sel_t[]{2, 4};
-		SelectionVector selectionVector(selects);
+		sel_t* selects = new sel_t[]{3, 6};
+		std::unique_ptr<sel_t[]> select_ptr;
+		select_ptr.reset(selects);
+		SelectionVector selectionVector(select_ptr.get());
+		selectionVector.Print(2);
 		DataChunk slice_chunk;
+		slice_chunk.Initialize(*context.get(), types.begin(), types.end(), 10);
+//		slice_chunk.Copy(chunk3);
+		chunk3.Copy(slice_chunk);
+//		slice_chunk.SetCardinality(2);
 		slice_chunk.Slice(selectionVector, 2);
-		std::cout << "slice chunk\n";
+		std::cout << "slice chunk size: " << slice_chunk.size() << std::endl;
 		slice_chunk.Print();
+		slice_chunk.data[0].Flatten(10);
 	}
+
+
+}
+
+void count_example(Connection& conn) {
+	conn.Query("CREATE TABLE actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+	conn.Query("CREATE TABLE film_actor(actor_id INTEGER, film_id INTEGER)");
+	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+	conn.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
+	auto sql = "select count(*) from film_actor";
+	auto plan = conn.ExtractPlan(sql);
+
+	plan->Print();
+
+	conn.Query(sql);
 
 }
 
@@ -73,7 +96,8 @@ int main() {
 
 	Connection con(db);
 
-	datachunk_example(con);
+	count_example(con);
+//	datachunk_example(con);
 //	con.Query("CREATE TABLE integers(i INTEGER)");
 //	con.Query("INSERT INTO integers VALUES (3)");
 //	con.Query("INSERT INTO integers VALUES (5)");
