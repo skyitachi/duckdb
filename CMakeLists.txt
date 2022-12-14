@@ -896,4 +896,4 @@ if(NOT "${EXTERNAL_EXTENSION_DIRECTORIES}" STREQUAL "")
 endif()
 
 add_subdirectory(examples/embedded-c++)
-#add_subdirectory(examples/standalone-plan)
+add_subdirectory(examples/standalone-plan)

@@ -41,15 +41,15 @@ void RunExampleDuckDBCatalog() {
 	// we can use our own table functions (see RunExampleTableScan), but this is slightly more involved
 
 	DBConfig config;
-	config.initialize_default_database = false;
+//	config.initialize_default_database = false;
 
 	// disable the statistics propagator optimizer
 	// this is required since the statistics propagator will truncate our plan
 	// (e.g. it will recognize the table is empty that satisfy the predicate i=3
 	//       and then prune the entire plan)
-	config.disabled_optimizers.insert(OptimizerType::STATISTICS_PROPAGATION);
+//	config.disabled_optimizers.insert(OptimizerType::STATISTICS_PROPAGATION);
 	// we don't support filter pushdown yet in our toy example
-	config.disabled_optimizers.insert(OptimizerType::FILTER_PUSHDOWN);
+//	config.disabled_optimizers.insert(OptimizerType::FILTER_PUSHDOWN);
 
 	DuckDB db(nullptr, &config);
 	Connection con(db);
@@ -115,7 +115,7 @@ void RunExampleTableScan() {
 	// this means we don't need to disable optimizers anymore
 
 	DBConfig config;
-	config.initialize_default_database = false;
+//	config.initialize_default_database = false;
 	config.replacement_scans.push_back(ReplacementScan(MyReplacementScan));
 
 	DuckDB db(nullptr, &config);
@@ -178,7 +178,8 @@ void CreateAggregateFunction(Connection &con, string name, vector<LogicalType> a
 
 	// we can register multiple functions here if we want overloads
 	AggregateFunctionSet set(name);
-	set.AddFunction(AggregateFunction(move(arguments), move(return_type), nullptr, nullptr, nullptr, nullptr, nullptr));
+	set.AddFunction(AggregateFunction(move(arguments), move(return_type),
+	                                  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr));
 
 	CreateAggregateFunctionInfo info(move(set));
 	catalog.CreateFunction(context, &info);
@@ -226,14 +227,14 @@ static unique_ptr<BaseStatistics> MyScanStatistics(ClientContext &context, const
 	if (bind_data.table_name == "mytable") {
 		if (column_id == 0) {
 			// i: 1, 2, 3, 4, 5
-			return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(1), Value::INTEGER(5));
+			return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(1), Value::INTEGER(5), StatisticsType::LOCAL_STATS);
 		} else if (column_id == 1) {
 			// j: 2, 3, 4, 5, 6
-			return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(2), Value::INTEGER(6));
+			return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(2), Value::INTEGER(6), StatisticsType::LOCAL_STATS);
 		}
 	} else if (bind_data.table_name == "myothertable") {
 		// k: 1, 10, 20
-		return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(1), Value::INTEGER(20));
+		return make_unique<NumericStatistics>(LogicalType::INTEGER, Value::INTEGER(1), Value::INTEGER(20), StatisticsType::LOCAL_STATS);
 	}
 	return nullptr;
 }
@@ -253,8 +254,12 @@ void CreateMyScanFunction(Connection &con) {
 	auto &context = *con.context;
 	auto &catalog = Catalog::GetCatalog(context);
 
-	TableFunction my_scan("my_scan", {LogicalType::VARCHAR}, nullptr, MyScanBind, nullptr, MyScanStatistics, nullptr,
-	                      nullptr, MyScanCardinality);
+	TableFunction my_scan("my_scan", {LogicalType::VARCHAR}, nullptr);
+	my_scan.bind = MyScanBind;
+	my_scan.statistics = MyScanStatistics;
+	my_scan.cardinality = MyScanCardinality;
+//MyScanBind, nullptr, MyScanStatistics, nullptr,
+//	                      nullptr, MyScanCardinality);
 	my_scan.projection_pushdown = true;
 	my_scan.filter_pushdown = false;
 
