@@ -23,6 +23,7 @@
 #include "duckdb/storage/statistics/numeric_statistics.hpp"
 #endif
 
+#include <iostream>
 using namespace duckdb;
 
 // in this example we build a simple volcano model executor on top of the DuckDB logical plans
@@ -71,9 +72,9 @@ void RunExampleDuckDBCatalog() {
 	// (see MyScanNode)
 
 	// register functions and aggregates (for our binding purposes)
-	CreateFunction(con, "+", {LogicalType::INTEGER, LogicalType::INTEGER}, LogicalType::INTEGER);
-	CreateAggregateFunction(con, "count_star", {}, LogicalType::BIGINT);
-	CreateAggregateFunction(con, "sum", {LogicalType::INTEGER}, LogicalType::INTEGER);
+//	CreateFunction(con, "+", {LogicalType::INTEGER, LogicalType::INTEGER}, LogicalType::INTEGER);
+//	CreateAggregateFunction(con, "count_star", {}, LogicalType::BIGINT);
+//	CreateAggregateFunction(con, "sum", {LogicalType::INTEGER}, LogicalType::INTEGER);
 
 	con.Query("COMMIT");
 
@@ -127,9 +128,9 @@ void RunExampleTableScan() {
 	con.Query("BEGIN TRANSACTION");
 
 	// register functions and aggregates (for our binding purposes)
-	CreateFunction(con, "+", {LogicalType::INTEGER, LogicalType::INTEGER}, LogicalType::INTEGER);
-	CreateAggregateFunction(con, "count_star", {}, LogicalType::BIGINT);
-	CreateAggregateFunction(con, "sum", {LogicalType::INTEGER}, LogicalType::INTEGER);
+//	CreateFunction(con, "+", {LogicalType::INTEGER, LogicalType::INTEGER}, LogicalType::INTEGER);
+//	CreateAggregateFunction(con, "count_star", {}, LogicalType::BIGINT);
+//	CreateAggregateFunction(con, "sum", {LogicalType::INTEGER}, LogicalType::INTEGER);
 
 	CreateMyScanFunction(con);
 
@@ -151,10 +152,6 @@ void RunExampleTableScan() {
 	             "SELECT a, b + 1, c + 2 FROM (SELECT COUNT(*), SUM(i), SUM(j) FROM mytable WHERE i > 2) tbl(a, b, c)");
 }
 
-int main() {
-	RunExampleDuckDBCatalog();
-	RunExampleTableScan();
-}
 
 //===--------------------------------------------------------------------===//
 // Create Dummy Scalar/Aggregate Functions in the Catalog
@@ -447,7 +444,7 @@ public:
 	vector<int> aggregate_states;
 
 	void ExecuteAggregate(MyExpressionExecutor &executor, int index, BoundAggregateExpression &expr) {
-		if (expr.function.name == "sum") {
+		if (expr.function.name == "sum" || expr.function.name == "sum_no_overflow") {
 			int child = executor.Execute(*expr.children[0]);
 			aggregate_states[index] += child;
 		} else if (expr.function.name == "count_star") {
@@ -479,6 +476,7 @@ public:
 // Plan Transformer - Transform a DuckDB logical plan into a custom plan (MyNode)
 //===--------------------------------------------------------------------===//
 unique_ptr<MyNode> MyPlanGenerator::TransformPlan(LogicalOperator &op) {
+	std::cout << "op type: " << LogicalOperatorToString(op.type) << std::endl;
 	switch (op.type) {
 	case LogicalOperatorType::LOGICAL_PROJECTION: {
 		// projection
@@ -628,4 +626,9 @@ int MyExpressionExecutor::Execute(Expression &expression) {
 	default:
 		throw std::runtime_error("Unsupported expression for expression executor " + expression.ToString());
 	}
+}
+
+int main() {
+//	RunExampleDuckDBCatalog();
+	RunExampleTableScan();
 }

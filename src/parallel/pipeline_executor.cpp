@@ -62,7 +62,7 @@ bool PipelineExecutor::Execute(idx_t max_chunks) {
 			exhausted_source = true;
 			break;
 		}
-		std::cout << "[PipelineExecutor] after FetchFromSource chunk size: " << source_chunk.size() << std::endl;
+//		std::cout << "[PipelineExecutor] after FetchFromSource chunk size: " << source_chunk.size() << std::endl;
 		auto result = ExecutePushInternal(source_chunk);
 		if (result == OperatorResultType::FINISHED) {
 			D_ASSERT(IsFinished());
