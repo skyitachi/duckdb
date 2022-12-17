@@ -3,6 +3,7 @@
 #include <execinfo.h>
 #include <stdio.h>
 #include <iostream>
+#include <chrono>
 
 using namespace duckdb;
 
@@ -90,14 +91,48 @@ void count_example(Connection& conn) {
 
 }
 
-int main() {
+void prepare_example(Connection& conn) {
+	auto prepared = conn.Prepare("select count(*) from film_actor");
+//	conn.Query(prepared);
+}
+
+void pending_query_example(Connection& conn) {
+	auto statements = conn.ExtractStatements("select count(*) from film_actor;");
+	std::cout << statements.size() << std::endl;
+
+	if (statements.size() > 0) {
+		std::cout << "sql statement: " << statements[0]->ToString() << std::endl;
+		auto result = conn.Query(std::move(statements[0]));
+		result->Print();
+	}
+
+}
+
+void lineitem_example() {
 	DBConfig config{};
-	DuckDB db(nullptr);
+	DuckDB db("lineitem", &config);
 
-	Connection con(db);
+	Connection conn(db);
 
-	count_example(con);
-//	datachunk_example(con);
+	auto start = std::chrono::steady_clock::now();
+	auto result = conn.Query("select count(l_orderkey) from lineitem");
+
+	auto end = std::chrono::steady_clock::now();
+
+	result->Print();
+
+	std::cout << "time consumes(ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+}
+
+int main() {
+
+	lineitem_example();
+//	DBConfig config{};
+//	DuckDB db(nullptr);
+//
+//	Connection con(db);
+//
+//	// prepare data
 //	con.Query("CREATE TABLE integers(i INTEGER)");
 //	con.Query("INSERT INTO integers VALUES (3)");
 //	con.Query("INSERT INTO integers VALUES (5)");
@@ -105,6 +140,10 @@ int main() {
 //	con.Query("CREATE TABLE film_actor(actor_id INTEGER, film_id INTEGER)");
 //	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 //	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
+//
+//	//	count_example(con);
+//	//	datachunk_example(con);
+//	pending_query_example(con);
 //	{
 //		auto result = con.Query("select * from actor");
 //		result->Print();
