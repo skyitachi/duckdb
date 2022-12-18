@@ -129,6 +129,8 @@ SinkResultType PhysicalInsert::Sink(ExecutionContext &context, GlobalSinkState &
 	auto table = gstate.table;
 	PhysicalInsert::ResolveDefaults(table, chunk, column_index_map, lstate.default_executor, lstate.insert_chunk);
 
+	std::cout << "[PhysicalInsert] chunk size: " << lstate.insert_chunk.size() << std::endl;
+
 	if (!parallel) {
 		if (!gstate.initialized) {
 			table->storage->InitializeLocalAppend(gstate.append_state, context.client);

@@ -108,6 +108,15 @@ void pending_query_example(Connection& conn) {
 
 }
 
+void persistent_example() {
+	DBConfig config{};
+	DuckDB db("persistent_example", &config);
+	Connection conn(db);
+
+	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+}
+
 void lineitem_example() {
 	DBConfig config{};
 	DuckDB db("lineitem", &config);
@@ -126,7 +135,8 @@ void lineitem_example() {
 
 int main() {
 
-	lineitem_example();
+	persistent_example();
+//	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);
 //
@@ -141,7 +151,7 @@ int main() {
 //	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 //	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
 //
-//	//	count_example(con);
+//	count_example(con);
 //	//	datachunk_example(con);
 //	pending_query_example(con);
 //	{

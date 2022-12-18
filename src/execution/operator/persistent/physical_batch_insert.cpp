@@ -6,6 +6,7 @@
 #include "duckdb/transaction/local_storage.hpp"
 #include "duckdb/storage/data_table.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 PhysicalBatchInsert::PhysicalBatchInsert(vector<LogicalType> types, TableCatalogEntry *table,
@@ -312,6 +313,7 @@ SinkResultType PhysicalBatchInsert::Sink(ExecutionContext &context, GlobalSinkSt
 		lstate.CreateNewCollection(table, insert_types);
 	}
 	lstate.current_index = lstate.batch_index;
+	std::cout << "[PhysicalBatchInsert] inserted chunk size: " << lstate.insert_chunk.size() << std::endl;
 	table->storage->VerifyAppendConstraints(*table, context.client, lstate.insert_chunk);
 	auto new_row_group = lstate.current_collection->Append(lstate.insert_chunk, lstate.current_append_state);
 	if (new_row_group) {

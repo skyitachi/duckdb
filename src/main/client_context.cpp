@@ -155,6 +155,7 @@ void ClientContext::BeginQueryInternal(ClientContextLock &lock, const string &qu
 PreservedError ClientContext::EndQueryInternal(ClientContextLock &lock, bool success, bool invalidate_transaction) {
 	client_data->profiler->EndQuery();
 
+	std::cout << "[ClientContext.EndQueryInternal] commit transaction" << std::endl;
 	D_ASSERT(active_query.get());
 	PreservedError error;
 	try {

@@ -15,6 +15,8 @@
 #include "duckdb/transaction/update_info.hpp"
 #include "duckdb/catalog/catalog_entry/scalar_macro_catalog_entry.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 CommitState::CommitState(ClientContext &context, transaction_t commit_id, WriteAheadLog *log)
@@ -212,6 +214,7 @@ void CommitState::WriteUpdate(UpdateInfo *info) {
 
 template <bool HAS_LOG>
 void CommitState::CommitEntry(UndoFlags type, data_ptr_t data) {
+	std::cout << "[CommitState] UndoFlags: " << int32_t(type) << std::endl;
 	switch (type) {
 	case UndoFlags::CATALOG_ENTRY: {
 		// set the commit timestamp of the catalog entry to the given id
@@ -230,6 +233,7 @@ void CommitState::CommitEntry(UndoFlags type, data_ptr_t data) {
 	case UndoFlags::INSERT_TUPLE: {
 		// append:
 		auto info = (AppendInfo *)data;
+		std::cout << "[CommitState] AppendInfo, data size: " << info->count << std::endl;
 		if (HAS_LOG && !info->table->info->IsTemporary()) {
 			info->table->WriteToLog(*log, info->start_row, info->count);
 		}
