@@ -11,7 +11,7 @@
 #include "duckdb/storage/checkpoint/table_data_writer.hpp"
 
 #include "duckdb/main/config.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 ColumnCheckpointState::ColumnCheckpointState(RowGroup &row_group, ColumnData &column_data,
@@ -89,6 +89,7 @@ public:
 };
 
 void ColumnCheckpointState::FlushSegment(unique_ptr<ColumnSegment> segment, idx_t segment_size) {
+	std::cout << "[ColumnCheckpointState] FlushSegment: segment_size=" << segment_size << std::endl;
 	D_ASSERT(segment_size <= Storage::BLOCK_SIZE);
 	auto tuple_count = segment->count.load();
 	if (tuple_count == 0) { // LCOV_EXCL_START

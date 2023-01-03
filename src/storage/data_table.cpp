@@ -19,7 +19,7 @@
 #include "duckdb/storage/table/standard_column_data.hpp"
 #include "duckdb/transaction/transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 DataTable::DataTable(DatabaseInstance &db, shared_ptr<TableIOManager> table_io_manager_p, const string &schema,
@@ -609,11 +609,15 @@ void DataTable::WriteToLog(WriteAheadLog &log, idx_t row_start, idx_t count) {
 		return;
 	}
 	log.WriteSetTable(info->schema, info->table);
-	ScanTableSegment(row_start, count, [&](DataChunk &chunk) { log.WriteInsert(chunk); });
+	ScanTableSegment(row_start, count, [&](DataChunk &chunk) {
+		std::cout << "[WriteToLog] log.WriteInsert: chunk size: " << chunk.size() << std::endl;
+		log.WriteInsert(chunk);
+	});
 }
 
 void DataTable::CommitAppend(transaction_t commit_id, idx_t row_start, idx_t count) {
 	lock_guard<mutex> lock(append_lock);
+	std::cout << "[DataTable::CommitAppend] row_start: " << row_start << ", count: " << count << std::endl;
 	row_groups->CommitAppend(commit_id, row_start, count);
 	info->cardinality += count;
 }

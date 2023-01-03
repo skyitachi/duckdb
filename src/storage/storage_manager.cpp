@@ -145,6 +145,7 @@ void SingleFileStorageManager::LoadDatabase() {
 	// initialize the WAL file
 	if (!read_only) {
 		wal = make_unique<WriteAheadLog>(db, wal_path);
+		std::cout << "[SingleFileStorageManager] create wal success" << std::endl;
 		if (truncate_wal) {
 			wal->Truncate(0);
 		}
@@ -231,6 +232,7 @@ void SingleFileStorageManager::CreateCheckpoint(bool delete_wal, bool force_chec
 		SingleFileCheckpointWriter checkpointer(db, *block_manager);
 		checkpointer.CreateCheckpoint();
 	}
+	std::cout << "[CreateCheckpoint] delete_wal: " << delete_wal << std::endl;
 	if (delete_wal) {
 		wal->Delete();
 		wal.reset();

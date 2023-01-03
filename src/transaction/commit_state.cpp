@@ -214,7 +214,6 @@ void CommitState::WriteUpdate(UpdateInfo *info) {
 
 template <bool HAS_LOG>
 void CommitState::CommitEntry(UndoFlags type, data_ptr_t data) {
-	std::cout << "[CommitState] UndoFlags: " << int32_t(type) << std::endl;
 	switch (type) {
 	case UndoFlags::CATALOG_ENTRY: {
 		// set the commit timestamp of the catalog entry to the given id
