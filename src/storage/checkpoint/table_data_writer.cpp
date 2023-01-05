@@ -4,7 +4,7 @@
 #include "duckdb/common/vector_operations/vector_operations.hpp"
 #include "duckdb/common/serializer/buffered_serializer.hpp"
 #include "duckdb/storage/table/column_checkpoint_state.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 TableDataWriter::TableDataWriter(TableCatalogEntry &table) : table(table) {

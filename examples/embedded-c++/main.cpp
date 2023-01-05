@@ -1,9 +1,12 @@
 #include "duckdb.hpp"
+#include "duckdb/storage/buffer_manager.hpp"
+#include "duckdb/storage/meta_block_reader.hpp"
+#include "duckdb/storage/single_file_block_manager.hpp"
 
-#include <execinfo.h>
-#include <stdio.h>
-#include <iostream>
 #include <chrono>
+#include <execinfo.h>
+#include <iostream>
+#include <stdio.h>
 
 using namespace duckdb;
 
@@ -113,8 +116,8 @@ void persistent_example() {
 	DuckDB db("persistent_example", &config);
 	Connection conn(db);
 
-	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
-	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+//	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+//	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 }
 
 void lineitem_example() {
@@ -131,11 +134,34 @@ void lineitem_example() {
 	result->Print();
 
 	std::cout << "time consumes(ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+
+}
+
+void storage_example() {
+	DBConfig config{};
+	DuckDB db("lineitem", &config);
+//	auto& blockManager = BlockManager::GetBlockManager(*db.instance);
+	SingleFileBlockManager blockManager{*db.instance, "lineitem", true, false, false};
+	// schema meta_block
+	auto meta_block_id = blockManager.GetMetaBlock();
+	auto free_block_id = blockManager.GetFreeBlockId();
+	std::cout << "meta_block_id: " << meta_block_id << ", free_block_id: " << free_block_id << std::endl;
+	std::cout << "is_root_block: " << blockManager.IsRootBlock(meta_block_id) << std::endl;
+	std::cout << "total_blocks: " << blockManager.TotalBlocks() << std::endl;
+	auto block = blockManager.RegisterBlock(meta_block_id);
+	auto handle = blockManager.buffer_manager.Pin(block);
+	auto next_block_id = Load<block_id_t>(handle.Ptr());
+	std::cout << "next_block_id: " << next_block_id << std::endl;
+	MetaBlockReader reader(blockManager, meta_block_id);
+	auto schema_count = reader.Read<uint32_t>();
+	std::cout << "schema_count: " << schema_count << std::endl;
+
 }
 
 int main() {
 
-	persistent_example();
+	storage_example();
+//	persistent_example();
 //	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);

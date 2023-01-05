@@ -60,6 +60,7 @@ void DatabaseHeader::Serialize(Serializer &ser) {
 	ser.Write<block_id_t>(meta_block);
 	ser.Write<block_id_t>(free_list);
 	ser.Write<uint64_t>(block_count);
+	std::cout << "[DatabaseHeader::Serialize] block_count: " << block_count << ", meta_block " << meta_block << std::endl;
 }
 
 DatabaseHeader DatabaseHeader::Deserialize(Deserializer &source) {
@@ -169,8 +170,12 @@ SingleFileBlockManager::SingleFileBlockManager(DatabaseInstance &db, string path
 		DatabaseHeader h1, h2;
 		header_buffer.ReadAndChecksum(*handle, Storage::FILE_HEADER_SIZE);
 		h1 = DeserializeHeaderStructure<DatabaseHeader>(header_buffer.buffer);
+		std::cout << "[SingleFileBlockManager] DatabaseHeader h1 block_count: " << h1.block_count << ", meta_block: "
+		          << h1.meta_block << ", iteration: " << h1.iteration << std::endl;
 		header_buffer.ReadAndChecksum(*handle, Storage::FILE_HEADER_SIZE * 2);
 		h2 = DeserializeHeaderStructure<DatabaseHeader>(header_buffer.buffer);
+		std::cout << "[SingleFileBlockManager] DatabaseHeader h2 block_count: " << h2.block_count << ", meta_block: "
+				  << h2.meta_block << ", iteration: " << h2.iteration << std::endl;
 		// check the header with the highest iteration count
 		if (h1.iteration > h2.iteration) {
 			// h1 is active header
