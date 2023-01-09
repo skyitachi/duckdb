@@ -31,6 +31,10 @@ public:
 		return *this;
 	}
 
+	bool locked() {
+		return lock.owns_lock();
+	}
+
 private:
 	unique_lock<mutex> lock;
 };

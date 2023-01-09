@@ -49,6 +49,8 @@ void RowGroupCollection::InitializeEmpty() {
 	stats.InitializeEmpty(types);
 }
 
+// TODO: what's meaning of Segment
+//  what's the usage of SegmentLock: just assume have acquired lock here
 void RowGroupCollection::AppendRowGroup(SegmentLock &l, idx_t start_row) {
 	D_ASSERT(start_row >= row_start);
 	auto new_row_group = make_unique<RowGroup>(info->db, block_manager, *info, start_row, 0);

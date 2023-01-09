@@ -404,6 +404,7 @@ unique_ptr<ColumnCheckpointState> ColumnData::Checkpoint(RowGroup &row_group,
 	return checkpoint_state;
 }
 
+// NOTE: DataPointer指向block的format (相当于Column 的存储格式)
 void ColumnData::DeserializeColumn(Deserializer &source) {
 	// load the data pointers for the column
 	idx_t data_pointer_count = source.Read<idx_t>();

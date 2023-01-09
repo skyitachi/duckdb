@@ -108,6 +108,7 @@ unique_ptr<FileBuffer> BufferManager::ConstructManagedBuffer(idx_t size, unique_
 	}
 }
 
+// NOTE: 真正读Block的地方
 BufferHandle BlockHandle::Load(shared_ptr<BlockHandle> &handle, unique_ptr<FileBuffer> reusable_buffer) {
 	if (handle->state == BlockState::BLOCK_LOADED) {
 		// already loaded

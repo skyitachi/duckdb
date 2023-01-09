@@ -1,5 +1,6 @@
 #include "duckdb.hpp"
 #include "duckdb/storage/buffer_manager.hpp"
+#include "duckdb/storage/checkpoint_manager.hpp"
 #include "duckdb/storage/meta_block_reader.hpp"
 #include "duckdb/storage/single_file_block_manager.hpp"
 
@@ -116,8 +117,8 @@ void persistent_example() {
 	DuckDB db("persistent_example", &config);
 	Connection conn(db);
 
-//	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
-//	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 }
 
 void lineitem_example() {
@@ -156,12 +157,13 @@ void storage_example() {
 	auto schema_count = reader.Read<uint32_t>();
 	std::cout << "schema_count: " << schema_count << std::endl;
 
+//	SingleFileCheckpointReader cp_reader(blockManager);
 }
 
 int main() {
 
-	storage_example();
-//	persistent_example();
+//	storage_example();
+	persistent_example();
 //	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);

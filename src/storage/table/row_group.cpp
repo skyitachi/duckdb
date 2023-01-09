@@ -718,6 +718,7 @@ RowGroupPointer RowGroup::Checkpoint(RowGroupWriter &writer, vector<unique_ptr<B
 	for (idx_t column_idx = 0; column_idx < columns.size(); column_idx++) {
 		compression_types.push_back(writer.GetColumnCompressionType(column_idx));
 	}
+	// NOTE: 这里是写入ColumnData
 	auto result = WriteToDisk(writer.GetPartialBlockManager(), compression_types);
 	for (idx_t column_idx = 0; column_idx < columns.size(); column_idx++) {
 		global_stats[column_idx]->Merge(*result.statistics[column_idx]);

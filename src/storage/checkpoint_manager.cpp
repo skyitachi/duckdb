@@ -242,6 +242,7 @@ void CheckpointWriter::WriteSchema(SchemaCatalogEntry &schema) {
 	}
 }
 
+// TODO: ReadSchema here
 void CheckpointReader::ReadSchema(ClientContext &context, MetaBlockReader &reader) {
 	auto &catalog = Catalog::GetCatalog(context);
 
