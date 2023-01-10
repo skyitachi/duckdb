@@ -22,6 +22,7 @@ class WriteAheadLog;
 class UndoBuffer {
 public:
 	struct IteratorState {
+		// NOTE: 实际的data吗
 		ArenaChunk *current;
 		data_ptr_t start;
 		data_ptr_t end;

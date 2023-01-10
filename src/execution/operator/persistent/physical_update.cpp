@@ -52,6 +52,7 @@ public:
 	}
 
 	DataChunk update_chunk;
+	// NOTE: what's mock chunk
 	DataChunk mock_chunk;
 	ExpressionExecutor default_executor;
 };

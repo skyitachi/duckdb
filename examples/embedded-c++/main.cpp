@@ -8,6 +8,7 @@
 #include <execinfo.h>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 
 using namespace duckdb;
 
@@ -118,6 +119,7 @@ void persistent_example() {
 	Connection conn(db);
 
 	conn.Query("CREATE TABLE IF NOT EXISTS actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+
 	conn.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 }
 
@@ -135,6 +137,46 @@ void lineitem_example() {
 	result->Print();
 
 	std::cout << "time consumes(ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+
+}
+
+void transaction_example() {
+	DBConfig config{};
+	DuckDB db("transaction_example", &config);
+
+	// prepare data;
+	Connection conn(db);
+
+	conn.Query("CREATE TABLE IF NOT EXISTS ball(ball_id INTEGER, color VARCHAR)");
+	conn.Query("INSERT INTO ball VALUES (1, 'black'), (2, 'white')");
+
+	std::thread t1([&]{
+		Connection conn(db);
+		conn.BeginTransaction();
+	  	conn.SetAutoCommit(false);
+		conn.Query("update ball set color = 'black' where color = 'white'");
+	  	std::this_thread::sleep_for(std::chrono::seconds(2));
+	  	conn.Commit();
+	});
+
+	std::thread t2([&]{
+	  Connection conn(db);
+	  std::this_thread::sleep_for(std::chrono::seconds(1));
+	  conn.BeginTransaction();
+	  conn.SetAutoCommit(false);
+	  conn.Query("update ball set color = 'white' where color = 'black'");
+	  conn.Commit();
+	});
+
+	t1.join();
+	t2.join();
+
+	conn.BeginTransaction();
+	conn.SetAutoCommit(false);
+	auto result = conn.Query("select * from ball");
+	std::cout << "main thread result: " << std::endl << result->ToString();
+	conn.Commit();
+
 
 }
 
@@ -162,8 +204,9 @@ void storage_example() {
 
 int main() {
 
+	transaction_example();
 //	storage_example();
-	persistent_example();
+//	persistent_example();
 //	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);
