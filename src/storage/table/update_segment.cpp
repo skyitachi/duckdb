@@ -1097,6 +1097,7 @@ void UpdateSegment::Update(TransactionData transaction, idx_t column_index, Vect
 	// first check the version chain
 	UpdateInfo *node = nullptr;
 
+	// NOTE: key of mvcc
 	if (root->info[vector_index]) {
 		// there is already a version here, check if there are any conflicts and search for the node that belongs to
 		// this transaction in the version chain

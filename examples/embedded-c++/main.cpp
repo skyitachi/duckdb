@@ -202,9 +202,44 @@ void storage_example() {
 //	SingleFileCheckpointReader cp_reader(blockManager);
 }
 
-int main() {
 
-	transaction_example();
+void update_transaction_example() {
+	DBConfig config{};
+	DuckDB db("transaction_example", &config);
+
+	// prepare data;
+	Connection conn(db);
+
+	conn.Query("CREATE TABLE IF NOT EXISTS ball(ball_id INTEGER, color VARCHAR)");
+	conn.Query("INSERT INTO ball VALUES (1, 'black'), (2, 'white')");
+
+
+	std::thread t1([&]{
+	  Connection conn(db);
+	  conn.BeginTransaction();
+	  conn.SetAutoCommit(false);
+	  auto result = conn.Query("update ball set color = 'yellow' where ball_id = 1");
+	  std::this_thread::sleep_for(std::chrono::seconds(2));
+	  conn.Commit();
+	  std::cout << "t1 results: " << result->ToString();
+	});
+
+	std::thread t2([&]{
+	  Connection conn(db);
+	  std::this_thread::sleep_for(std::chrono::seconds(1));
+	  conn.BeginTransaction();
+	  conn.SetAutoCommit(false);
+	  auto result = conn.Query("update ball set color = 'white' where ball_id = 1");
+	  conn.Commit();
+	  std::cout << "t2 results: " << result->ToString();
+	});
+
+	t1.join();
+	t2.join();
+}
+int main() {
+	update_transaction_example();
+//	transaction_example();
 //	storage_example();
 //	persistent_example();
 //	lineitem_example();
