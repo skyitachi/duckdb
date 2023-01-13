@@ -1,4 +1,5 @@
 #include "duckdb.hpp"
+#include "duckdb/common/local_file_system.hpp"
 #include "duckdb/storage/buffer_manager.hpp"
 #include "duckdb/storage/checkpoint_manager.hpp"
 #include "duckdb/storage/meta_block_reader.hpp"
@@ -203,6 +204,7 @@ void storage_example() {
 }
 
 
+// ww conflict
 void update_transaction_example() {
 	DBConfig config{};
 	DuckDB db("transaction_example", &config);
@@ -212,7 +214,6 @@ void update_transaction_example() {
 
 	conn.Query("CREATE TABLE IF NOT EXISTS ball(ball_id INTEGER, color VARCHAR)");
 	conn.Query("INSERT INTO ball VALUES (1, 'black'), (2, 'white')");
-
 
 	std::thread t1([&]{
 	  Connection conn(db);
@@ -237,8 +238,50 @@ void update_transaction_example() {
 	t1.join();
 	t2.join();
 }
+
+// rw conflict
+void rw_transaction_example() {
+	DBConfig config{};
+	DuckDB db("transaction_example", &config);
+
+	// prepare data;
+	Connection conn(db);
+
+	conn.Query("CREATE TABLE IF NOT EXISTS ball(ball_id INTEGER, color VARCHAR)");
+	conn.Query("INSERT INTO ball VALUES (1, 'black'), (2, 'white')");
+
+	std::thread t1([&]{
+	  Connection conn(db);
+	  conn.BeginTransaction();
+	  conn.SetAutoCommit(false);
+	  std::this_thread::sleep_for(std::chrono::seconds(2));
+	  auto result = conn.Query("select * from ball where ball_id = 1");
+	  conn.Commit();
+	  std::cout << "t1 results: " << result->ToString();
+	});
+
+	std::thread t2([&]{
+	  Connection conn(db);
+	  std::this_thread::sleep_for(std::chrono::seconds(1));
+	  conn.BeginTransaction();
+	  conn.SetAutoCommit(false);
+	  conn.Query("update ball set color = 'white' where ball_id = 1");
+	  auto result = conn.Query("select * from ball where ball_id = 1");
+	  conn.Commit();
+	  std::cout << "t2 results: " << result->ToString();
+	});
+
+	t1.join();
+	t2.join();
+
+	LocalFileSystem fs;
+	fs.RemoveFile("transaction_example");
+
+}
+
 int main() {
-	update_transaction_example();
+	rw_transaction_example();
+//	update_transaction_example();
 //	transaction_example();
 //	storage_example();
 //	persistent_example();
