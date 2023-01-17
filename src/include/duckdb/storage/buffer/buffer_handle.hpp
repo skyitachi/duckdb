@@ -46,6 +46,7 @@ private:
 	//! The block handle
 	shared_ptr<BlockHandle> handle;
 	//! The managed buffer node
+	// TODO: 这里为什么不用智能指针
 	FileBuffer *node;
 };
 

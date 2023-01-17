@@ -273,6 +273,7 @@ bool RowGroupCollection::Append(DataChunk &chunk, TableAppendState &state) {
 	idx_t remaining = chunk.size();
 	state.total_append_count += append_count;
 	while (true) {
+		// 线程独占的RowGroup
 		auto current_row_group = state.row_group_append_state.row_group;
 		// check how much we can fit into the current row_group
 		idx_t append_count =

@@ -135,6 +135,7 @@ void ColumnSegment::Resize(idx_t new_size) {
 	this->block_id = new_block->BlockId();
 	this->block = move(new_block);
 	this->segment_size = new_size;
+	// old handle 没有unpin
 }
 
 void ColumnSegment::InitializeAppend(ColumnAppendState &state) {

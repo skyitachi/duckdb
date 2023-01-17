@@ -345,7 +345,7 @@ int main() {
 //	update_transaction_example();
 //	transaction_example();
 //	storage_example();
-//	persistent_example();
+	persistent_example();
 //	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);

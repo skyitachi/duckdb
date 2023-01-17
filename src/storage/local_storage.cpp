@@ -419,6 +419,7 @@ void LocalStorage::Append(LocalAppendState &state, DataChunk &chunk) {
 	// append to unique indices (if any)
 	auto storage = state.storage;
 	idx_t base_id = MAX_ROW_ID + storage->row_groups->GetTotalRows();
+	std::cout << "max_row_id: " << MAX_ROW_ID << ", base_id: " << base_id << ", total_rows: " << storage->row_groups->GetTotalRows() << std::endl;
 	if (!DataTable::AppendToIndexes(storage->indexes, chunk, base_id)) {
 		throw ConstraintException("PRIMARY KEY or UNIQUE constraint violated: duplicated key");
 	}
