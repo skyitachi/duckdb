@@ -1,16 +1,16 @@
 
-#include "duckdb/storage/table/column_data.hpp"
-
-#include "duckdb/storage/table/column_segment.hpp"
-#include "duckdb/storage/checkpoint/write_overflow_strings_to_disk.hpp"
-#include "duckdb/storage/table/validity_column_data.hpp"
-#include "duckdb/storage/table/standard_column_data.hpp"
-#include "duckdb/storage/table/list_column_data.hpp"
-#include "duckdb/transaction/transaction.hpp"
-#include "duckdb/storage/table/row_group.hpp"
-#include "duckdb/storage/checkpoint/table_data_writer.hpp"
-
+#include "duckdb/common/local_file_system.hpp"
 #include "duckdb/main/config.hpp"
+#include "duckdb/storage/checkpoint/table_data_writer.hpp"
+#include "duckdb/storage/checkpoint/write_overflow_strings_to_disk.hpp"
+#include "duckdb/storage/table/column_data.hpp"
+#include "duckdb/storage/table/column_segment.hpp"
+#include "duckdb/storage/table/list_column_data.hpp"
+#include "duckdb/storage/table/row_group.hpp"
+#include "duckdb/storage/table/standard_column_data.hpp"
+#include "duckdb/storage/table/validity_column_data.hpp"
+#include "duckdb/transaction/transaction.hpp"
+
 #include <iostream>
 namespace duckdb {
 
@@ -89,7 +89,6 @@ public:
 };
 
 void ColumnCheckpointState::FlushSegment(unique_ptr<ColumnSegment> segment, idx_t segment_size) {
-	std::cout << "[ColumnCheckpointState] FlushSegment: segment_size=" << segment_size << std::endl;
 	D_ASSERT(segment_size <= Storage::BLOCK_SIZE);
 	auto tuple_count = segment->count.load();
 	if (tuple_count == 0) { // LCOV_EXCL_START

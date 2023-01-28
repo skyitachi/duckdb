@@ -94,6 +94,64 @@ void count_example(Connection& conn) {
 	plan->Print();
 
 	conn.Query(sql);
+}
+
+void bulk_load() {
+	DBConfig config{};
+	DuckDB db("bulk_load_example", &config);
+	Connection con(db);
+
+	LocalFileSystem fs;
+	if (fs.FileExists("bulk_load_example")) {
+		fs.RemoveFile("bulk_load_example");
+	}
+
+	con.Query("CREATE TABLE lineitem AS SELECT * FROM read_parquet('lineitem.parquet')");
+//	auto result = con.ExtractPlan("CREATE TABLE lineitem AS SELECT * FROM read_parquet('lineitem.parquet')");
+//	result->Print();
+}
+
+void bulk_load_rollback() {
+  LocalFileSystem fs;
+  if (fs.FileExists("bulk_load_example")) {
+    fs.RemoveFile("bulk_load_example");
+  }
+
+	DBConfig config{};
+	DuckDB db("bulk_load_example", &config);
+
+
+	Connection conn(db);
+	conn.BeginTransaction();
+	conn.SetAutoCommit(false);
+	conn.Query("CREATE TABLE lineitem AS SELECT * FROM read_parquet('lineitem.parquet')");
+
+  std::this_thread::sleep_for(std::chrono::minutes(2));
+	conn.Rollback();
+}
+
+void small_bulk_load() {
+	DBConfig config{};
+	DuckDB db("small_bulk_load_example", &config);
+	Connection con(db);
+
+	con.Query("CREATE TABLE lineitem AS SELECT * FROM read_parquet('lineitem_10000.parquet')");
+}
+
+void scan_example() {
+	DBConfig config{};
+	DuckDB db("scan_example", &config);
+	Connection con(db);
+
+	con.Query("CREATE TABLE integers(i INTEGER)");
+	con.Query("INSERT INTO integers VALUES (3)");
+	con.Query("INSERT INTO integers VALUES (5)");
+	con.Query("CREATE TABLE actor(actor_id INTEGER, first_name VARCHAR, last_name VARCHAR)");
+	con.Query("CREATE TABLE film_actor(actor_id INTEGER, film_id INTEGER)");
+	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
+	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
+
+	con.Query("select * from file_actor");
 
 }
 
@@ -154,10 +212,10 @@ void transaction_example() {
 	std::thread t1([&]{
 		Connection conn(db);
 		conn.BeginTransaction();
-	  	conn.SetAutoCommit(false);
+    conn.SetAutoCommit(false);
 		conn.Query("update ball set color = 'black' where color = 'white'");
-	  	std::this_thread::sleep_for(std::chrono::seconds(2));
-	  	conn.Commit();
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    conn.Commit();
 	});
 
 	std::thread t2([&]{
@@ -280,7 +338,10 @@ void rw_transaction_example() {
 }
 
 int main() {
-	rw_transaction_example();
+	bulk_load_rollback();
+//	bulk_load();
+//	scan_example();
+//	rw_transaction_example();
 //	update_transaction_example();
 //	transaction_example();
 //	storage_example();
@@ -300,7 +361,6 @@ int main() {
 //	con.Query("INSERT INTO actor VALUES (1, 'PENELOPE', 'GUINESS'), (2, 'NICK', 'WAHLBERG')");
 //	con.Query("INSERT INTO film_actor VALUES (1, 1), (2, 2), (3, 3)");
 //
-//	count_example(con);
 //	//	datachunk_example(con);
 //	pending_query_example(con);
 //	{

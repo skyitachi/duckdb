@@ -1,16 +1,17 @@
 #include "duckdb/transaction/local_storage.hpp"
-#include "duckdb/execution/index/art/art.hpp"
-#include "duckdb/storage/table/append_state.hpp"
-#include "duckdb/storage/write_ahead_log.hpp"
+
+#include "duckdb/common/local_file_system.hpp"
 #include "duckdb/common/vector_operations/vector_operations.hpp"
-#include "duckdb/storage/table/row_group.hpp"
-#include "duckdb/transaction/transaction.hpp"
+#include "duckdb/execution/index/art/art.hpp"
 #include "duckdb/planner/table_filter.hpp"
 #include "duckdb/storage/partial_block_manager.hpp"
-
+#include "duckdb/storage/table/append_state.hpp"
 #include "duckdb/storage/table/column_checkpoint_state.hpp"
 #include "duckdb/storage/table/column_segment.hpp"
+#include "duckdb/storage/table/row_group.hpp"
 #include "duckdb/storage/table_io_manager.hpp"
+#include "duckdb/storage/write_ahead_log.hpp"
+#include "duckdb/transaction/transaction.hpp"
 
 namespace duckdb {
 
@@ -60,6 +61,19 @@ void OptimisticDataWriter::FlushToDisk(RowGroup *row_group) {
 	//! The set of column compression types (if any)
 	vector<CompressionType> compression_types;
 	D_ASSERT(compression_types.empty());
+
+	auto tid = std::this_thread::get_id();
+  {
+    std::cout << "[OptimisticDataWriter.FlushToDisk] thread_id: " << tid << std::endl;
+    LocalFileSystem fs;
+    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
+    if (fh) {
+      auto sz = fs.GetFileSize(*fh.get());
+
+      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << " before flush file size: " << sz << std::endl;
+    }
+  }
+
 	for (auto &column : table->column_definitions) {
 		compression_types.push_back(column.CompressionType());
 	}
@@ -69,6 +83,16 @@ void OptimisticDataWriter::FlushToDisk(RowGroup *row_group) {
 	for (idx_t col_idx = 0; col_idx < row_group_pointer.statistics.size(); col_idx++) {
 		row_group_pointer.states[col_idx]->GetBlockIds(written_blocks);
 	}
+
+  {
+    LocalFileSystem fs;
+    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
+	  if (fh) {
+      auto sz = fs.GetFileSize(*fh.get());
+      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << ", after flush file size: " << sz << std::endl;
+	  }
+  }
+
 }
 
 void OptimisticDataWriter::FlushToDisk(RowGroupCollection &row_groups, bool force) {

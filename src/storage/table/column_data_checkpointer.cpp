@@ -186,7 +186,9 @@ void ColumnDataCheckpointer::WriteToDisk() {
 	auto best_function = compression_functions[compression_idx];
 	auto compress_state = best_function->init_compression(*this, move(analyze_state));
 	ScanSegments(
-	    [&](Vector &scan_vector, idx_t count) { best_function->compress(*compress_state, scan_vector, count); });
+	    [&](Vector &scan_vector, idx_t count) {
+		    best_function->compress(*compress_state, scan_vector, count);
+	    });
 	best_function->compress_finalize(*compress_state);
 
 	nodes.clear();
