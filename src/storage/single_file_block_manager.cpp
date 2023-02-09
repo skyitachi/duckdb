@@ -395,6 +395,7 @@ void SingleFileBlockManager::WriteHeader(DatabaseHeader header) {
 		}
 
 		// NOTE: 这是默认只有不超一个block数量的free_list, include modified_blocks
+		// NOTE: MetaBlockWriter WriteData方法相当于会把多余的数据写到新的block上，所以其实这里隐藏了多余block的分配方法
 		writer.Write<uint64_t>(free_list.size());
 		for (auto &block_id : free_list) {
 			writer.Write<block_id_t>(block_id);
