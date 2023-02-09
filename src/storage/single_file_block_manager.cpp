@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 
 namespace duckdb {
 
@@ -389,18 +390,22 @@ void SingleFileBlockManager::WriteHeader(DatabaseHeader header) {
 		D_ASSERT(ptr.block_id == free_list_blocks[0]);
 		header.free_list = ptr.block_id;
 		for (auto &block_id : free_list_blocks) {
+			// NOTE: 为什么不直接写到文件里呢
 			modified_blocks.insert(block_id);
 		}
 
+		// NOTE: 这是默认只有不超一个block数量的free_list, include modified_blocks
 		writer.Write<uint64_t>(free_list.size());
 		for (auto &block_id : free_list) {
 			writer.Write<block_id_t>(block_id);
 		}
+		// NOTE: 这个为什么要写到free_list里呢
 		writer.Write<uint64_t>(multi_use_blocks.size());
 		for (auto &entry : multi_use_blocks) {
 			writer.Write<block_id_t>(entry.first);
 			writer.Write<uint32_t>(entry.second);
 		}
+		// NOTE: 这个也是会写到磁盘的
 		writer.Flush();
 	} else {
 		// no blocks in the free list
@@ -423,6 +428,7 @@ void SingleFileBlockManager::WriteHeader(DatabaseHeader header) {
 	Store<DatabaseHeader>(header, header_buffer.buffer);
 	// now write the header to the file, active_header determines whether we write to h1 or h2
 	// note that if active_header is h1 we write to h2, and vice versa
+	// 这个是会写到磁盘的
 	header_buffer.ChecksumAndWrite(*handle,
 	                               active_header == 1 ? Storage::FILE_HEADER_SIZE : Storage::FILE_HEADER_SIZE * 2);
 	// switch active header to the other header
