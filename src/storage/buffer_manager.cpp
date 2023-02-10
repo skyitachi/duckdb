@@ -339,6 +339,7 @@ shared_ptr<BlockHandle> BufferManager::RegisterMemory(idx_t block_size, bool can
 
 BufferHandle BufferManager::Allocate(idx_t block_size) {
 	auto block = RegisterMemory(block_size, true);
+	// 这里block的state一定是BLOCK_LOADED
 	return Pin(block);
 }
 

@@ -62,6 +62,7 @@ void MetaBlockWriter::WriteData(const_data_ptr_t buffer, idx_t write_size) {
 		// now we need to get a new block id
 		block_id_t new_block_id = GetNextBlockId();
 		// write the block id of the new block to the start of the current block
+		// NOTE: too important
 		Store<block_id_t>(new_block_id, block->buffer);
 		// first flush the old block
 		AdvanceBlock();
