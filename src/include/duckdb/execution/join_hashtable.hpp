@@ -233,6 +233,7 @@ private:
 	mutex pinned_handles_lock;
 	vector<BufferHandle> pinned_handles;
 	//! The hash map of the HT, created after finalization
+	// for store pointers
 	BufferHandle hash_map;
 	//! Whether or not NULL values are considered equal in each of the comparisons
 	vector<bool> null_values_are_equal;
