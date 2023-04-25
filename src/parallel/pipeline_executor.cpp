@@ -45,12 +45,12 @@ bool PipelineExecutor::Execute(idx_t max_chunks) {
 	std::cout << "[PipelineExecutor]: pipe name:\n" << pipeline.ToString()
 	          << ", source operator: \n" << source->ToString() << ", sink operator: \n" << pipeline.sink->ToString() << std::endl;
 
-	std::cout << "[PipelineExecutor]: middle operators size: " << pipeline.operators.size() << std::endl;
-	for (auto* op: pipeline.GetOperators()) {
-		if (op != source && op != pipeline.sink) {
-			std::cout << "middle operator: \n" << op->ToString();
-		}
-	}
+//	std::cout << "[PipelineExecutor]: middle operators size: " << pipeline.operators.size() << std::endl;
+//	for (auto* op: pipeline.GetOperators()) {
+//		if (op != source && op != pipeline.sink) {
+//			std::cout << "middle operator: \n" << op->ToString();
+//		}
+//	}
 
 	for (idx_t i = 0; i < max_chunks; i++) {
 		if (IsFinished()) {

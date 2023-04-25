@@ -317,8 +317,8 @@ template <TableScanType TYPE>
 void RowGroup::TemplatedScan(TransactionData transaction, RowGroupScanState &state, DataChunk &result) {
 	const bool ALLOW_UPDATES = TYPE != TableScanType::TABLE_SCAN_COMMITTED_ROWS_DISALLOW_UPDATES &&
 	                           TYPE != TableScanType::TABLE_SCAN_COMMITTED_ROWS_OMIT_PERMANENTLY_DELETED;
-	std::cout << "[TemplateScan] transaction_id: " << transaction.transaction_id
-	          << ", scan_type: " << (int32_t)TYPE << std::endl;
+//	std::cout << "[TemplateScan] transaction_id: " << transaction.transaction_id
+//	          << ", scan_type: " << (int32_t)TYPE << std::endl;
 	auto table_filters = state.GetFilters();
 	auto &column_ids = state.GetColumnIds();
 	auto adaptive_filter = state.GetAdaptiveFilter();

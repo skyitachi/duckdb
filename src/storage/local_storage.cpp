@@ -62,17 +62,17 @@ void OptimisticDataWriter::FlushToDisk(RowGroup *row_group) {
 	vector<CompressionType> compression_types;
 	D_ASSERT(compression_types.empty());
 
-	auto tid = std::this_thread::get_id();
-  {
-    std::cout << "[OptimisticDataWriter.FlushToDisk] thread_id: " << tid << std::endl;
-    LocalFileSystem fs;
-    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
-    if (fh) {
-      auto sz = fs.GetFileSize(*fh.get());
-
-      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << " before flush file size: " << sz << std::endl;
-    }
-  }
+//	auto tid = std::this_thread::get_id();
+//  {
+//    std::cout << "[OptimisticDataWriter.FlushToDisk] thread_id: " << tid << std::endl;
+//    LocalFileSystem fs;
+//    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
+//    if (fh) {
+//      auto sz = fs.GetFileSize(*fh.get());
+//
+//      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << " before flush file size: " << sz << std::endl;
+//    }
+//  }
 
 	for (auto &column : table->column_definitions) {
 		compression_types.push_back(column.CompressionType());
@@ -84,14 +84,14 @@ void OptimisticDataWriter::FlushToDisk(RowGroup *row_group) {
 		row_group_pointer.states[col_idx]->GetBlockIds(written_blocks);
 	}
 
-  {
-    LocalFileSystem fs;
-    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
-	  if (fh) {
-      auto sz = fs.GetFileSize(*fh.get());
-      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << ", after flush file size: " << sz << std::endl;
-	  }
-  }
+//  {
+//    LocalFileSystem fs;
+//    auto fh = fs.OpenFile("bulk_load_example", FileFlags::FILE_FLAGS_READ);
+//	  if (fh) {
+//      auto sz = fs.GetFileSize(*fh.get());
+//      std::cout << "[OptimisticDataWriter.FlushToDisk] tid= " << tid << ", after flush file size: " << sz << std::endl;
+//	  }
+//  }
 
 }
 

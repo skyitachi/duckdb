@@ -306,8 +306,7 @@ DependencyException::DependencyException(const string &msg) : Exception(Exceptio
 BinderException::BinderException(const string &msg) : StandardException(ExceptionType::BINDER, msg) {
 }
 
-IOException::IOException(const string &msg) : Exception(ExceptionType::IO, msg) {
-}
+
 
 SerializationException::SerializationException(const string &msg) : Exception(ExceptionType::SERIALIZATION, msg) {
 }

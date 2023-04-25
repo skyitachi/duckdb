@@ -138,8 +138,8 @@ idx_t ColumnData::ScanVector(ColumnScanState &state, Vector &result, idx_t remai
 template <bool SCAN_COMMITTED, bool ALLOW_UPDATES>
 idx_t ColumnData::ScanVector(TransactionData transaction, idx_t vector_index, ColumnScanState &state, Vector &result) {
 	auto scan_count = ScanVector(state, result, STANDARD_VECTOR_SIZE);
-	std::cout << "[ScanVector] tid= " << transaction.transaction_id << ", scan_committed = "
-	          << SCAN_COMMITTED << ", allow_updates = " << ALLOW_UPDATES << std::endl;
+//	std::cout << "[ScanVector] tid= " << transaction.transaction_id << ", scan_committed = "
+//	          << SCAN_COMMITTED << ", allow_updates = " << ALLOW_UPDATES << std::endl;
 	lock_guard<mutex> update_guard(update_lock);
 	if (updates) {
 		if (!ALLOW_UPDATES && updates->HasUncommittedUpdates(vector_index)) {

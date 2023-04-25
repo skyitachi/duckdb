@@ -189,7 +189,8 @@ SinkResultType PhysicalHashJoin::Sink(ExecutionContext &context, GlobalSinkState
                                       DataChunk &input) const {
 	auto &gstate = (HashJoinGlobalSinkState &)gstate_p;
 	auto &lstate = (HashJoinLocalSinkState &)lstate_p;
-	std::cout << "[PhysicalHashJoin] sink called: input chunk size: " << input.size() << std::endl;
+//	auto tid = std::this_thread::get_id();
+//	std::cout << "[PhysicalHashJoin] [tid=" << tid << "] sink called: input chunk size: " << input.size() << std::endl;
 
 	// resolve the join keys for the right chunk
 	lstate.join_keys.Reset();
@@ -461,7 +462,7 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 	D_ASSERT(!sink.scanned_data);
 
 
-	std::cout << "[PhysicalHashJoin] ExecuteInternal" << std::endl;
+//	std::cout << "[PhysicalHashJoin] ExecuteInternal" << std::endl;
 	// some initialization for external hash join
 	if (sink.external && !state.initialized) {
 		if (!sink.probe_spill) {
@@ -507,8 +508,9 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 		state.scan_structure = sink.hash_table->ProbeAndSpill(state.join_keys, input, *sink.probe_spill,
 		                                                      state.spill_state, state.spill_chunk);
 	} else {
-		std::cout << "[PhysicalHashJoin] ExecuteInternal probe: join_keys size: "
-		          << state.join_keys.size() << std::endl;
+//		auto tid = std::this_thread::get_id();
+//		std::cout << "[PhysicalHashJoin] [tid= " << tid <<  "] ExecuteInternal probe: join_keys size: "
+//		          << state.join_keys.size() << std::endl;
 		state.scan_structure = sink.hash_table->Probe(state.join_keys);
 	}
 	state.scan_structure->Next(state.join_keys, input, chunk);
@@ -864,7 +866,6 @@ void PhysicalHashJoin::GetData(ExecutionContext &context, DataChunk &chunk, Glob
 	auto &lstate = (HashJoinLocalSourceState &)lstate_p;
 	sink.scanned_data = true;
 
-	std::cout << "[PhysicalHashJoin] GetData called" << std::endl;
 	if (!sink.external) {
 		if (IsRightOuterJoin(join_type)) {
 			{
