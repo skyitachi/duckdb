@@ -338,15 +338,15 @@ void rw_transaction_example() {
 }
 
 int main() {
-	bulk_load_rollback();
+//	bulk_load_rollback();
 //	bulk_load();
 //	scan_example();
 //	rw_transaction_example();
 //	update_transaction_example();
 //	transaction_example();
 //	storage_example();
-	persistent_example();
-//	lineitem_example();
+//	persistent_example();
+	lineitem_example();
 //	DBConfig config{};
 //	DuckDB db(nullptr);
 //
