@@ -17,6 +17,8 @@
 
 #include <algorithm>
 
+#include <iostream>
+
 namespace duckdb {
 
 Executor::Executor(ClientContext &context) : context(context) {
@@ -180,6 +182,7 @@ void Executor::ScheduleEventsInternal(ScheduleEventData &event_data) {
 }
 
 void Executor::ScheduleEvents(const vector<shared_ptr<MetaPipeline>> &meta_pipelines) {
+	std::cout << "meta pipeline size: " << meta_pipelines.size() << std::endl;
 	ScheduleEventData event_data(meta_pipelines, events, true);
 	ScheduleEventsInternal(event_data);
 }

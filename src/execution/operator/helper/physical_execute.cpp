@@ -18,3 +18,4 @@ void PhysicalExecute::BuildPipelines(Pipeline &current, MetaPipeline &meta_pipel
 }
 
 } // namespace duckdb
+

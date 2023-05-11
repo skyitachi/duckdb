@@ -342,3 +342,5 @@ zig-cache/*
 
 # .db files
 *.db
+
+.calltree.*

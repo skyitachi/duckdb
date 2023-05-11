@@ -8,6 +8,7 @@
 #include "duckdb/parallel/meta_pipeline.hpp"
 #include "duckdb/parallel/pipeline.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 PhysicalResultCollector::PhysicalResultCollector(PreparedStatementData &data)
@@ -47,6 +48,8 @@ void PhysicalResultCollector::BuildPipelines(Pipeline &current, MetaPipeline &me
 
 	// we create a new pipeline starting from the child
 	auto &child_meta_pipeline = meta_pipeline.CreateChildMetaPipeline(current, *this);
+	// TODO: check result collector how to build table scan
+	std::cout << "physical operator name: " << plan.GetName() << std::endl;
 	child_meta_pipeline.Build(plan);
 }
 
