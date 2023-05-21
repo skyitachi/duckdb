@@ -152,6 +152,7 @@ void Executor::ScheduleEventsInternal(ScheduleEventData &event_data) {
 	D_ASSERT(events.empty());
 
 	// create all the required pipeline events
+	// NOTE: 这里构建了events的pipeline
 	for (auto &pipeline : event_data.meta_pipelines) {
 		SchedulePipeline(pipeline, event_data);
 	}
