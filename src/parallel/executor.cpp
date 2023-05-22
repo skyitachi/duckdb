@@ -182,6 +182,7 @@ void Executor::ScheduleEventsInternal(ScheduleEventData &event_data) {
 }
 
 void Executor::ScheduleEvents(const vector<shared_ptr<MetaPipeline>> &meta_pipelines) {
+	// meta_pipelines.size() means how many different sink operators
 	std::cout << "meta pipeline size: " << meta_pipelines.size() << std::endl;
 	ScheduleEventData event_data(meta_pipelines, events, true);
 	ScheduleEventsInternal(event_data);

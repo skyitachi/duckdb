@@ -68,6 +68,7 @@ void Event::InsertEvent(shared_ptr<Event> replacement_event) {
 #ifdef DEBUG
 	replacement_event->parents_raw = std::move(parents_raw);
 #endif
+	// NOTE: parents已经被std::move?
 	replacement_event->AddDependency(*this);
 	executor.AddEvent(std::move(replacement_event));
 }
