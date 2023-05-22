@@ -3,6 +3,8 @@
 #include "duckdb/function/udf_function.hpp"
 #include "duckdb/common/types/vector.hpp"
 
+#include <iostream>
+
 using namespace duckdb;
 
 bool bigger_than_four(int value) {
@@ -42,8 +44,37 @@ static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &resu
 }
 
 void vector_demo() {
-	auto vec = make_uniq<Vector>(LogicalType::INTEGER);
-	vec->SetValue(0, 10);
+//	auto cap = STANDARD_VECTOR_SIZE;
+	auto cap = 8;
+	auto vec = make_uniq<Vector>(LogicalType::INTEGER, cap);
+	vec->SetVectorType(VectorType::FLAT_VECTOR);
+
+//	vec->SetValue(0, NULL);
+	// set value
+	for (int i = 0; i < cap; i++) {
+		if (i % 2 == 1) {
+			vec->SetValue(i, i * 2);
+		} else {
+			FlatVector::SetNull(*vec, i , true);
+		}
+	}
+
+	for (int i = 0; i < cap; i++) {
+		auto v = vec->GetValue(i);
+		if (v.IsNull()) {
+			std::cout << i << " index value is null" << std::endl;
+		} else {
+			std::cout << v << std::endl;
+		}
+	}
+
+	std::cout << vec->ToString() << std::endl;
+	// get vector size and capacity
+
+
+
+//	UnifiedVectorFormat data;
+//	vec->ToUnifiedFormat()
 }
 
 int main() {
@@ -68,5 +99,7 @@ int main() {
 
 	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
 
-	UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
+	auto fn = UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
+
+	vector_demo();
 }
