@@ -143,6 +143,9 @@ private:
 		}
 	}
 
+  //OP is UnaryUDFExecutor
+	// OPWRAPPER is GenericUnaryWrapper
+	// dataptr is udf_func
 	template <class INPUT_TYPE, class RESULT_TYPE, class OPWRAPPER, class OP>
 	static inline void ExecuteStandard(Vector &input, Vector &result, idx_t count, void *dataptr, bool adds_nulls) {
 		switch (input.GetVectorType()) {

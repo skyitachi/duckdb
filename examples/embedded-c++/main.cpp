@@ -1,5 +1,6 @@
 #include <vector>
 #include "duckdb.hpp"
+#include "duckdb/function/udf_function.hpp"
 
 using namespace duckdb;
 
@@ -60,4 +61,7 @@ int main() {
 	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
 
 	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
+
+	UDFWrapper udf_wrapper;
+	udf_wrapper.CreateScalarFunction("bigger_than_four", &bigger_than_four);
 }
