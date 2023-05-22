@@ -1,6 +1,7 @@
 #include <vector>
 #include "duckdb.hpp"
 #include "duckdb/function/udf_function.hpp"
+#include "duckdb/common/types/vector.hpp"
 
 using namespace duckdb;
 
@@ -40,6 +41,11 @@ static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &resu
 	}
 }
 
+void vector_demo() {
+	auto vec = make_uniq<Vector>(LogicalType::INTEGER);
+	vec->SetValue(0, 10);
+}
+
 int main() {
 	DuckDB db(nullptr);
 
@@ -62,6 +68,5 @@ int main() {
 
 	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
 
-	UDFWrapper udf_wrapper;
-	udf_wrapper.CreateScalarFunction("bigger_than_four", &bigger_than_four);
+	UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
 }
