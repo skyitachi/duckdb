@@ -116,6 +116,8 @@ void vector_demo() {
 	//	vec->ToUnifiedFormat()
 }
 
+// 复合类型的custom aggr
+
 int main() {
 	DuckDB db(nullptr);
 
