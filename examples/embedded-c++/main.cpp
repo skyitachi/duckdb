@@ -84,6 +84,51 @@ public:
 	}
 };
 
+template <class T>
+struct my_list_sum_t {
+	T sum;
+};
+
+class MyListSumAggr {
+public:
+	template <class STATE>
+	static void Initialize(STATE* state) {
+		std::cout << "my list sum initialize " << std::endl;
+		state->sum = 0;
+	}
+	static bool IgnoreNull() {
+		return true;
+	}
+
+	template <class INPUT_TYPE, class STATE, class OP>
+	static void Operation(STATE *state, AggregateInputData &, INPUT_TYPE *input, ValidityMask &mask, idx_t idx) {
+		std::cout << "in the my_sum operation: " << input[idx] << std::endl;
+//		auto list_input = LogicalType::LIST(LogicalType::INTEGER)* input;
+		state->sum += input[idx];
+	}
+
+	template <class INPUT_TYPE, class STATE, class OP>
+	static void ConstantOperation(STATE *state, AggregateInputData &, INPUT_TYPE *input, ValidityMask &mask,
+								  idx_t count) {
+//		state->sum += input[0] * count;
+	}
+
+	template <class STATE, class OP>
+	static void Combine(const STATE &source, STATE *target, AggregateInputData &) {
+		target->sum += source.sum;
+	}
+
+	// NOTE: important
+	template <class T, class STATE>
+	static void Finalize(Vector &result, AggregateInputData &, STATE *state, T *target, ValidityMask &mask, idx_t idx) {
+		// pass
+		std::cout << "in the my_sum finalize" << std::endl;
+		target[idx] = state->sum;
+	}
+
+};
+
+
 void vector_demo() {
 	//	auto cap = STANDARD_VECTOR_SIZE;
 	auto cap = 8;
@@ -138,13 +183,24 @@ int main() {
 	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	                                                                LogicalType::INTEGER);
 
-	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
-
-	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
+//	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
+//
+//	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
 
 //	auto fn = UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
 
-	vector_demo();
+//	vector_demo();
 
-	con.Query("select my_sum(i) from integers")->Print();
+//	con.Query("select my_sum(i) from integers")->Print();
+
+	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
+
+	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c'])");
+
+	con.Query("select * from list_table")->Print();
+
+//	con.CreateAggregateFunction<MyListSumAggr, my_list_sum_t<int>, int, int>("my_list_sum", LogicalType::INTEGER,
+//																	LogicalType::LIST(LogicalType::INTEGER));
+
+	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 }

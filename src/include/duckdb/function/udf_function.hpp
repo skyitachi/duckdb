@@ -11,6 +11,7 @@
 #include "duckdb/function/scalar_function.hpp"
 #include "duckdb/function/aggregate_function.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 struct UDFWrapper {
@@ -329,6 +330,7 @@ private:
 		case LogicalTypeId::BLOB:
 			return std::is_same<T, string_t>();
 		default: // LCOV_EXCL_START
+			std::cout << "udf_function type: " <<  sql_type.ToString() << std::endl;
 			throw std::runtime_error("Type is not supported!");
 		} // LCOV_EXCL_STOP
 	}

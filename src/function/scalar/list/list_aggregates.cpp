@@ -9,6 +9,7 @@
 #include "duckdb/planner/expression_binder.hpp"
 #include "duckdb/function/function_binder.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 // FIXME: use a local state for each thread to increase performance?
@@ -415,6 +416,8 @@ static unique_ptr<FunctionData> ListAggregatesBind(ClientContext &context, Scala
 		Value function_value = ExpressionExecutor::EvaluateScalar(context, *arguments[1]);
 		function_name = function_value.ToString();
 	}
+
+	std::cout << "function name is: " << function_name << std::endl;
 
 	// look up the aggregate function in the catalog
 	QueryErrorContext error_context(nullptr, 0);
