@@ -10,7 +10,7 @@
 #include "duckdb/parallel/pipeline.hpp"
 #include "duckdb/parallel/thread_context.hpp"
 #include "duckdb/storage/buffer_manager.hpp"
-
+#include <iostream>
 namespace duckdb {
 
 string PhysicalOperator::GetName() const {
@@ -141,6 +141,7 @@ void PhysicalOperator::BuildPipelines(Pipeline &current, MetaPipeline &meta_pipe
 		child_meta_pipeline.Build(*children[0]);
 	} else {
 		// operator is not a sink! recurse in children
+    std::cout << "physical operator name: " << GetName() << " children size: " << children.size() << std::endl;
 		if (children.empty()) {
 			// source
 			state.SetPipelineSource(current, *this);
