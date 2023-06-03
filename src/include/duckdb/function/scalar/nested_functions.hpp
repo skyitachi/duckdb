@@ -174,6 +174,11 @@ struct ListConcatFun {
 	static void RegisterFunction(BuiltinFunctions &set);
 };
 
+struct ListDistanceFun {
+	static ScalarFunction GetFunction();
+	static void RegisterFunction(BuiltinFunctions &set);
+};
+
 struct ListContainsFun {
 	static ScalarFunction GetFunction();
 	static void RegisterFunction(BuiltinFunctions &set);

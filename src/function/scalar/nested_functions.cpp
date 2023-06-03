@@ -30,6 +30,7 @@ void BuiltinFunctions::RegisterNestedFunctions() {
 	Register<UnionExtractFun>();
 	Register<UnionTagFun>();
 	Register<CardinalityFun>();
+	Register<ListDistanceFun>();
 }
 
 } // namespace duckdb

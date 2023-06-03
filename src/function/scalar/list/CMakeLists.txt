@@ -9,6 +9,7 @@ add_library_unity(
   list_extract.cpp
   list_sort.cpp
   list_value.cpp
+  list_distance.cpp
   range.cpp
   flatten.cpp)
 set(ALL_OBJECT_FILES

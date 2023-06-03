@@ -203,4 +203,6 @@ int main() {
 //																	LogicalType::LIST(LogicalType::INTEGER));
 
 	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
+
+	con.Query("select list_distance(int_list) from list_table")->Print();
 }
