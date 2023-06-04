@@ -5,6 +5,7 @@
 #include "parser/scansup.hpp"
 #include "common/keywords.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 PostgresParser::PostgresParser() : success(false), parse_tree(nullptr), error_message(""), error_location(0) {}
@@ -13,7 +14,20 @@ void PostgresParser::Parse(const std::string &query) {
 	duckdb_libpgquery::pg_parser_init();
 	duckdb_libpgquery::parse_result res;
 	pg_parser_parse(query.c_str(), &res);
+	std::cout << "query: " << query << ", success: " << res.success << std::endl;
 	success = res.success;
+
+
+	// TODO: parse syntax here
+	auto cursor = res.parse_tree;
+	std::cout << "node type: " << cursor->type << std::endl;
+	if (cursor != nullptr) {
+    auto ptr = cursor->head;
+	  std::cout << "node length: " << cursor->length << std::endl;
+		for (int i = 0; i < cursor->length; i++) {
+			ptr = ptr->next;
+		}
+	}
 
 	if (success) {
 		parse_tree = res.parse_tree;

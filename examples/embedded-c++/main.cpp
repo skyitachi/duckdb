@@ -195,7 +195,7 @@ int main() {
 
 	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
 
-	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c'])");
+	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
 
 	con.Query("select * from list_table")->Print();
 
@@ -204,5 +204,9 @@ int main() {
 
 	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 
-	con.Query("select list_distance(int_list) from list_table")->Print();
+	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
+
+	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
+
+	con.Query("CREATE INDEX ON list_table USING ivfflat (int_list vector_cosine_ops) WITH (lists = 100)");
 }

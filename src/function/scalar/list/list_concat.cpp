@@ -4,6 +4,8 @@
 #include "duckdb/planner/expression/bound_parameter_expression.hpp"
 #include "duckdb/planner/expression_binder.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 static void ListConcatFunction(DataChunk &args, ExpressionState &state, Vector &result) {
@@ -30,6 +32,8 @@ static void ListConcatFunction(DataChunk &args, ExpressionState &state, Vector &
 
 	auto lhs_list_size = ListVector::GetListSize(lhs);
 	auto rhs_list_size = ListVector::GetListSize(rhs);
+
+	std::cout << "lhs_list_size: " << lhs_list_size << ", r_list_size: " << rhs_list_size << std::endl;
 	auto &lhs_child = ListVector::GetEntry(lhs);
 	auto &rhs_child = ListVector::GetEntry(rhs);
 	UnifiedVectorFormat lhs_child_data;
