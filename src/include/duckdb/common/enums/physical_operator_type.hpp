@@ -46,6 +46,7 @@ enum class PhysicalOperatorType : uint8_t {
 	DELIM_SCAN,
 	EXPRESSION_SCAN,
 	POSITIONAL_SCAN,
+	VECTOR_INDEX_SCAN,
 	// -----------------------------
 	// Joins
 	// -----------------------------
@@ -72,6 +73,7 @@ enum class PhysicalOperatorType : uint8_t {
 	BATCH_INSERT,
 	DELETE_OPERATOR,
 	UPDATE,
+	CREATE_VECTOR_INDEX,
 
 	// -----------------------------
 	// Schema

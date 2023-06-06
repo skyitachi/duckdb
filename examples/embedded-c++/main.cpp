@@ -169,20 +169,20 @@ int main() {
 	Connection con(db);
 
 	con.Query("CREATE TABLE integers(i INTEGER)");
-	con.Query("INSERT INTO integers VALUES (1), (2), (3), (999)");
-	auto result = con.Query("SELECT * FROM integers");
-	result->Print();
-
-	std::vector<LogicalType> args = {};
-	LogicalType return_type {LogicalTypeId::INTEGER};
-	//	con.CreateAggregateFunction("my_min", args, return_type);
-	// 可以参考CreateScalarFunction 封装的用法
-	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
-
-	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
-	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
-	                                                                LogicalType::INTEGER);
-
+	con.Query("INSERT INTO integers VALUES (1), (2), (3), (999)")->Print();
+//	auto result = con.Query("SELECT * FROM integers");
+//	result->Print();
+//
+//	std::vector<LogicalType> args = {};
+//	LogicalType return_type {LogicalTypeId::INTEGER};
+//	//	con.CreateAggregateFunction("my_min", args, return_type);
+//	// 可以参考CreateScalarFunction 封装的用法
+//	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
+//
+//	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
+//	                                                                LogicalType::INTEGER);
+//
 //	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
 //
 //	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
@@ -193,20 +193,20 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
-
-	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
-
-	con.Query("select * from list_table")->Print();
+//	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
+//
+//	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
+//
+//	con.Query("select * from list_table")->Print();
 
 //	con.CreateAggregateFunction<MyListSumAggr, my_list_sum_t<int>, int, int>("my_list_sum", LogicalType::INTEGER,
 //																	LogicalType::LIST(LogicalType::INTEGER));
 
-	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
-
-	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
-
-	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
-
-	con.Query("CREATE INDEX ON list_table USING ivfflat (int_list vector_cosine_ops) WITH (lists = 100)");
+//	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
+//
+//	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
+//
+//	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
+//
+//	con.Query("CREATE INDEX ON list_table USING ivfflat (int_list vector_cosine_ops) WITH (lists = 100)");
 }

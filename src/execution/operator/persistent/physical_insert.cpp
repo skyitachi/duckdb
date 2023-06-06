@@ -37,6 +37,7 @@ PhysicalInsert::PhysicalInsert(vector<LogicalType> types_p, TableCatalogEntry &t
       do_update_condition(std::move(do_update_condition_p)), conflict_target(std::move(conflict_target_p)),
       columns_to_fetch(std::move(columns_to_fetch_p)) {
 
+	std::cout << "return types: " << types_p.size() << std::endl;
 	if (action_type == OnConflictAction::THROW) {
 		return;
 	}
@@ -362,6 +363,7 @@ SinkResultType PhysicalInsert::Sink(ExecutionContext &context, GlobalSinkState &
 	auto &storage = table.GetStorage();
 	PhysicalInsert::ResolveDefaults(table, chunk, column_index_map, lstate.default_executor, lstate.insert_chunk);
 
+	std::cout << "in the physical insert Sink: " << chunk.size() << std::endl;
 	if (!parallel) {
 		if (!gstate.initialized) {
 			storage.InitializeLocalAppend(gstate.append_state, context.client);
@@ -476,6 +478,8 @@ unique_ptr<GlobalSourceState> PhysicalInsert::GetGlobalSourceState(ClientContext
 
 void PhysicalInsert::GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate,
                              LocalSourceState &lstate) const {
+
+	std::cout << "in the physical insert GetData" << std::endl;
 	auto &state = gstate.Cast<InsertSourceState>();
 	auto &insert_gstate = sink_state->Cast<InsertGlobalState>();
 	if (state.finished) {

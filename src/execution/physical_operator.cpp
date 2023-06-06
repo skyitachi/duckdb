@@ -134,6 +134,7 @@ void PhysicalOperator::BuildPipelines(Pipeline &current, MetaPipeline &meta_pipe
 		D_ASSERT(children.size() == 1);
 
 		// single operator: the operator becomes the data source of the current pipeline
+		// NOTE: maybe overwrite by child
 		state.SetPipelineSource(current, *this);
 
 		// we create a new pipeline starting from the child
