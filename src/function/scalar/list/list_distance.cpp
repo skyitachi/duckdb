@@ -6,14 +6,18 @@
 #include "duckdb/planner/expression/bound_function_expression.hpp"
 #include "duckdb/planner/expression/bound_parameter_expression.hpp"
 #include "duckdb/planner/expression_binder.hpp"
+#include "duckdb/main/database.hpp"
 
 #include <iostream>
-
 #include <numeric>
 namespace duckdb {
 
 static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector& result) {
-    D_ASSERT(args.ColumnCount() == 2);
+	if (state.HasContext()) {
+    auto& context = state.GetContext();
+	  std::cout << "number of threads: "<<  context.db->NumberOfThreads() << std::endl;
+	}
+  D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
 	std::cout << "rows: " << count << std::endl;
 

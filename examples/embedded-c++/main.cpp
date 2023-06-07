@@ -170,6 +170,7 @@ int main() {
 
 	con.Query("CREATE TABLE integers(i INTEGER)");
 	con.Query("INSERT INTO integers VALUES (1), (2), (3), (999)")->Print();
+	con.Query("create index idx_i on integers (i)")->Print();
 //	auto result = con.Query("SELECT * FROM integers");
 //	result->Print();
 //
@@ -179,7 +180,7 @@ int main() {
 //	// 可以参考CreateScalarFunction 封装的用法
 //	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
 //
-//	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 //	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 //	                                                                LogicalType::INTEGER);
 //
@@ -193,9 +194,9 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-//	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
-//
-//	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
+	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
+
+	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
 //
 //	con.Query("select * from list_table")->Print();
 
@@ -206,7 +207,7 @@ int main() {
 //
 //	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
 //
-//	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
+	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
 //
-//	con.Query("CREATE INDEX ON list_table USING ivfflat (int_list vector_cosine_ops) WITH (lists = 100)");
+//	con.Query("CREATE INDEX ON list_table(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists = 100)")->Print();
 }

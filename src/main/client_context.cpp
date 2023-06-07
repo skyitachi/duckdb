@@ -312,6 +312,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
                                                                          unique_ptr<SQLStatement> statement,
                                                                          vector<Value> *values) {
 	StatementType statement_type = statement->type;
+	std::cout << "statement type: " << StatementTypeToString(statement_type) << std::endl;
 	auto result = make_shared<PreparedStatementData>(statement_type);
 
 	auto &profiler = QueryProfiler::Get(*this);

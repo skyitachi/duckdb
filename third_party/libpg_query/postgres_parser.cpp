@@ -20,10 +20,10 @@ void PostgresParser::Parse(const std::string &query) {
 
 	// TODO: parse syntax here
 	auto cursor = res.parse_tree;
-	std::cout << "node type: " << cursor->type << std::endl;
 	if (cursor != nullptr) {
-    auto ptr = cursor->head;
-	  std::cout << "node length: " << cursor->length << std::endl;
+		std::cout << "node type: " << cursor->type << std::endl;
+    	auto ptr = cursor->head;
+	 	std::cout << "node length: " << cursor->length << std::endl;
 		for (int i = 0; i < cursor->length; i++) {
 			ptr = ptr->next;
 		}
