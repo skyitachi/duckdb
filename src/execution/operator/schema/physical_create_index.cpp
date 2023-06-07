@@ -61,6 +61,7 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 	return (std::move(state));
 }
 
+// TODO: 这里是如何保证是thread local state的
 unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionContext &context) const {
 	auto state = make_uniq<CreateIndexLocalSinkState>(context.client);
 
