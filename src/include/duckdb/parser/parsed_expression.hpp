@@ -31,6 +31,14 @@ class FormatSerializer;
  information about bindings to the catalog or to the types. ParsedExpressions are transformed into regular Expressions
  in the Binder.
  */
+enum class OpClassType: int {
+	INVALID = 0,
+	Vector_L1_OPS = 1,
+  Vector_L2_OPS,
+	Vector_Cosine_OPS,
+  Vector_IP_OPS, // inner product
+};
+
 class ParsedExpression : public BaseExpression {
 public:
 	//! Create an Expression
@@ -40,6 +48,7 @@ public:
 	//! The location in the query (if any)
 	idx_t query_location = DConstants::INVALID_INDEX;
 
+	OpClassType opclass_type;
 	string opclass;
 
 public:

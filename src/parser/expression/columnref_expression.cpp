@@ -12,20 +12,20 @@
 
 namespace duckdb {
 
-ColumnRefExpression::ColumnRefExpression(string column_name, string table_name, string opclass)
+ColumnRefExpression::ColumnRefExpression(string column_name, string table_name, OpClassType opclass)
     : ColumnRefExpression(table_name.empty() ? vector<string> {std::move(column_name)}
                                              : vector<string> {std::move(table_name), std::move(column_name)},
-                          std::move(opclass)) {
+                          opclass) {
 }
 
-ColumnRefExpression::ColumnRefExpression(string column_name, string opclass)
-    : ColumnRefExpression(vector<string> {std::move(column_name)}, std::move(opclass)) {
+ColumnRefExpression::ColumnRefExpression(string column_name, OpClassType opclass)
+    : ColumnRefExpression(vector<string> {std::move(column_name)}, opclass) {
 }
 
-ColumnRefExpression::ColumnRefExpression(vector<string> column_names_p, string opclz)
+ColumnRefExpression::ColumnRefExpression(vector<string> column_names_p, OpClassType opclz)
     : ParsedExpression(ExpressionType::COLUMN_REF, ExpressionClass::COLUMN_REF),
       column_names(std::move(column_names_p)) {
-	opclass = std::move(opclz);
+	opclass_type = opclz;
 #ifdef DEBUG
 	for (auto &col_name : column_names) {
 		D_ASSERT(!col_name.empty());

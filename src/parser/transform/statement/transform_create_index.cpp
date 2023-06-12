@@ -22,6 +22,14 @@ static IndexType StringToIndexType(const string &str) {
 	return IndexType::INVALID;
 }
 
+static OpClassType StringToOpClassType(const string& str) {
+	string lower_str = StringUtil::Lower(str);
+	if (lower_str == "vector_cosine_ops") {
+		return OpClassType::Vector_Cosine_OPS;
+	}
+	return OpClassType::INVALID;
+}
+
 vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckdb_libpgquery::PGList *list,
                                                                            const string &relation_name) {
 	vector<unique_ptr<ParsedExpression>> expressions;
@@ -31,6 +39,7 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
 			throw NotImplementedException("Index with collation not supported yet!");
 		}
 		std::string opclass;
+		OpClassType op_type = OpClassType::INVALID;
 		std::cout << "opclass: " << index_element->opclass << std::endl;
 		{
 			// TODO: parse opclass here
@@ -40,6 +49,10 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
         auto def_elem = (duckdb_libpgquery::PGDefElem*) cell->data.ptr_value;
 		    if (def_elem->type == duckdb_libpgquery::T_PGString) {
 				  opclass = def_elem->defnamespace;
+				  op_type = StringToOpClassType(opclass);
+				  if (op_type == OpClassType::INVALID) {
+					  throw NotImplementedException("invalid opclass type");
+				  }
 //				  std::cout << "opclass: " << def_elem->defnamespace << std::endl;
 			  }
       }
@@ -52,7 +65,7 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
 
 		if (index_element->name) {
 			// create a column reference expression
-			expressions.push_back(make_uniq<ColumnRefExpression>(index_element->name, relation_name, opclass));
+			expressions.push_back(make_uniq<ColumnRefExpression>(index_element->name, relation_name, op_type));
 		} else {
 			// parse the index expression
 			D_ASSERT(index_element->expr);
