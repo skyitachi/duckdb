@@ -170,7 +170,7 @@ int main() {
 
 	con.Query("CREATE TABLE integers(i INTEGER)");
 	con.Query("INSERT INTO integers VALUES (1), (2), (3), (999)")->Print();
-	con.Query("create index idx_i on integers (i)")->Print();
+//	con.Query("create index idx_i on integers (i)")->Print();
 //	auto result = con.Query("SELECT * FROM integers");
 //	result->Print();
 //
@@ -207,7 +207,8 @@ int main() {
 //
 //	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
 //
-	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
+//	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
 //
-//	con.Query("CREATE INDEX ON list_table(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists = 100)")->Print();
+//	con.Query("CREATE INDEX ON list_table ivfflat(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists = 100)")->Print();
+  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(int_list vector_cosine_ops) WITH (oplists = 100)")->Print();
 }

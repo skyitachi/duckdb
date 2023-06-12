@@ -14,6 +14,7 @@
 #include "duckdb/parser/tableref/basetableref.hpp"
 #include "duckdb/parser/parsed_expression.hpp"
 #include "duckdb/function/table_function.hpp"
+#include <unordered_map>
 
 namespace duckdb {
 
@@ -39,6 +40,9 @@ struct CreateIndexInfo : public CreateInfo {
 	vector<string> names;
 	//! Column IDs needed for index creation
 	vector<column_t> column_ids;
+
+	// TODO: store index options
+	std::unordered_map<std::string, int> options;
 
 protected:
 	void SerializeInternal(Serializer &serializer) const override;

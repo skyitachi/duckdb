@@ -51,8 +51,14 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 	switch (info->index_type) {
 	case IndexType::ART: {
 		auto &storage = table.GetStorage();
+		// NOTE: 需要索引列，table信息
 		state->global_index = make_uniq<ART>(storage_ids, TableIOManager::Get(storage), unbound_expressions,
 		                                     info->constraint_type, storage.db, true);
+		break;
+	}
+	case IndexType::IVFFLAT: {
+		//
+		std::cout << "create ivfflat index here" << std::endl;
 		break;
 	}
 	default:
@@ -71,6 +77,10 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 		auto &storage = table.GetStorage();
 		state->local_index = make_uniq<ART>(storage_ids, TableIOManager::Get(storage), unbound_expressions,
 		                                    info->constraint_type, storage.db, false);
+		break;
+	}
+	case IndexType::IVFFLAT: {
+		std::cout << "GetLocalLinkSinkState need to create IVFFLAT index" << std::endl;
 		break;
 	}
 	default:

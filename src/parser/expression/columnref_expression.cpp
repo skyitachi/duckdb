@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "duckdb/parser/expression/columnref_expression.hpp"
 
 #include "duckdb/common/field_writer.hpp"
@@ -10,18 +12,20 @@
 
 namespace duckdb {
 
-ColumnRefExpression::ColumnRefExpression(string column_name, string table_name)
+ColumnRefExpression::ColumnRefExpression(string column_name, string table_name, string opclass)
     : ColumnRefExpression(table_name.empty() ? vector<string> {std::move(column_name)}
-                                             : vector<string> {std::move(table_name), std::move(column_name)}) {
+                                             : vector<string> {std::move(table_name), std::move(column_name)},
+                          std::move(opclass)) {
 }
 
-ColumnRefExpression::ColumnRefExpression(string column_name)
-    : ColumnRefExpression(vector<string> {std::move(column_name)}) {
+ColumnRefExpression::ColumnRefExpression(string column_name, string opclass)
+    : ColumnRefExpression(vector<string> {std::move(column_name)}, std::move(opclass)) {
 }
 
-ColumnRefExpression::ColumnRefExpression(vector<string> column_names_p)
+ColumnRefExpression::ColumnRefExpression(vector<string> column_names_p, string opclz)
     : ParsedExpression(ExpressionType::COLUMN_REF, ExpressionClass::COLUMN_REF),
       column_names(std::move(column_names_p)) {
+	opclass = std::move(opclz);
 #ifdef DEBUG
 	for (auto &col_name : column_names) {
 		D_ASSERT(!col_name.empty());

@@ -1,10 +1,11 @@
+#include "duckdb/common/string_util.hpp"
 #include "duckdb/parser/expression/columnref_expression.hpp"
-#include "duckdb/parser/statement/create_statement.hpp"
 #include "duckdb/parser/parsed_data/create_index_info.hpp"
+#include "duckdb/parser/statement/create_statement.hpp"
 #include "duckdb/parser/tableref/basetableref.hpp"
 #include "duckdb/parser/transformer.hpp"
-#include "duckdb/common/string_util.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 static IndexType StringToIndexType(const string &str) {
@@ -13,6 +14,8 @@ static IndexType StringToIndexType(const string &str) {
 		return IndexType::INVALID;
 	} else if (upper_str == "ART") {
 		return IndexType::ART;
+	} else if (upper_str == "IVFFLAT") {
+		return IndexType::IVFFLAT;
 	} else {
 		throw ConversionException("No IndexType conversion from string '%s'", upper_str);
 	}
@@ -27,13 +30,29 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
 		if (index_element->collation) {
 			throw NotImplementedException("Index with collation not supported yet!");
 		}
-		if (index_element->opclass) {
-			throw NotImplementedException("Index with opclass not supported yet!");
+		std::string opclass;
+		std::cout << "opclass: " << index_element->opclass << std::endl;
+		{
+			// TODO: parse opclass here
+			auto list = index_element->opclass;
+//			std::cout << "opclass length: " << list->length << std::endl;
+      for (auto cell = list->head; cell != nullptr; cell = cell->next) {
+        auto def_elem = (duckdb_libpgquery::PGDefElem*) cell->data.ptr_value;
+		    if (def_elem->type == duckdb_libpgquery::T_PGString) {
+				  opclass = def_elem->defnamespace;
+//				  std::cout << "opclass: " << def_elem->defnamespace << std::endl;
+			  }
+      }
 		}
+
+//		if (index_element->opclass) {
+//			// TODO: add opclass support here
+//			throw NotImplementedException("Index with opclass not supported yet!");
+//		}
 
 		if (index_element->name) {
 			// create a column reference expression
-			expressions.push_back(make_uniq<ColumnRefExpression>(index_element->name, relation_name));
+			expressions.push_back(make_uniq<ColumnRefExpression>(index_element->name, relation_name, opclass));
 		} else {
 			// parse the index expression
 			D_ASSERT(index_element->expr);
@@ -55,6 +74,30 @@ unique_ptr<CreateStatement> Transformer::TransformCreateIndex(duckdb_libpgquery:
 	}
 
 	info->on_conflict = TransformOnConflict(stmt->onconflict);
+
+	if (stmt->options) {
+		// parse options
+		auto list = stmt->options;
+		for (auto cell = list->head; cell != nullptr; cell = cell->next) {
+			auto def_elem = (duckdb_libpgquery::PGDefElem *)cell->data.ptr_value;
+			std::string option_name = def_elem->defname;
+
+			if (def_elem->arg != nullptr) {
+				switch (def_elem->arg->type) {
+				case duckdb_libpgquery::T_PGInteger: {
+
+				  std::cout << "find integer params: " << std::endl;
+				  auto pg_value = (duckdb_libpgquery::PGValue *)def_elem->arg;
+				  std::cout << def_elem->defname << "=" << pg_value->val.ival << std::endl;
+				  info->options.insert(std::make_pair(option_name, (int)pg_value->val.ival));
+				  break;
+				}
+        default:
+            throw NotImplementedException("options only support T_PGInteger");
+				}
+			}
+		}
+	}
 
 	info->expressions = TransformIndexParameters(stmt->indexParams, stmt->relation->relname);
 

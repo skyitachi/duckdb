@@ -40,6 +40,8 @@ public:
 	//! The location in the query (if any)
 	idx_t query_location = DConstants::INVALID_INDEX;
 
+	string opclass;
+
 public:
 	bool IsAggregate() const override;
 	bool IsWindow() const override;

@@ -16,6 +16,9 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	if (state.HasContext()) {
     auto& context = state.GetContext();
 	  std::cout << "number of threads: "<<  context.db->NumberOfThreads() << std::endl;
+//	  context.GetTableNames(
+//	  context.Get
+	  // NOTE: 需要知道table的indexes 信息
 	}
   D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
@@ -144,7 +147,8 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 
 static unique_ptr<FunctionData> ListDistanceBind(ClientContext& context, ScalarFunction& bound_function,
                                                  vector<unique_ptr<Expression>> &arguments) {
-    D_ASSERT(bound_function.arguments.size() == 2);
+//	context.client_data
+  D_ASSERT(bound_function.arguments.size() == 2);
 	auto &lhs = arguments[0]->return_type;
 	auto &rhs = arguments[1]->return_type;
 
