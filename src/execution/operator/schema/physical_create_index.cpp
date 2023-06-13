@@ -7,6 +7,7 @@
 #include "duckdb/storage/storage_manager.hpp"
 #include "duckdb/main/database_manager.hpp"
 
+
 namespace duckdb {
 
 PhysicalCreateIndex::PhysicalCreateIndex(LogicalOperator &op, TableCatalogEntry &table_p,
@@ -58,6 +59,8 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 	}
 	case IndexType::IVFFLAT: {
 		//
+//		auto &storage = table.GetStorage();
+//		state->global_index = make_uniq<IvfflatIndex>(storage_ids, TableIOManager::Get(storage), unbound_expressions, info->constraint_type, storage.db, true);
 		std::cout << "create ivfflat index here" << std::endl;
 		break;
 	}
@@ -81,6 +84,22 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 	}
 	case IndexType::IVFFLAT: {
 		std::cout << "GetLocalLinkSinkState need to create IVFFLAT index" << std::endl;
+    		auto &storage = table.GetStorage();
+    int d = info->options["d"];
+	  int nlists = info->options["oplists"];
+    OpClassType opclz;
+	  for(auto &expr: info->expressions) {
+		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
+		  opclz = expr->opclass_type;
+
+	  }
+//    		state->local_index = make_uniq<IvfflatIndex>(storage_ids,
+//		                                         TableIOManager::Get(storage),
+//		                                         unbound_expressions, info->constraint_type, storage.db, true, d, nlists, opclz);
+//		state->local_index = make_uniq<>()
+		for(auto& expr: unbound_expressions) {
+			std::cout << "expr type: " << expr->return_type.ToString() << std::endl;
+		}
 		break;
 	}
 	default:

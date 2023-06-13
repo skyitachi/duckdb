@@ -9,10 +9,10 @@
 
 namespace duckdb {
 
-static faiss::MetricType opToMetricType(string opclass) {
-	if (opclass == "vector_ip_ops") {
+static faiss::MetricType opToMetricType(OpClassType opclass) {
+	if (opclass == OpClassType::Vector_IP_OPS) {
 		return faiss::METRIC_INNER_PRODUCT;
-	} else if (opclass == "vector_l2_ops") {
+	} else if (opclass == OpClassType::Vector_L2_OPS) {
 		return faiss::METRIC_L2;
 	}
 }
@@ -20,10 +20,12 @@ static faiss::MetricType opToMetricType(string opclass) {
 IvfflatIndex::IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager &tableIoManager,
                            const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
                            IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists,
-                           std::string opclz)
+                           OpClassType opclz)
     : Index(db,type,tableIoManager,columnIds,unboundExpressions,constraintType,trackMemory) {
 	quantizer = make_uniq<faiss::IndexFlatL2>(dimension);
-	index = make_uniq<faiss::IndexIVFFlat>(quantizer.get(), dimension, nlists);
+	auto metric_type = opToMetricType(opclz);
+	index = make_uniq<faiss::IndexIVFFlat>(quantizer.get(), dimension, nlists, metric_type);
+
 }
 
 

@@ -16,7 +16,7 @@ class IvfflatIndex: public Index {
 public:
 	IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager &tableIoManager,
 	             const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
-	             IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists, std::string opclz);
+	             IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists, OpClassType opclz);
 	unique_ptr<faiss::IndexFlatL2> quantizer;
   unique_ptr<faiss::IndexIVFFlat> index;
 };
