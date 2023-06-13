@@ -2,6 +2,7 @@
 // Created by Shiping Yao on 2023/6/11.
 //
 
+#include "fmt/format.h"
 #include "duckdb/execution/index/vector/ivfflat.hpp"
 #include <memory>
 
@@ -19,9 +20,10 @@ static faiss::MetricType opToMetricType(OpClassType opclass) {
 
 IvfflatIndex::IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager &tableIoManager,
                            const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
-                           IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists,
+                           IndexConstraintType constraintType, bool trackMemory, int dim, int nlists,
                            OpClassType opclz)
     : Index(db,type,tableIoManager,columnIds,unboundExpressions,constraintType,trackMemory) {
+	dimension = dim;
 	quantizer = make_uniq<faiss::IndexFlatL2>(dimension);
 	auto metric_type = opToMetricType(opclz);
 	index = make_uniq<faiss::IndexIVFFlat>(quantizer.get(), dimension, nlists, metric_type);
@@ -29,5 +31,74 @@ IvfflatIndex::IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager 
 }
 
 
+unique_ptr<IndexScanState> IvfflatIndex::InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,
+                                                         ExpressionType expressionType) {
+  return nullptr;
+}
+
+bool IvfflatIndex::Scan(Transaction &transaction, DataTable &table, IndexScanState &state, idx_t max_count,
+          vector<row_t> &result_ids) {
+	return false;
+}
+
+PreservedError IvfflatIndex::Append(IndexLock &lock, DataChunk &appended_data, Vector &row_identifiers) {
+	// entries 是全部的column??
+    DataChunk expression_result;
+	expression_result.Initialize(Allocator::DefaultAllocator(), logical_types);
+	ExecuteExpressions(appended_data, expression_result);
+	return Insert(lock, expression_result, row_identifiers);
+}
+
+PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &row_ids) {
+	D_ASSERT(row_ids.GetType().InternalType() == ROW_TYPE);
+	D_ASSERT(logical_types[0] == input.data[0].GetType());
+
+	auto old_memory_size = memory_size;
+	ArenaAllocator arena_allocator(BufferAllocator::Get(db));
+	int v_size = 4;
+	// TODO: support Physical::FLOAT and Physical::DOUBLE
+	auto vector_data_ptr = reinterpret_cast<float *>(arena_allocator.AllocateAligned(input.size() * dimension * v_size));
+
+	row_ids.Flatten(input.size());
+	auto row_identifiers = FlatVector::GetData<row_t>(row_ids);
+
+
+	// TODO: need unwrap list data
+	UnifiedVectorFormat input_data;
+	input.data[0].ToUnifiedFormat(input.size(), input_data);
+	auto list_entries = (list_entry_t*)input_data.data;
+
+	auto real_data_vector = ListVector::GetEntry(input.data[0]);
+	UnifiedVectorFormat real_data;
+	real_data_vector.ToUnifiedFormat(input.size(), real_data);
+
+
+	int values_count = 0;
+	for(idx_t i = 0; i < input.size(); i++) {
+		// NOTE: 这里为什么一定需要sel
+		auto list_index = input_data.sel->get_index(i);
+    auto entry = list_entries[list_index];
+	  auto data_ptr = (float*)real_data.data;
+	  for (int j = 0; j < entry.length; j++) {
+		  auto offset = entry.offset + j;
+		  auto index = real_data.sel->get_index(offset);
+		  memcpy(vector_data_ptr + values_count * v_size, data_ptr + index, v_size);
+		  values_count += 1;
+	  }
+	}
+	index->add_with_ids(input.size(), vector_data_ptr, (faiss::idx_t *)row_identifiers);
+  return PreservedError();
+}
+
+bool IvfflatIndex::MergeIndexes(IndexLock &state, Index &other_index) {
+  // NOTE: try_to use merge_from
+  auto& other = other_index.Cast<IvfflatIndex>();
+  index->merge_from(*other.index.get(), 0);
+  return true;
+}
+
+string IvfflatIndex::ToString() {
+  return duckdb_fmt::format("ivfflat(dimension={:d})", dimension);
+}
 }
 

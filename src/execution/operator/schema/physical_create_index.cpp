@@ -91,12 +91,10 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 	  for(auto &expr: info->expressions) {
 		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
 		  opclz = expr->opclass_type;
-
 	  }
-//    		state->local_index = make_uniq<IvfflatIndex>(storage_ids,
-//		                                         TableIOManager::Get(storage),
-//		                                         unbound_expressions, info->constraint_type, storage.db, true, d, nlists, opclz);
-//		state->local_index = make_uniq<>()
+    state->local_index = make_uniq<IvfflatIndex>(storage_ids,
+                                         TableIOManager::Get(storage),
+                                         unbound_expressions, info->constraint_type, storage.db, true, d, nlists, opclz);
 		for(auto& expr: unbound_expressions) {
 			std::cout << "expr type: " << expr->return_type.ToString() << std::endl;
 		}
