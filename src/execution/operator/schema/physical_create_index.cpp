@@ -92,9 +92,11 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
 		  opclz = expr->opclass_type;
 	  }
-    state->local_index = make_uniq<IvfflatIndex>(storage_ids,
-                                         TableIOManager::Get(storage),
-                                         unbound_expressions, info->constraint_type, storage.db, true, d, nlists, opclz);
+    state->local_index = make_uniq<IvfflatIndex>(storage.db,
+                                         TableIOManager::Get(storage), storage_ids,
+                         unbound_expressions,
+                             info->constraint_type,
+                                true, d, nlists, opclz);
 		for(auto& expr: unbound_expressions) {
 			std::cout << "expr type: " << expr->return_type.ToString() << std::endl;
 		}
@@ -125,15 +127,35 @@ SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkSt
 	ART::GenerateKeys(lstate.arena_allocator, lstate.key_chunk, lstate.keys);
 
 	auto &storage = table.GetStorage();
-	auto art =
-	    make_uniq<ART>(lstate.local_index->column_ids, lstate.local_index->table_io_manager,
-	                   lstate.local_index->unbound_expressions, lstate.local_index->constraint_type, storage.db, false);
-	if (!art->ConstructFromSorted(lstate.key_chunk.size(), lstate.keys, row_identifiers)) {
-		throw ConstraintException("Data contains duplicates on indexed column(s)");
+	unique_ptr<Index> idx;
+	if (lstate.local_index->type == IndexType::ART) {
+     auto art =
+        make_uniq<ART>(lstate.local_index->column_ids, lstate.local_index->table_io_manager,
+                       lstate.local_index->unbound_expressions, lstate.local_index->constraint_type, storage.db, false);
+
+    if (!art->ConstructFromSorted(lstate.key_chunk.size(), lstate.keys, row_identifiers)) {
+      throw ConstraintException("Data contains duplicates on indexed column(s)");
+    }
+
+	  idx = std::move(art);
+	} else if (lstate.local_index->type == IndexType::IVFFLAT) {
+    int d = info->options["d"];
+    int nlists = info->options["oplists"];
+    OpClassType opclz;
+    for(auto &expr: info->expressions) {
+      std::cout << "parsed expr: " << expr->ToString() << std::endl;
+      opclz = expr->opclass_type;
+    }
+	  idx = make_uniq<IvfflatIndex>(storage.db, lstate.local_index->table_io_manager,
+                                  lstate.local_index->column_ids,
+		                            lstate.local_index->unbound_expressions,
+		                            lstate.local_index->constraint_type,
+		                            false, d, nlists, opclz
+		                            );
 	}
 
 	// merge into the local ART
-	if (!lstate.local_index->MergeIndexes(*art)) {
+	if (!lstate.local_index->MergeIndexes(*idx)) {
 		throw ConstraintException("Data contains duplicates on indexed column(s)");
 	}
 	return SinkResultType::NEED_MORE_INPUT;

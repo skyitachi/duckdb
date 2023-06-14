@@ -5,6 +5,7 @@
 #include "duckdb/planner/expression/bound_reference_expression.hpp"
 #include "duckdb/storage/table/append_state.hpp"
 #include "duckdb/execution/index/art/art.hpp"
+#include "duckdb/execution/index/vector/ivfflat.hpp"
 
 namespace duckdb {
 
@@ -56,6 +57,10 @@ bool Index::MergeIndexes(Index &other_index) {
 	case IndexType::ART: {
 		auto &art = Cast<ART>();
 		return art.MergeIndexes(state, other_index);
+	}
+	case IndexType::IVFFLAT: {
+		auto &ivfflat = Cast<IvfflatIndex>();
+		return ivfflat.MergeIndexes(state, other_index);
 	}
 	default:
 		throw InternalException("Unimplemented index type for merge");

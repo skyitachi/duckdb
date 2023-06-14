@@ -18,11 +18,11 @@ static faiss::MetricType opToMetricType(OpClassType opclass) {
 	}
 }
 
-IvfflatIndex::IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager &tableIoManager,
+IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
                            const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
                            IndexConstraintType constraintType, bool trackMemory, int dim, int nlists,
                            OpClassType opclz)
-    : Index(db,type,tableIoManager,columnIds,unboundExpressions,constraintType,trackMemory) {
+    : Index(db, IndexType::IVFFLAT,tableIoManager,columnIds,unboundExpressions,constraintType,trackMemory) {
 	dimension = dim;
 	quantizer = make_uniq<faiss::IndexFlatL2>(dimension);
 	auto metric_type = opToMetricType(opclz);
@@ -57,6 +57,7 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	ArenaAllocator arena_allocator(BufferAllocator::Get(db));
 	int v_size = 4;
 	// TODO: support Physical::FLOAT and Physical::DOUBLE
+	//　如何回收内存
 	auto vector_data_ptr = reinterpret_cast<float *>(arena_allocator.AllocateAligned(input.size() * dimension * v_size));
 
 	row_ids.Flatten(input.size());
@@ -86,7 +87,8 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 		  values_count += 1;
 	  }
 	}
-	index->add_with_ids(input.size(), vector_data_ptr, (faiss::idx_t *)row_identifiers);
+	index->add_with_ids(input.size(), vector_data_ptr, (faiss::Index::idx_t *)row_identifiers);
+//	arena_allocator.AllocateAligned()
   return PreservedError();
 }
 
@@ -99,6 +101,50 @@ bool IvfflatIndex::MergeIndexes(IndexLock &state, Index &other_index) {
 
 string IvfflatIndex::ToString() {
   return duckdb_fmt::format("ivfflat(dimension={:d})", dimension);
+}
+
+unique_ptr<IndexScanState> IvfflatIndex::InitializeScanTwoPredicates(Transaction &transaction, const Value &low_value,
+                                                       ExpressionType low_expression_type,
+                                                       const Value &high_value,
+                                                       ExpressionType high_expression_type) {
+  return nullptr;
+}
+
+void IvfflatIndex::VerifyAppend(DataChunk &chunk) {
+
+}
+//! Verify that data can be appended to the index without a constraint violation using the conflict manager
+void IvfflatIndex::VerifyAppend(DataChunk &chunk, ConflictManager &conflict_manager) {
+
+}
+
+void IvfflatIndex::CheckConstraintsForChunk(DataChunk &input, ConflictManager &conflict_manager) {
+
+}
+
+void IvfflatIndex::Delete(IndexLock &state, DataChunk &entries, Vector &row_identifiers) {
+  // TODO
+//  index->remove_ids();
+
+}
+
+//! Obtains a lock and calls Delete while holding that lock
+void IvfflatIndex::Delete(DataChunk &entries, Vector &row_identifiers) {
+    //  index->remove_ids();
+
+}
+
+void IvfflatIndex::Verify() {
+
+}
+
+void IvfflatIndex::IncreaseAndVerifyMemorySize(idx_t old_memory_size) {
+
+}
+
+BlockPointer IvfflatIndex::Serialize(MetaBlockWriter &writer) {
+
+
 }
 }
 

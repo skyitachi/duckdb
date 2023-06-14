@@ -92,7 +92,7 @@ public:
 
 	//! Delete a chunk of entries from the index. The lock obtained from InitializeLock must be held
 	virtual void Delete(IndexLock &state, DataChunk &entries, Vector &row_identifiers) = 0;
-	//! Obtains a lock and calls Delete while holding that lock
+	virtual //! Obtains a lock and calls Delete while holding that lock
 	void Delete(DataChunk &entries, Vector &row_identifiers);
 
 	//! Insert a chunk of entries into the index

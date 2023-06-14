@@ -14,12 +14,14 @@
 namespace duckdb {
 class IvfflatIndex: public Index {
 public:
-	IvfflatIndex(AttachedDatabase &db, IndexType type, TableIOManager &tableIoManager,
+	IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 	             const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
 	             IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists, OpClassType opclz);
 	unique_ptr<faiss::IndexFlatL2> quantizer;
   unique_ptr<faiss::IndexIVFFlat> index;
   int dimension;
+
+
 
 public:
 	unique_ptr<IndexScanState> InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,
@@ -36,6 +38,29 @@ public:
   //! index must also be locked during the merge
   bool MergeIndexes(IndexLock &state, Index &other_index) override;
   string ToString() override;
+
+  unique_ptr<IndexScanState> InitializeScanTwoPredicates(Transaction &transaction, const Value &low_value,
+	                                                     ExpressionType low_expression_type,
+	                                                     const Value &high_value,
+	                                                     ExpressionType high_expression_type) override;
+
+
+  void VerifyAppend(DataChunk &chunk) override;
+  //! Verify that data can be appended to the index without a constraint violation using the conflict manager
+  void VerifyAppend(DataChunk &chunk, ConflictManager &conflict_manager) override;
+
+  void CheckConstraintsForChunk(DataChunk &input, ConflictManager &conflict_manager) override;
+
+  void Delete(IndexLock &state, DataChunk &entries, Vector &row_identifiers) override;
+  //! Obtains a lock and calls Delete while holding that lock
+  void Delete(DataChunk &entries, Vector &row_identifiers) override;
+
+  void Verify() override;
+
+  void IncreaseAndVerifyMemorySize(idx_t old_memory_size) override;
+
+
+  BlockPointer Serialize(MetaBlockWriter &writer) override;
 };
 }
 #endif // DUCKDB_IVFFLAT_H
