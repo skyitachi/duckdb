@@ -205,10 +205,12 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-//	con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
+	con.Query("select list_min(int_list) from list_table")->Print();
+
+  con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
 //
 //	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
 //
 //	con.Query("CREATE INDEX ON list_table ivfflat(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists = 100)")->Print();
-  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(int_list vector_cosine_ops) WITH (oplists = 100, d = 3)")->Print();
+//  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(int_list vector_cosine_ops) WITH (oplists = 100, d = 3)")->Print();
 }

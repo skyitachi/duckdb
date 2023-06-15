@@ -2,13 +2,30 @@
 // Created by Shiping Yao on 2023/6/11.
 //
 
+#include <memory>
+
 #include "fmt/format.h"
 #include "duckdb/execution/index/vector/ivfflat.hpp"
-#include <memory>
+#include "duckdb/storage/table/scan_state.hpp"
+
 
 #include <faiss/MetricType.h>
 
 namespace duckdb {
+
+
+struct IvfflatIndexScanState : public IndexScanState {
+
+	//! Scan predicates (single predicate scan or range scan)
+	Value values[2];
+	//! Expressions of the scan predicates
+	ExpressionType expressions[2];
+	bool checked = false;
+	//! All scanned row IDs
+	vector<row_t> result_ids;
+};
+
+
 
 static faiss::MetricType opToMetricType(OpClassType opclass) {
 	if (opclass == OpClassType::Vector_IP_OPS) {
@@ -16,6 +33,7 @@ static faiss::MetricType opToMetricType(OpClassType opclass) {
 	} else if (opclass == OpClassType::Vector_L2_OPS) {
 		return faiss::METRIC_L2;
 	}
+	return faiss::METRIC_INNER_PRODUCT;
 }
 
 IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
@@ -32,8 +50,11 @@ IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 
 
 unique_ptr<IndexScanState> IvfflatIndex::InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,
-                                                         ExpressionType expressionType) {
-  return nullptr;
+                                                         ExpressionType expression_type) {
+  auto result = make_uniq<IvfflatIndexScanState>();
+  result->values[0] = value;
+  result->expressions[0] = expression_type;
+  return std::move(result);
 }
 
 bool IvfflatIndex::Scan(Transaction &transaction, DataTable &table, IndexScanState &state, idx_t max_count,
@@ -143,7 +164,7 @@ void IvfflatIndex::IncreaseAndVerifyMemorySize(idx_t old_memory_size) {
 }
 
 BlockPointer IvfflatIndex::Serialize(MetaBlockWriter &writer) {
-
+  return writer.GetBlockPointer();
 
 }
 }

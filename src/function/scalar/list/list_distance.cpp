@@ -19,6 +19,11 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 //	  context.GetTableNames(
 //	  context.Get
 	  // NOTE: 需要知道table的indexes 信息
+
+    auto &func_expr = state.expr.Cast<BoundFunctionExpression>();
+	  std::cout << "bound function expr: " << func_expr.ToString() << std::endl;
+    auto &info = func_expr.bind_info->Cast<VariableReturnBindData>();
+
 	}
   D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
@@ -159,7 +164,7 @@ static unique_ptr<FunctionData> ListDistanceBind(ClientContext& context, ScalarF
 	for (const auto& argument: arguments) {
 		child_type = LogicalType::MaxLogicalType(child_type, ListType::GetChildType(argument->return_type));
 	}
-	std::cout << "child_type: " << child_type.ToString() << std::endl;
+	std::cout << "bound function child_type: " << child_type.ToString() << std::endl;
 
 	auto list_type = LogicalType::LIST(child_type);
 

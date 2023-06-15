@@ -80,6 +80,8 @@ static unique_ptr<FunctionData> ListConcatBind(ClientContext &context, ScalarFun
                                                vector<unique_ptr<Expression>> &arguments) {
 	D_ASSERT(bound_function.arguments.size() == 2);
 
+	std::cout << "list concat bind: " << std::endl;
+
 	auto &lhs = arguments[0]->return_type;
 	auto &rhs = arguments[1]->return_type;
 	if (lhs.id() == LogicalTypeId::UNKNOWN || rhs.id() == LogicalTypeId::UNKNOWN) {
