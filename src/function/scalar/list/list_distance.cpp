@@ -16,6 +16,7 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	if (state.HasContext()) {
     auto& context = state.GetContext();
 	  std::cout << "number of threads: "<<  context.db->NumberOfThreads() << std::endl;
+	  // 要获取DataTableInfo的信息
 //	  context.GetTableNames(
 //	  context.Get
 	  // NOTE: 需要知道table的indexes 信息
