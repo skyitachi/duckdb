@@ -146,7 +146,6 @@ struct UniqueFunctor {
 
 template <class FUNCTION_FUNCTOR, bool IS_AGGR = false>
 static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vector &result) {
-	// TODO: list aggr 只会bind一次的话，可以考虑这里实现vector_index_scan function
 	auto count = args.size();
 	Vector &lists = args.data[0];
 
@@ -158,6 +157,8 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 		result_validity.SetInvalid(0);
 		return;
 	}
+
+	std::cout << "in the listaggrfunction aggr " << std::endl;
 
 	// get the aggregate function
 	auto &func_expr = state.expr.Cast<BoundFunctionExpression>();
@@ -418,6 +419,7 @@ static unique_ptr<FunctionData> ListAggregatesBind(ClientContext &context, Scala
 		function_name = function_value.ToString();
 	}
 
+  // TODO: list aggr 只会bind一次的话，可以考虑这里实现vector_index_scan function
 	std::cout << "list aggr function name is: " << function_name << std::endl;
 
 	// look up the aggregate function in the catalog

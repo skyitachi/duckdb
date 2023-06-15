@@ -108,7 +108,8 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 		  values_count += 1;
 	  }
 	}
-	index->add_with_ids(input.size(), vector_data_ptr, (faiss::Index::idx_t *)row_identifiers);
+	using faiss_idx_t = int64_t;
+	index->add_with_ids(input.size(), vector_data_ptr, (faiss_idx_t*)row_identifiers);
 //	arena_allocator.AllocateAligned()
   return PreservedError();
 }
