@@ -18,9 +18,15 @@ public:
 	static constexpr const LogicalOperatorType TYPE = LogicalOperatorType::LOGICAL_PROJECTION;
 
 public:
-	LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list);
+  LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list);
+
+  LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list,
+	                TableCatalogEntry* table_ptr);
 
 	idx_t table_index;
+
+  //! The base table to update
+  TableCatalogEntry* table;
 
 public:
 	vector<ColumnBinding> GetColumnBindings() override;

@@ -9,6 +9,14 @@
 #include "duckdb/planner/expression_binder.hpp"
 #include "duckdb/function/function_binder.hpp"
 
+#include "duckdb/main/database.hpp"
+#include "duckdb/main/database_manager.hpp"
+#include "duckdb/main/attached_database.hpp"
+#include "duckdb/main/client_data.hpp"
+#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
+#include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
+#include "duckdb/storage/data_table.hpp"
+
 #include <iostream>
 namespace duckdb {
 
@@ -148,6 +156,22 @@ template <class FUNCTION_FUNCTOR, bool IS_AGGR = false>
 static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vector &result) {
 	auto count = args.size();
 	Vector &lists = args.data[0];
+
+  QueryErrorContext error_context;
+  string catalog_name = "";
+  string schema_name = "";
+  string table_name = "list_table";
+  auto table_or_view = Catalog::GetEntry(state.GetContext(), CatalogType::TABLE_ENTRY, catalog_name, schema_name,
+                                         table_name, true, error_context);
+  if (table_or_view->type == CatalogType::TABLE_ENTRY) {
+    auto& table = table_or_view->Cast<TableCatalogEntry>();
+    if (table.IsDuckTable()) {
+      auto& duck_table = table.Cast<DuckTableEntry>();
+      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
+    }
+  }
+//		DuckTableEntry& duck_table = state.table->Cast<DuckTableEntry>();
+//		std::cout << "duck table: " << duck_table.ToSQL() << std::endl;
 
 	// set the result vector
 	result.SetVectorType(VectorType::FLAT_VECTOR);
@@ -367,7 +391,6 @@ template <bool IS_AGGR = false>
 static unique_ptr<FunctionData>
 ListAggregatesBindFunction(ClientContext &context, ScalarFunction &bound_function, const LogicalType &list_child_type,
                            AggregateFunction &aggr_function, vector<unique_ptr<Expression>> &arguments) {
-
 	// create the child expression and its type
 	vector<unique_ptr<Expression>> children;
 	auto expr = make_uniq<BoundConstantExpression>(Value(list_child_type));
@@ -419,8 +442,12 @@ static unique_ptr<FunctionData> ListAggregatesBind(ClientContext &context, Scala
 		function_name = function_value.ToString();
 	}
 
+
+	auto& catalog = context.client_data->temporary_objects->GetCatalog();
+
   // TODO: list aggr 只会bind一次的话，可以考虑这里实现vector_index_scan function
-	std::cout << "list aggr function name is: " << function_name << std::endl;
+	std::cout << "list aggr function name is: " << function_name << "catalog name: " << catalog.GetName() << std::endl;
+
 
 	// look up the aggregate function in the catalog
 	QueryErrorContext error_context(nullptr, 0);

@@ -19,9 +19,11 @@ public:
 
 public:
 	PhysicalProjection(vector<LogicalType> types, vector<unique_ptr<Expression>> select_list,
-	                   idx_t estimated_cardinality);
+	                   idx_t estimated_cardinality, TableCatalogEntry* table = nullptr);
 
 	vector<unique_ptr<Expression>> select_list;
+
+	TableCatalogEntry* table;
 
 public:
 	unique_ptr<OperatorState> GetOperatorState(ExecutionContext &context) const override;

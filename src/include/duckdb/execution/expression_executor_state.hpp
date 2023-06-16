@@ -12,6 +12,7 @@
 #include "duckdb/common/types/data_chunk.hpp"
 #include "duckdb/common/cycle_counter.hpp"
 #include "duckdb/function/function.hpp"
+#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 
 namespace duckdb {
 class Expression;
@@ -30,6 +31,7 @@ struct ExpressionState {
 	vector<LogicalType> types;
 	DataChunk intermediate_chunk;
 	CycleCounter profiler;
+	TableCatalogEntry* table = nullptr;
 
 public:
 	void AddChild(Expression *expr);
@@ -59,6 +61,7 @@ struct ExpressionExecutorState {
 	unique_ptr<ExpressionState> root_state;
 	ExpressionExecutor *executor = nullptr;
 	CycleCounter profiler;
+	TableCatalogEntry* table = nullptr;
 
 	void Verify();
 };

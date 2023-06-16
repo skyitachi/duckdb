@@ -36,6 +36,8 @@ public:
 	//! column references and determines the output cardinality
 	DataChunk *chunk = nullptr;
 
+	TableCatalogEntry* table = nullptr;
+
 public:
 	bool HasContext();
 	ClientContext &GetContext();

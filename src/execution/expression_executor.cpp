@@ -4,6 +4,7 @@
 #include "duckdb/execution/execution_context.hpp"
 #include "duckdb/storage/statistics/base_statistics.hpp"
 #include "duckdb/planner/expression/list.hpp"
+#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 
 namespace duckdb {
 
@@ -57,6 +58,7 @@ Allocator &ExpressionExecutor::GetAllocator() {
 void ExpressionExecutor::AddExpression(const Expression &expr) {
 	expressions.push_back(&expr);
 	auto state = make_uniq<ExpressionExecutorState>();
+	state->table = table;
 	Initialize(expr, *state);
 	state->Verify();
 	states.push_back(std::move(state));
@@ -65,6 +67,7 @@ void ExpressionExecutor::AddExpression(const Expression &expr) {
 void ExpressionExecutor::Initialize(const Expression &expression, ExpressionExecutorState &state) {
 	state.executor = this;
 	state.root_state = InitializeState(expression, state);
+	state.root_state->table = table;
 }
 
 void ExpressionExecutor::Execute(DataChunk *input, DataChunk &result) {
@@ -179,6 +182,9 @@ void ExpressionExecutor::Execute(const Expression &expr, ExpressionState *state,
 
 	if (count == 0) {
 		return;
+	}
+	if (state->table == nullptr) {
+		state->table = table;
 	}
 	switch (expr.expression_class) {
 	case ExpressionClass::BOUND_BETWEEN:

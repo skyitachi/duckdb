@@ -1,10 +1,18 @@
 #include "duckdb/planner/operator/logical_projection.hpp"
 #include "duckdb/common/field_writer.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list)
     : LogicalOperator(LogicalOperatorType::LOGICAL_PROJECTION, std::move(select_list)), table_index(table_index) {
+	std::cout << "create logical projection operator" << std::endl;
+}
+
+LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list,
+                                     TableCatalogEntry* table_ptr)
+    : LogicalOperator(LogicalOperatorType::LOGICAL_PROJECTION, std::move(select_list)),
+      table_index(table_index), table(table_ptr) {
 }
 
 vector<ColumnBinding> LogicalProjection::GetColumnBindings() {

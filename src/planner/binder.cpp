@@ -474,7 +474,7 @@ BoundStatement Binder::BindReturning(vector<unique_ptr<ParsedExpression>> return
 		projection_expressions.push_back(std::move(expr));
 	}
 
-	auto projection = make_uniq<LogicalProjection>(GenerateTableIndex(), std::move(projection_expressions));
+	auto projection = make_uniq<LogicalProjection>(GenerateTableIndex(), std::move(projection_expressions), &table);
 	projection->AddChild(std::move(child_operator));
 	D_ASSERT(result.types.size() == result.names.size());
 	result.plan = std::move(projection);

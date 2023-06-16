@@ -2,6 +2,7 @@
 #include "duckdb/execution/expression_executor.hpp"
 #include "duckdb/planner/expression.hpp"
 #include "duckdb/planner/expression/bound_function_expression.hpp"
+#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 
 namespace duckdb {
 
