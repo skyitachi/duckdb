@@ -11,6 +11,7 @@
 
 #include <faiss/MetricType.h>
 
+#include <iostream>
 namespace duckdb {
 
 
@@ -109,7 +110,9 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	  }
 	}
 	using faiss_idx_t = int64_t;
+	// TODO: failed here
 	index->add_with_ids(input.size(), vector_data_ptr, (faiss_idx_t*)row_identifiers);
+  std::cout << "create real ivfflat index here trained" << index->is_trained <<  std::endl;
 //	arena_allocator.AllocateAligned()
   return PreservedError();
 }

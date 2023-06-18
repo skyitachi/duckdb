@@ -168,8 +168,8 @@ int main() {
 
 	Connection con(db);
 
-	con.Query("CREATE TABLE integers(i INTEGER)");
-	con.Query("INSERT INTO integers VALUES (1), (2), (3), (999)")->Print();
+	con.Query("CREATE TABLE floats(i FLOAT)");
+	con.Query("INSERT INTO floats VALUES (1), (2), (3), (999)")->Print();
 //	con.Query("create index idx_i on integers (i)")->Print();
 //	auto result = con.Query("SELECT * FROM integers");
 //	result->Print();
@@ -194,9 +194,9 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-	con.Query("create table list_table (int_list INT[], varchar_list VARCHAR[])");
+	con.Query("create table list_table (float_list FLOAT[], varchar_list VARCHAR[])");
 
-	con.Query("insert into list_table VALUES ([1, 2, 3], ['a', 'b', 'c']), ([3, 4, 5], ['c', 'd', 'e'])");
+	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], ['a', 'b', 'c']), ([3.3, 4.4, 5.5], ['c', 'd', 'e'])");
 //
 //	con.Query("select * from list_table")->Print();
 
@@ -205,12 +205,13 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-	con.Query("select list_min(int_list) from list_table")->Print();
+  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 100, d = 3)")->Print();
 
-  con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
+	con.Query("select list_min(float_list) from list_table")->Print();
+
+//  con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
 //
 //	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
 //
 //	con.Query("CREATE INDEX ON list_table ivfflat(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists = 100)")->Print();
-//  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(int_list vector_cosine_ops) WITH (oplists = 100, d = 3)")->Print();
 }

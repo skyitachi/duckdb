@@ -1,12 +1,11 @@
 #include "duckdb/execution/operator/schema/physical_create_index.hpp"
 
+#include "duckdb/catalog/catalog_entry/duck_index_entry.hpp"
 #include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
 #include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
-#include "duckdb/catalog/catalog_entry/duck_index_entry.hpp"
 #include "duckdb/main/client_context.hpp"
-#include "duckdb/storage/storage_manager.hpp"
 #include "duckdb/main/database_manager.hpp"
-
+#include "duckdb/storage/storage_manager.hpp"
 
 namespace duckdb {
 
@@ -58,10 +57,22 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 		break;
 	}
 	case IndexType::IVFFLAT: {
+		auto &storage = table.GetStorage();
+		int d = info->options["d"];
+		int nlists = info->options["oplists"];
+		OpClassType opclz;
+		for (auto &expr : info->expressions) {
+			//      std::cout << "parsed expr: " << expr->ToString() << std::endl;
+			opclz = expr->opclass_type;
+		}
+		state->global_index =
+		    make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
+		                            info->constraint_type, true, d, nlists, opclz);
 		//
-//		auto &storage = table.GetStorage();
-//		state->global_index = make_uniq<IvfflatIndex>(storage_ids, TableIOManager::Get(storage), unbound_expressions, info->constraint_type, storage.db, true);
-		std::cout << "create ivfflat index here" << std::endl;
+		//		auto &storage = table.GetStorage();
+		//		state->global_index = make_uniq<IvfflatIndex>(storage_ids, TableIOManager::Get(storage),
+		//unbound_expressions, info->constraint_type, storage.db, true);
+    std::cout << "create global ivfflat index: dimension: " << d << ", nlists: " << nlists << ", opclass_type: " << int(opclz) << std::endl;
 		break;
 	}
 	default:
@@ -80,36 +91,36 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 		auto &storage = table.GetStorage();
 		state->local_index = make_uniq<ART>(storage_ids, TableIOManager::Get(storage), unbound_expressions,
 		                                    info->constraint_type, storage.db, false);
+    state->keys = vector<Key>(STANDARD_VECTOR_SIZE);
+    state->key_chunk.Initialize(Allocator::Get(context.client), state->local_index->logical_types);
+
+    for (idx_t i = 0; i < state->key_chunk.ColumnCount(); i++) {
+      state->key_column_ids.push_back(i);
+    }
 		break;
 	}
 	case IndexType::IVFFLAT: {
 		std::cout << "GetLocalLinkSinkState need to create IVFFLAT index" << std::endl;
-    		auto &storage = table.GetStorage();
-    int d = info->options["d"];
-	  int nlists = info->options["oplists"];
-    OpClassType opclz;
-	  for(auto &expr: info->expressions) {
-		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
-		  opclz = expr->opclass_type;
-	  }
-    state->local_index = make_uniq<IvfflatIndex>(storage.db,
-                                         TableIOManager::Get(storage), storage_ids,
-                         unbound_expressions,
-                             info->constraint_type,
-                                true, d, nlists, opclz);
-		for(auto& expr: unbound_expressions) {
+		auto &storage = table.GetStorage();
+		int d = info->options["d"];
+		int nlists = info->options["oplists"];
+		OpClassType opclz;
+		for (auto &expr : info->expressions) {
+			//		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
+//			opclz = expr->opclass_type;
+			opclz = OpClassType::Vector_IP_OPS;
+		}
+		std::cout << "dimension: " << d << ", nlists: " << nlists << ", opclass_type: " << int(opclz) << std::endl;
+		state->local_index =
+		    make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
+		                            info->constraint_type, true, d, nlists, opclz);
+		for (auto &expr : unbound_expressions) {
 			std::cout << "expr type: " << expr->return_type.ToString() << std::endl;
 		}
 		break;
 	}
 	default:
 		throw InternalException("Unimplemented index type");
-	}
-	state->keys = vector<Key>(STANDARD_VECTOR_SIZE);
-	state->key_chunk.Initialize(Allocator::Get(context.client), state->local_index->logical_types);
-
-	for (idx_t i = 0; i < state->key_chunk.ColumnCount(); i++) {
-		state->key_column_ids.push_back(i);
 	}
 	return std::move(state);
 }
@@ -124,39 +135,44 @@ SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkSt
 	// generate the keys for the given input
 	lstate.key_chunk.ReferenceColumns(input, lstate.key_column_ids);
 	lstate.arena_allocator.Reset();
-	ART::GenerateKeys(lstate.arena_allocator, lstate.key_chunk, lstate.keys);
 
 	auto &storage = table.GetStorage();
 	unique_ptr<Index> idx;
 	if (lstate.local_index->type == IndexType::ART) {
-     auto art =
-        make_uniq<ART>(lstate.local_index->column_ids, lstate.local_index->table_io_manager,
-                       lstate.local_index->unbound_expressions, lstate.local_index->constraint_type, storage.db, false);
+    ART::GenerateKeys(lstate.arena_allocator, lstate.key_chunk, lstate.keys);
+		auto art = make_uniq<ART>(lstate.local_index->column_ids, lstate.local_index->table_io_manager,
+		                          lstate.local_index->unbound_expressions, lstate.local_index->constraint_type,
+		                          storage.db, false);
 
-    if (!art->ConstructFromSorted(lstate.key_chunk.size(), lstate.keys, row_identifiers)) {
-      throw ConstraintException("Data contains duplicates on indexed column(s)");
-    }
+		if (!art->ConstructFromSorted(lstate.key_chunk.size(), lstate.keys, row_identifiers)) {
+			throw ConstraintException("Data contains duplicates on indexed column(s)");
+		}
 
-	  idx = std::move(art);
+		idx = std::move(art);
 	} else if (lstate.local_index->type == IndexType::IVFFLAT) {
-    int d = info->options["d"];
-    int nlists = info->options["oplists"];
-    OpClassType opclz;
-    for(auto &expr: info->expressions) {
-      std::cout << "parsed expr: " << expr->ToString() << std::endl;
-      opclz = expr->opclass_type;
-    }
-	  idx = make_uniq<IvfflatIndex>(storage.db, lstate.local_index->table_io_manager,
-                                  lstate.local_index->column_ids,
-		                            lstate.local_index->unbound_expressions,
-		                            lstate.local_index->constraint_type,
-		                            false, d, nlists, opclz
-		                            );
+		int d = info->options["d"];
+		int nlists = info->options["oplists"];
+		OpClassType opclz;
+		for (auto &expr : info->expressions) {
+//			std::cout << "parsed expr: " << expr->ToString() << std::endl;
+//			opclz = expr->opclass_type;
+			opclz = OpClassType::Vector_IP_OPS;
+		}
+    std::cout << "global sink: dimension: " << d << ", nlists: " << nlists << ", opclass_type: " << int(opclz) << std::endl;
+		idx = make_uniq<IvfflatIndex>(storage.db, lstate.local_index->table_io_manager, lstate.local_index->column_ids,
+		                              lstate.local_index->unbound_expressions, lstate.local_index->constraint_type,
+		                              false, d, nlists, opclz);
+		// TODO:
+		idx->Append(input, row_identifiers);
 	}
 
-	// merge into the local ART
-	if (!lstate.local_index->MergeIndexes(*idx)) {
-		throw ConstraintException("Data contains duplicates on indexed column(s)");
+	if (!lstate.local_index) {
+		std::cout << "local index is nil" << std::endl;
+	} else {
+    // merge into the local ART
+    if (!lstate.local_index->MergeIndexes(*idx)) {
+      throw ConstraintException("Data contains duplicates on indexed column(s)");
+    }
 	}
 	return SinkResultType::NEED_MORE_INPUT;
 }

@@ -21,8 +21,6 @@ public:
   unique_ptr<faiss::IndexIVFFlat> index;
   int dimension;
 
-
-
 public:
 	unique_ptr<IndexScanState> InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,
 	                                                           ExpressionType expressionType) override;

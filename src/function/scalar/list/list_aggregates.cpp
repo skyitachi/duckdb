@@ -16,6 +16,7 @@
 #include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 #include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
 #include "duckdb/storage/data_table.hpp"
+#include "duckdb/execution/index/vector/ivfflat.hpp"
 
 #include <iostream>
 namespace duckdb {
@@ -167,7 +168,17 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
     auto& table = table_or_view->Cast<TableCatalogEntry>();
     if (table.IsDuckTable()) {
       auto& duck_table = table.Cast<DuckTableEntry>();
-      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
+	    auto& dt = duck_table.GetStorage();
+		  auto& indexes = dt.info->indexes.Indexes();
+		  for(auto& idx: indexes) {
+				if (idx->type == IndexType::IVFFLAT) {
+					auto ivf = (IvfflatIndex*) idx.get();
+          std::cout << "found duckdb ivfflat index trained: " << ivf->index->is_trained << std::endl;
+
+				}
+
+		  }
+//      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
     }
   }
 //		DuckTableEntry& duck_table = state.table->Cast<DuckTableEntry>();

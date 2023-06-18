@@ -1,5 +1,6 @@
 #include "duckdb/parser/expression/bound_expression.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 BoundExpression::BoundExpression(unique_ptr<Expression> expr)
@@ -8,6 +9,7 @@ BoundExpression::BoundExpression(unique_ptr<Expression> expr)
 
 string BoundExpression::ToString() const {
 	if (!expr) {
+		std::cout << "try stop here" << std::endl;
 		throw InternalException("ToString(): BoundExpression does not have a child");
 	}
 	return expr->ToString();
