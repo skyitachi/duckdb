@@ -1,14 +1,15 @@
 #include "postgres_parser.hpp"
 
-#include "pg_functions.hpp"
+#include "common/keywords.hpp"
 #include "parser/parser.hpp"
 #include "parser/scansup.hpp"
-#include "common/keywords.hpp"
+#include "pg_functions.hpp"
 
 #include <iostream>
 namespace duckdb {
 
-PostgresParser::PostgresParser() : success(false), parse_tree(nullptr), error_message(""), error_location(0) {}
+PostgresParser::PostgresParser() : success(false), parse_tree(nullptr), error_message(""), error_location(0) {
+}
 
 void PostgresParser::Parse(const std::string &query) {
 	duckdb_libpgquery::pg_parser_init();
@@ -17,13 +18,10 @@ void PostgresParser::Parse(const std::string &query) {
 	std::cout << "query: " << query << ", success: " << res.success << std::endl;
 	success = res.success;
 
-
 	// TODO: parse syntax here
 	auto cursor = res.parse_tree;
 	if (cursor != nullptr) {
-		std::cout << "node type: " << cursor->type << std::endl;
-    	auto ptr = cursor->head;
-	 	std::cout << "node length: " << cursor->length << std::endl;
+		auto ptr = cursor->head;
 		for (int i = 0; i < cursor->length; i++) {
 			ptr = ptr->next;
 		}
@@ -44,8 +42,8 @@ vector<duckdb_libpgquery::PGSimplifiedToken> PostgresParser::Tokenize(const std:
 	return std::move(tokens);
 }
 
-PostgresParser::~PostgresParser()  {
-    duckdb_libpgquery::pg_parser_cleanup();
+PostgresParser::~PostgresParser() {
+	duckdb_libpgquery::pg_parser_cleanup();
 }
 
 bool PostgresParser::IsKeyword(const std::string &text) {
@@ -54,11 +52,11 @@ bool PostgresParser::IsKeyword(const std::string &text) {
 
 vector<duckdb_libpgquery::PGKeyword> PostgresParser::KeywordList() {
 	// FIXME: because of this, we might need to change the libpg_query library to use duckdb::vector
-	return std::forward<vector<duckdb_libpgquery::PGKeyword> >(duckdb_libpgquery::keyword_list());
+	return std::forward<vector<duckdb_libpgquery::PGKeyword>>(duckdb_libpgquery::keyword_list());
 }
 
 void PostgresParser::SetPreserveIdentifierCase(bool preserve) {
 	duckdb_libpgquery::set_preserve_identifier_case(preserve);
 }
 
-}
+} // namespace duckdb

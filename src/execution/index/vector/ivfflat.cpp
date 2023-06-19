@@ -10,6 +10,7 @@
 
 
 #include <faiss/MetricType.h>
+#include <faiss/IndexShardsIVF.h>
 
 #include <iostream>
 namespace duckdb {
@@ -40,13 +41,28 @@ static faiss::MetricType opToMetricType(OpClassType opclass) {
 IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
                            const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
                            IndexConstraintType constraintType, bool trackMemory, int dim, int nlists,
-                           OpClassType opclz)
+                           OpClassType opclz, faiss::IndexFlatL2 *quantizer_ptr)
     : Index(db, IndexType::IVFFLAT,tableIoManager,columnIds,unboundExpressions,constraintType,trackMemory) {
 	dimension = dim;
-	quantizer = make_uniq<faiss::IndexFlatL2>(dimension);
-	auto metric_type = opToMetricType(opclz);
-	index = make_uniq<faiss::IndexIVFFlat>(quantizer.get(), dimension, nlists, metric_type);
+	// quantizer 需要全局的，这样才可以merge
+	nlist = nlists;
+	metric_type = opToMetricType(opclz);
+	quantizer = nullptr;
+	if (quantizer_ptr != nullptr) {
+    std::cout << "create real IndexIVFFlat index initial dimension :" << dimension << std::endl;
 
+    index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlists, metric_type);
+	  created = true;
+	  quantizer = quantizer_ptr;
+	}
+}
+
+void IvfflatIndex::initialize(faiss::IndexFlatL2 *quantizer_ptr) {
+	if (quantizer_ptr != nullptr) {
+    index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlist, metric_type);
+    created = true;
+	  quantizer = quantizer_ptr;
+	}
 }
 
 
@@ -105,14 +121,23 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	  for (int j = 0; j < entry.length; j++) {
 		  auto offset = entry.offset + j;
 		  auto index = real_data.sel->get_index(offset);
-		  memcpy(vector_data_ptr + values_count * v_size, data_ptr + index, v_size);
+		  std::cout << "data_index: " << index << std::endl;
+		  memcpy(vector_data_ptr + values_count, data_ptr + index, v_size);
 		  values_count += 1;
 	  }
 	}
 	using faiss_idx_t = int64_t;
 	// TODO: failed here
+	for (idx_t i = 0; i < input.size(); i++) {
+	  int c = values_count / input.size();
+	  for (int j = 0; j < c; j++) {
+		  std::cout << " " << vector_data_ptr[c * i + j];
+	  }
+	  std::cout << std::endl;
+	}
+	index->train(input.size(), vector_data_ptr);
 	index->add_with_ids(input.size(), vector_data_ptr, (faiss_idx_t*)row_identifiers);
-  std::cout << "create real ivfflat index here trained" << index->is_trained <<  std::endl;
+//  std::cout << "create real ivfflat index here trained" <<  <<  std::endl;
 //	arena_allocator.AllocateAligned()
   return PreservedError();
 }
@@ -120,7 +145,10 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 bool IvfflatIndex::MergeIndexes(IndexLock &state, Index &other_index) {
   // NOTE: try_to use merge_from
   auto& other = other_index.Cast<IvfflatIndex>();
-  index->merge_from(*other.index.get(), 0);
+  D_ASSERT(quantizer == other.quantizer);
+  std::cout << "quantizer total: " << quantizer->ntotal << " other: " << other.quantizer->ntotal << std::endl;
+  index->merge_from(*other.index, 0);
+
   return true;
 }
 

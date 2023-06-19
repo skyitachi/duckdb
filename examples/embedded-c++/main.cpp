@@ -205,7 +205,7 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 100, d = 3)")->Print();
+  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
 
 	con.Query("select list_min(float_list) from list_table")->Print();
 

@@ -1,22 +1,21 @@
 #include "duckdb/catalog/catalog.hpp"
 #include "duckdb/catalog/catalog_entry/aggregate_function_catalog_entry.hpp"
+#include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
+#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 #include "duckdb/execution/expression_executor.hpp"
+#include "duckdb/execution/index/vector/ivfflat.hpp"
 #include "duckdb/function/aggregate/nested_functions.hpp"
+#include "duckdb/function/function_binder.hpp"
 #include "duckdb/function/scalar/nested_functions.hpp"
+#include "duckdb/main/attached_database.hpp"
+#include "duckdb/main/client_data.hpp"
+#include "duckdb/main/database.hpp"
+#include "duckdb/main/database_manager.hpp"
 #include "duckdb/planner/expression/bound_aggregate_expression.hpp"
 #include "duckdb/planner/expression/bound_constant_expression.hpp"
 #include "duckdb/planner/expression/bound_function_expression.hpp"
 #include "duckdb/planner/expression_binder.hpp"
-#include "duckdb/function/function_binder.hpp"
-
-#include "duckdb/main/database.hpp"
-#include "duckdb/main/database_manager.hpp"
-#include "duckdb/main/attached_database.hpp"
-#include "duckdb/main/client_data.hpp"
-#include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
-#include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
 #include "duckdb/storage/data_table.hpp"
-#include "duckdb/execution/index/vector/ivfflat.hpp"
 
 #include <iostream>
 namespace duckdb {
@@ -158,31 +157,55 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 	auto count = args.size();
 	Vector &lists = args.data[0];
 
-  QueryErrorContext error_context;
-  string catalog_name = "";
-  string schema_name = "";
-  string table_name = "list_table";
-  auto table_or_view = Catalog::GetEntry(state.GetContext(), CatalogType::TABLE_ENTRY, catalog_name, schema_name,
-                                         table_name, true, error_context);
-  if (table_or_view->type == CatalogType::TABLE_ENTRY) {
-    auto& table = table_or_view->Cast<TableCatalogEntry>();
-    if (table.IsDuckTable()) {
-      auto& duck_table = table.Cast<DuckTableEntry>();
-	    auto& dt = duck_table.GetStorage();
-		  auto& indexes = dt.info->indexes.Indexes();
-		  for(auto& idx: indexes) {
+	QueryErrorContext error_context;
+	string catalog_name = "";
+	string schema_name = "";
+	string table_name = "list_table";
+	auto table_or_view = Catalog::GetEntry(state.GetContext(), CatalogType::TABLE_ENTRY, catalog_name, schema_name,
+	                                       table_name, true, error_context);
+	if (table_or_view->type == CatalogType::TABLE_ENTRY) {
+		auto &table = table_or_view->Cast<TableCatalogEntry>();
+		if (table.IsDuckTable()) {
+			auto &duck_table = table.Cast<DuckTableEntry>();
+			auto &dt = duck_table.GetStorage();
+			auto &indexes = dt.info->indexes.Indexes();
+			std::cout << "indexes size: " << indexes.size() << std::endl;
+			for (auto &idx : indexes) {
 				if (idx->type == IndexType::IVFFLAT) {
-					auto ivf = (IvfflatIndex*) idx.get();
-          std::cout << "found duckdb ivfflat index trained: " << ivf->index->is_trained << std::endl;
+					std::cout << "got IVFFLAT index here" << std::endl;
+					auto& ivf = idx->Cast<IvfflatIndex>();
+					//					UnifiedVectorFormat list_data;
+					//					lists.ToUnifiedFormat(args.size(), list_data);
+					//          auto list_entries = (list_entry_t*)list_data.data;
+					auto real_data_vector = ListVector::GetEntry(lists);
+					UnifiedVectorFormat real_data;
+					real_data_vector.ToUnifiedFormat(args.size(), real_data);
+					auto *data_ptr = (float *)real_data.data;
+					std::cout << data_ptr[0] << " " << data_ptr[1] << " " << data_ptr[2] << std::endl;
+					int k = 1;
+					int64_t *I = new int64_t[10];
+					float *D = new float[10];
+          std::cout << ivf.index->is_trained << std::endl;
+          float* xq = new float[3];
+          xq[0] = 0; xq[1] = 0.1; xq[2] = 0;
+          printf("index pointer: %p\n", ivf.index);
+//          int64_t* I = new int64_t[1];
+//          float* D = new float[1];
+		  //  这里为什么不可以使用search方法
+          ivf.index->search(1, xq, 1, D, I);
+          std::cout << "after merge search D[0] = " << D[0]  << ", I[0] = " << I[0] << std::endl;
+//					ivf.index->search(1, data_ptr, k, D, I);
+					//				  std::cout << "id: " << I[0] << " distance: " << D[0] <<  std::endl;
 
+					//          std::cout << "found duckdb ivfflat index trained: " << ivf->index->is_trained <<
+					//          std::endl;
 				}
-
-		  }
-//      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
-    }
-  }
-//		DuckTableEntry& duck_table = state.table->Cast<DuckTableEntry>();
-//		std::cout << "duck table: " << duck_table.ToSQL() << std::endl;
+			}
+			//      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
+		}
+	}
+	//		DuckTableEntry& duck_table = state.table->Cast<DuckTableEntry>();
+	//		std::cout << "duck table: " << duck_table.ToSQL() << std::endl;
 
 	// set the result vector
 	result.SetVectorType(VectorType::FLAT_VECTOR);
@@ -453,12 +476,10 @@ static unique_ptr<FunctionData> ListAggregatesBind(ClientContext &context, Scala
 		function_name = function_value.ToString();
 	}
 
+	auto &catalog = context.client_data->temporary_objects->GetCatalog();
 
-	auto& catalog = context.client_data->temporary_objects->GetCatalog();
-
-  // TODO: list aggr 只会bind一次的话，可以考虑这里实现vector_index_scan function
+	// TODO: list aggr 只会bind一次的话，可以考虑这里实现vector_index_scan function
 	std::cout << "list aggr function name is: " << function_name << "catalog name: " << catalog.GetName() << std::endl;
-
 
 	// look up the aggregate function in the catalog
 	QueryErrorContext error_context(nullptr, 0);
