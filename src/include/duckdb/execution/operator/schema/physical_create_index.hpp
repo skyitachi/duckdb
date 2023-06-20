@@ -39,6 +39,12 @@ public:
 	//! Unbound expressions to be used in the optimizer
 	vector<unique_ptr<Expression>> unbound_expressions;
 
+	// global ivfflatindex
+	unique_ptr<IvfflatIndex> g_index;
+	unique_ptr<faiss::IndexFlatL2> g_quantizer;
+
+  mutex g_index_lock;
+
 public:
 	//! Source interface, NOP for this operator
 	void GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate,
@@ -66,5 +72,8 @@ public:
 	bool ParallelSink() const override {
 		return true;
 	}
+
+private:
+	void create_ivfflat_index();
 };
 } // namespace duckdb

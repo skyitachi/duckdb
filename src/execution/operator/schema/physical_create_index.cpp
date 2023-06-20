@@ -24,6 +24,19 @@ PhysicalCreateIndex::PhysicalCreateIndex(LogicalOperator &op, TableCatalogEntry 
 	for (auto &column_id : column_ids) {
 		storage_ids.push_back(table.GetColumns().LogicalToPhysical(LogicalIndex(column_id)).index);
 	}
+	create_ivfflat_index();
+}
+
+void PhysicalCreateIndex::create_ivfflat_index() {
+	if (info->index_type == IndexType::IVFFLAT) {
+		int d = info->options["d"];
+		int nlists = info->options["oplists"];
+    OpClassType opclz = OpClassType::Vector_IP_OPS;
+		auto& storage = table.GetStorage();
+    g_quantizer = make_uniq<faiss::IndexFlatL2>(d);
+    g_index = make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
+                            info->constraint_type, true, d, nlists, opclz, g_quantizer.get());
+	}
 }
 
 //===--------------------------------------------------------------------===//
@@ -45,6 +58,8 @@ public:
 	explicit CreateIndexLocalSinkState(ClientContext &context) : arena_allocator(Allocator::Get(context)) {};
 
 	unique_ptr<Index> local_index;
+	Index* global_ivf_index;
+	// quantizer
 	ArenaAllocator arena_allocator;
 	vector<Key> keys;
 	DataChunk key_chunk;
