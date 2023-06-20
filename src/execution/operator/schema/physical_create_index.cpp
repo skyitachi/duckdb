@@ -35,6 +35,9 @@ public:
 	//! Global index to be added to the table
 	unique_ptr<Index> global_index;
 	unique_ptr<faiss::IndexFlatL2> global_quantizer;
+	~CreateIndexGlobalSinkState() {
+		std::cout << "global_index state destructor" << std::endl;
+	}
 };
 
 class CreateIndexLocalSinkState : public LocalSinkState {
@@ -213,6 +216,9 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
 	}
 
 	state.global_index->Verify();
+	// TODO: IMPORTANT
+	auto* quantizer = state.global_quantizer.release();
+
 	if (state.global_index->track_memory) {
 		state.global_index->buffer_manager.IncreaseUsedMemory(state.global_index->memory_size);
 	}
@@ -246,7 +252,7 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
       xq[2] = 0;
 
       ivf.index->search(1, xq, k, D, I);
-	    printf("index pointer in physical_create_index: %p\n", ivf.index);
+	    printf("index pointer in physical_create_index: %p, ntotal: %d\n", ivf.index, ivf.index->ntotal);
       std::cout << "search in finalize ok with new thread: " << std::this_thread::get_id() << std::endl;
     }
 	});

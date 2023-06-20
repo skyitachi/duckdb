@@ -207,6 +207,7 @@ BlockPointer IvfflatIndex::Serialize(MetaBlockWriter &writer) {
 IvfflatIndex::~IvfflatIndex() {
 	std::cout << "in the ivfflatindex destructor" << std::endl;
 	if (index != nullptr) {
+	  printf("destruct index pointer %p\n", index);
 		delete index;
 	}
   index = nullptr;

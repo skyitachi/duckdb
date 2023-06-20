@@ -184,19 +184,11 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 					int k = 1;
 					int64_t *I = new int64_t[10];
 					float *D = new float[10];
-					std::cout << "index is trained: " << ivf.index->is_trained << std::endl;
 					float *xq = new float[3];
-					xq[0] = 0;
-					xq[1] = 0.1;
-					xq[2] = 0;
-					printf("index pointer: %p\n", ivf.index);
+					printf("index pointer: %p, ntotal: %ld, dimension: %d\n", ivf.index, ivf.index->ntotal, ivf.index->d);
 					//          int64_t* I = new int64_t[1];
 					//          float* D = new float[1];
-					//  这里为什么不可以使用search方法
-					std::cout << "search index thread: " << std::this_thread::get_id() << std::endl;
-					ivf.index->add(1, xq);
-					std::cout << "add vectors ok" << std::endl;
-					ivf.index->search(1, xq, 1, D, I);
+					ivf.index->search(1, data_ptr, k, D, I);
 					std::cout << "after merge search D[0] = " << D[0] << ", I[0] = " << I[0] << std::endl;
 					//					ivf.index->search(1, data_ptr, k, D, I);
 					//				  std::cout << "id: " << I[0] << " distance: " << D[0] <<  std::endl;
