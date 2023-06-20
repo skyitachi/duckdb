@@ -25,6 +25,8 @@ public:
   faiss::IndexFlatL2* quantizer;
   bool created;
 
+  ~IvfflatIndex() override;
+
   void initialize(faiss::IndexFlatL2* quantizer_ptr);
 public:
 	unique_ptr<IndexScanState> InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,

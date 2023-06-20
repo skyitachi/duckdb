@@ -18,6 +18,7 @@
 #include "duckdb/storage/data_table.hpp"
 
 #include <iostream>
+#include <thread>
 namespace duckdb {
 
 // FIXME: use a local state for each thread to increase performance?
@@ -168,12 +169,11 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 		if (table.IsDuckTable()) {
 			auto &duck_table = table.Cast<DuckTableEntry>();
 			auto &dt = duck_table.GetStorage();
-			auto &indexes = dt.info->indexes.Indexes();
-			std::cout << "indexes size: " << indexes.size() << std::endl;
-			for (auto &idx : indexes) {
+//			auto &indexes = dt.info->indexes.Indexes();
+			for (auto &idx : dt.info->indexes.Indexes()) {
 				if (idx->type == IndexType::IVFFLAT) {
 					std::cout << "got IVFFLAT index here" << std::endl;
-					auto& ivf = idx->Cast<IvfflatIndex>();
+					auto &ivf = idx->Cast<IvfflatIndex>();
 					//					UnifiedVectorFormat list_data;
 					//					lists.ToUnifiedFormat(args.size(), list_data);
 					//          auto list_entries = (list_entry_t*)list_data.data;
@@ -181,20 +181,24 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 					UnifiedVectorFormat real_data;
 					real_data_vector.ToUnifiedFormat(args.size(), real_data);
 					auto *data_ptr = (float *)real_data.data;
-					std::cout << data_ptr[0] << " " << data_ptr[1] << " " << data_ptr[2] << std::endl;
 					int k = 1;
 					int64_t *I = new int64_t[10];
 					float *D = new float[10];
-          std::cout << ivf.index->is_trained << std::endl;
-          float* xq = new float[3];
-          xq[0] = 0; xq[1] = 0.1; xq[2] = 0;
-          printf("index pointer: %p\n", ivf.index);
-//          int64_t* I = new int64_t[1];
-//          float* D = new float[1];
-		  //  这里为什么不可以使用search方法
-          ivf.index->search(1, xq, 1, D, I);
-          std::cout << "after merge search D[0] = " << D[0]  << ", I[0] = " << I[0] << std::endl;
-//					ivf.index->search(1, data_ptr, k, D, I);
+					std::cout << "index is trained: " << ivf.index->is_trained << std::endl;
+					float *xq = new float[3];
+					xq[0] = 0;
+					xq[1] = 0.1;
+					xq[2] = 0;
+					printf("index pointer: %p\n", ivf.index);
+					//          int64_t* I = new int64_t[1];
+					//          float* D = new float[1];
+					//  这里为什么不可以使用search方法
+					std::cout << "search index thread: " << std::this_thread::get_id() << std::endl;
+					ivf.index->add(1, xq);
+					std::cout << "add vectors ok" << std::endl;
+					ivf.index->search(1, xq, 1, D, I);
+					std::cout << "after merge search D[0] = " << D[0] << ", I[0] = " << I[0] << std::endl;
+					//					ivf.index->search(1, data_ptr, k, D, I);
 					//				  std::cout << "id: " << I[0] << " distance: " << D[0] <<  std::endl;
 
 					//          std::cout << "found duckdb ivfflat index trained: " << ivf->index->is_trained <<

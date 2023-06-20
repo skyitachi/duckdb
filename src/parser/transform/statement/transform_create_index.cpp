@@ -40,7 +40,6 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
 		}
 		std::string opclass;
 		OpClassType op_type = OpClassType::INVALID;
-		std::cout << "opclass: " << index_element->opclass << std::endl;
 		{
 			// TODO: parse opclass here
 			auto list = index_element->opclass;
