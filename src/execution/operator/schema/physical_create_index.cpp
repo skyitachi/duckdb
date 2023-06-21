@@ -7,8 +7,10 @@
 #include "duckdb/main/database_manager.hpp"
 #include "duckdb/storage/storage_manager.hpp"
 
+
 #include <faiss/IndexFlat.h>
 #include <thread>
+#include <mutex>
 
 namespace duckdb {
 
@@ -176,22 +178,10 @@ SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkSt
 
 		idx = std::move(art);
 	} else if (lstate.local_index->type == IndexType::IVFFLAT) {
-		auto &ivfflat = lstate.local_index->Cast<IvfflatIndex>();
-		int d = info->options["d"];
-		int nlists = info->options["oplists"];
-		OpClassType opclz;
-		for (auto &expr : info->expressions) {
-			//			std::cout << "parsed expr: " << expr->ToString() << std::endl;
-			//			opclz = expr->opclass_type;
-			opclz = OpClassType::Vector_IP_OPS;
-		}
-		std::cout << "global sink: dimension: " << d << ", nlists: " << nlists << ", opclass_type: " << int(opclz)
-		          << std::endl;
-		idx = make_uniq<IvfflatIndex>(storage.db, lstate.local_index->table_io_manager, lstate.local_index->column_ids,
-		                              lstate.local_index->unbound_expressions, lstate.local_index->constraint_type,
-		                              false, d, nlists, opclz, gstate.global_quantizer.get());
-		idx->Append(input, row_identifiers);
-		ivfflat.initialize(gstate.global_quantizer.get());
+		IndexLock lock_state;
+		g_index->InitializeLock(lock_state);
+    g_index->Append(lock_state, input, row_identifiers);
+	  // NOTE:　为什么调用不了Append(DataChunk &entries, Vector &row_identifiers)
 	}
 
 	if (!lstate.local_index) {
@@ -265,7 +255,6 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
       xq[0] = 0;
       xq[1] = 0.1;
       xq[2] = 0;
-
       ivf.index->search(1, xq, k, D, I);
 	    printf("index pointer in physical_create_index: %p, ntotal: %d\n", ivf.index, ivf.index->ntotal);
       std::cout << "search in finalize ok with new thread: " << std::this_thread::get_id() << std::endl;

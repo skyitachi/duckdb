@@ -14,9 +14,10 @@
 #include "duckdb/parser/parsed_data/create_index_info.hpp"
 
 #include "duckdb/storage/data_table.hpp"
-
+#include "duckdb/storage/table/append_state.hpp"
 #include <fstream>
 
+#include <mutex>
 namespace duckdb {
 class DuckTableEntry;
 
@@ -43,7 +44,13 @@ public:
 	unique_ptr<IvfflatIndex> g_index;
 	unique_ptr<faiss::IndexFlatL2> g_quantizer;
 
-  mutex g_index_lock;
+//	unique_lock<mutex> g_index_lock;
+	std::mutex g_index_lock;
+
+private:
+	void init_lock(IndexLock& lock) {
+    lock.index_lock = unique_lock<mutex>(g_index_lock);
+	}
 
 public:
 	//! Source interface, NOP for this operator
