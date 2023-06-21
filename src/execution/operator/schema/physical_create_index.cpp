@@ -35,9 +35,9 @@ void PhysicalCreateIndex::create_ivfflat_index() {
 		int nlists = info->options["oplists"];
     OpClassType opclz = OpClassType::Vector_IP_OPS;
 		auto& storage = table.GetStorage();
-    g_quantizer = make_uniq<faiss::IndexFlatL2>(d);
+	  faiss::IndexFlatL2* quantizer = new faiss::IndexFlatL2(d);
     g_index = make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
-                            info->constraint_type, true, d, nlists, opclz, g_quantizer.get());
+                            info->constraint_type, true, d, nlists, opclz, quantizer);
 	}
 }
 
@@ -49,10 +49,6 @@ class CreateIndexGlobalSinkState : public GlobalSinkState {
 public:
 	//! Global index to be added to the table
 	unique_ptr<Index> global_index;
-	unique_ptr<faiss::IndexFlatL2> global_quantizer;
-	~CreateIndexGlobalSinkState() {
-		std::cout << "global_index state destructor" << std::endl;
-	}
 };
 
 class CreateIndexLocalSinkState : public LocalSinkState {
@@ -60,8 +56,7 @@ public:
 	explicit CreateIndexLocalSinkState(ClientContext &context) : arena_allocator(Allocator::Get(context)) {};
 
 	unique_ptr<Index> local_index;
-	Index* global_ivf_index;
-	// quantizer
+
 	ArenaAllocator arena_allocator;
 	vector<Key> keys;
 	DataChunk key_chunk;
@@ -81,26 +76,7 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 		break;
 	}
 	case IndexType::IVFFLAT: {
-		auto &storage = table.GetStorage();
-		int d = info->options["d"];
-		int nlists = info->options["oplists"];
-		OpClassType opclz = OpClassType::Vector_IP_OPS;
-		//		for (auto &expr : info->expressions) {
-		//			//      std::cout << "parsed expr: " << expr->ToString() << std::endl;
-		//			opclz = expr->opclass_type;
-		//		}
-		state->global_quantizer = make_uniq<faiss::IndexFlatL2>(d);
-		state->global_index =
-		    make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
-		                            info->constraint_type, true, d, nlists, opclz, state->global_quantizer.get());
-		//
-		//		auto &storage = table.GetStorage();
-		//		state->global_index = make_uniq<IvfflatIndex>(storage_ids, TableIOManager::Get(storage),
-		// unbound_expressions, info->constraint_type, storage.db, true);
-		std::cout << "create global ivfflat index: dimension: " << d << ", nlists: " << nlists
-		          << ", opclass_type: " << int(opclz) << std::endl;
-		auto &ivf = state->global_index->Cast<IvfflatIndex>();
-		printf("state global index %p \n", ivf.index);
+		D_ASSERT(g_index && g_index->type == IndexType::IVFFLAT);
 		break;
 	}
 	default:
@@ -128,21 +104,7 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 		break;
 	}
 	case IndexType::IVFFLAT: {
-		std::cout << "GetLocalLinkSinkState need to create IVFFLAT index" << std::endl;
-		auto &storage = table.GetStorage();
-		int d = info->options["d"];
-		int nlists = info->options["oplists"];
-		OpClassType opclz;
-		for (auto &expr : info->expressions) {
-			//		  std::cout << "parsed expr: " << expr->ToString() << std::endl;
-			//			opclz = expr->opclass_type;
-			opclz = OpClassType::Vector_IP_OPS;
-		}
-		std::cout << "local index: dimension: " << d << ", nlists: " << nlists << ", opclass_type: " << int(opclz)
-		          << std::endl;
-		state->local_index =
-		    make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
-		                            info->constraint_type, true, d, nlists, opclz);
+		D_ASSERT(g_index && g_index->type == IndexType::IVFFLAT);
 		break;
 	}
 	default:
@@ -150,6 +112,8 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 	}
 	return std::move(state);
 }
+
+
 
 SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkState &gstate_p, LocalSinkState &lstate_p,
                                          DataChunk &input) const {
@@ -166,7 +130,13 @@ SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkSt
 
 	auto &storage = table.GetStorage();
 	unique_ptr<Index> idx;
-	if (lstate.local_index->type == IndexType::ART) {
+
+	if (!lstate.local_index && g_index && g_index->type == IndexType::IVFFLAT) {
+    // 使用这种方式加锁
+    IndexLock lock_state;
+    g_index->InitializeLock(lock_state);
+    g_index->Append(lock_state, input, row_identifiers);
+	} else if (lstate.local_index->type == IndexType::ART) {
 		ART::GenerateKeys(lstate.arena_allocator, lstate.key_chunk, lstate.keys);
 		auto art = make_uniq<ART>(lstate.local_index->column_ids, lstate.local_index->table_io_manager,
 		                          lstate.local_index->unbound_expressions, lstate.local_index->constraint_type,
@@ -177,16 +147,9 @@ SinkResultType PhysicalCreateIndex::Sink(ExecutionContext &context, GlobalSinkSt
 		}
 
 		idx = std::move(art);
-	} else if (lstate.local_index->type == IndexType::IVFFLAT) {
-		IndexLock lock_state;
-		g_index->InitializeLock(lock_state);
-    g_index->Append(lock_state, input, row_identifiers);
-	  // NOTE:　为什么调用不了Append(DataChunk &entries, Vector &row_identifiers)
 	}
 
-	if (!lstate.local_index) {
-		std::cout << "local index is nil" << std::endl;
-	} else {
+	if (lstate.local_index != nullptr && lstate.local_index->type != IndexType::IVFFLAT) {
 		// merge into the local ART
 		if (!lstate.local_index->MergeIndexes(*idx)) {
 			throw ConstraintException("Data contains duplicates on indexed column(s)");
@@ -201,12 +164,44 @@ void PhysicalCreateIndex::Combine(ExecutionContext &context, GlobalSinkState &gs
 	auto &gstate = gstate_p.Cast<CreateIndexGlobalSinkState>();
 	auto &lstate = lstate_p.Cast<CreateIndexLocalSinkState>();
 
-	std::cout << "in the combine index " << std::endl;
-
+	if (gstate.global_index == nullptr) {
+		return;
+	}
 	// merge the local index into the global index
 	if (!gstate.global_index->MergeIndexes(*lstate.local_index)) {
 		throw ConstraintException("Data contains duplicates on indexed column(s)");
 	}
+}
+
+SinkFinalizeType PhysicalCreateIndex::finalize_ivfflat_index(ClientContext &context) const {
+	std::cout << "in the finalize ivfflat index" << std::endl;
+  D_ASSERT(g_index && g_index->type == IndexType::IVFFLAT);
+  g_index->Verify();
+
+  if (g_index->track_memory) {
+		g_index->buffer_manager.IncreaseUsedMemory(g_index->memory_size);
+  }
+
+  auto &schema = *table.schema;
+  auto index_entry = (DuckIndexEntry *)schema.CreateIndex(context, info.get(), &table);
+  if (!index_entry) {
+    // index already exists, but error ignored because of IF NOT EXISTS
+    return SinkFinalizeType::READY;
+  }
+
+  auto &storage = table.GetStorage();
+  index_entry->index = g_index.get();
+  index_entry->info = storage.info;
+  for (auto &parsed_expr : info->parsed_expressions) {
+    index_entry->parsed_expressions.push_back(parsed_expr->Copy());
+  }
+
+  // 已经finalize了如何感知
+  unique_ptr<Index> p_index;
+  p_index.reset(g_index.get());
+  // NOTE: 这里都是可以成功完成搜索的
+  storage.info->indexes.AddIndex(std::move(p_index));
+  return SinkFinalizeType::READY;
 }
 
 SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event, ClientContext &context,
@@ -220,9 +215,12 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
 		throw TransactionException("Transaction conflict: cannot add an index to a table that has been altered!");
 	}
 
+	if (g_index && g_index->type == IndexType::IVFFLAT) {
+		auto result = finalize_ivfflat_index(context);
+		return static_cast<SinkFinalizeType>(result);
+	}
+
 	state.global_index->Verify();
-	// TODO: IMPORTANT
-	auto* quantizer = state.global_quantizer.release();
 
 	if (state.global_index->track_memory) {
 		state.global_index->buffer_manager.IncreaseUsedMemory(state.global_index->memory_size);
@@ -243,24 +241,6 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
 
 	// NOTE: 这里都是可以成功完成搜索的
 	storage.info->indexes.AddIndex(std::move(state.global_index));
-	std::thread th([&]{
-    for (auto &idx : storage.info->indexes.Indexes()) {
-      //		auto &index = *idx;
-      //		auto &ivf = index.Cast<IvfflatIndex>();
-      auto &ivf = idx->Cast<IvfflatIndex>();
-      int k = 1;
-      int64_t *I = new int64_t[10];
-      float *D = new float[10];
-      float *xq = new float[3];
-      xq[0] = 0;
-      xq[1] = 0.1;
-      xq[2] = 0;
-      ivf.index->search(1, xq, k, D, I);
-	    printf("index pointer in physical_create_index: %p, ntotal: %d\n", ivf.index, ivf.index->ntotal);
-      std::cout << "search in finalize ok with new thread: " << std::this_thread::get_id() << std::endl;
-    }
-	});
-	th.join();
 	return SinkFinalizeType::READY;
 }
 
@@ -271,6 +251,12 @@ SinkFinalizeType PhysicalCreateIndex::Finalize(Pipeline &pipeline, Event &event,
 void PhysicalCreateIndex::GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate,
                                   LocalSourceState &lstate) const {
 	// NOP
+}
+
+PhysicalCreateIndex::~PhysicalCreateIndex() noexcept {
+	if (g_index) {
+		g_index.release();
+	}
 }
 
 } // namespace duckdb

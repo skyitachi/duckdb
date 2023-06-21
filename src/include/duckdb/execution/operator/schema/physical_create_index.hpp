@@ -41,16 +41,12 @@ public:
 	vector<unique_ptr<Expression>> unbound_expressions;
 
 	// global ivfflatindex
-	unique_ptr<IvfflatIndex> g_index;
-	unique_ptr<faiss::IndexFlatL2> g_quantizer;
+	unique_ptr<Index> g_index;
 
-//	unique_lock<mutex> g_index_lock;
-	std::mutex g_index_lock;
+	~PhysicalCreateIndex();
 
 private:
-	void init_lock(IndexLock& lock) {
-    lock.index_lock = unique_lock<mutex>(g_index_lock);
-	}
+	SinkFinalizeType finalize_ivfflat_index(ClientContext &context) const;
 
 public:
 	//! Source interface, NOP for this operator
