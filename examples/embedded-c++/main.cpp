@@ -207,7 +207,10 @@ int main() {
 //
   con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
 
-	con.Query("select list_min(float_list) from list_table")->Print();
+//	con.Query("select list_min(float_list) from list_table")->Print();
+  // min_distance aggregation
+  con.Query("select min_distance(float_list) from list_table")->Print();
+//  con.Query("select min_distance(float_list, 3) from list_table")->Print();
 
 //  con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
 //

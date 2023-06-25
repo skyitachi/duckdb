@@ -96,6 +96,10 @@ struct MinByFun {
 	static void RegisterFunction(BuiltinFunctions &set);
 };
 
+struct MinDistanceFun {
+	static void RegisterFunction(BuiltinFunctions &set);
+};
+
 struct SumFun {
 	static AggregateFunction GetSumAggregate(PhysicalType type);
 	static AggregateFunction GetSumAggregateNoOverflow(PhysicalType type);

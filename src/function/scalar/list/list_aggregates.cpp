@@ -158,6 +158,7 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 	auto count = args.size();
 	Vector &lists = args.data[0];
 
+	// NOTE: 只是为了做demo
 	QueryErrorContext error_context;
 	string catalog_name = "";
 	string schema_name = "";

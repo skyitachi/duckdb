@@ -15,7 +15,7 @@ void PostgresParser::Parse(const std::string &query) {
 	duckdb_libpgquery::pg_parser_init();
 	duckdb_libpgquery::parse_result res;
 	pg_parser_parse(query.c_str(), &res);
-	std::cout << "query: " << query << ", success: " << res.success << std::endl;
+//	std::cout << "query: " << query << ", success: " << res.success << std::endl;
 	success = res.success;
 
 	// TODO: parse syntax here

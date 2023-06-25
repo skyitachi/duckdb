@@ -560,10 +560,22 @@ static void AddMinMaxOperator(AggregateFunctionSet &set) {
 	                                  nullptr, BindMinMax<OP, OP_STRING, OP_VECTOR>));
 }
 
+template <class OP, class OP_STRING, class OP_VECTOR>
+static void AddMinDistanceOperator(AggregateFunctionSet(&set)) {
+	set.AddFunction(AggregateFunction({LogicalTypeId::LIST, LogicalType::INTEGER}, LogicalType::FLOAT,
+	                                  nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, BindDecimalMinMax<OP>));
+}
+
 void MinFun::RegisterFunction(BuiltinFunctions &set) {
 	AggregateFunctionSet min("min");
 	AddMinMaxOperator<MinOperation, MinOperationString, MinOperationVector>(min);
 	set.AddFunction(min);
+}
+
+void MinDistanceFun::RegisterFunction(BuiltinFunctions &set) {
+	AggregateFunctionSet min_distance("min_distance");
+	// TODO: 需要实现min operator和aggregation function的具体实现
+	set.AddFunction(min_distance);
 }
 
 void MaxFun::RegisterFunction(BuiltinFunctions &set) {
