@@ -554,8 +554,8 @@ unique_ptr<FunctionData> BindMinMax(ClientContext &context, AggregateFunction &f
 
 template <class OP, class OP_STRING, class OP_VECTOR>
 static void AddMinMaxOperator(AggregateFunctionSet &set) {
-	set.AddFunction(AggregateFunction({LogicalTypeId::DECIMAL}, LogicalTypeId::DECIMAL, nullptr, nullptr, nullptr,
-	                                  nullptr, nullptr, nullptr, BindDecimalMinMax<OP>));
+	set.AddFunction(AggregateFunction({LogicalTypeId::DECIMAL}, LogicalTypeId::DECIMAL, nullptr/*state_size*/, nullptr/*initialize*/, nullptr/*update=*/,
+	                                  nullptr/*combine=*/, nullptr/*finalize=*/, nullptr/*simple_update=*/, BindDecimalMinMax<OP>/*bind*/));
 	set.AddFunction(AggregateFunction({LogicalType::ANY}, LogicalType::ANY, nullptr, nullptr, nullptr, nullptr, nullptr,
 	                                  nullptr, BindMinMax<OP, OP_STRING, OP_VECTOR>));
 }

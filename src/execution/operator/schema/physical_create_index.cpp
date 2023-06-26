@@ -174,7 +174,6 @@ void PhysicalCreateIndex::Combine(ExecutionContext &context, GlobalSinkState &gs
 }
 
 SinkFinalizeType PhysicalCreateIndex::finalize_ivfflat_index(ClientContext &context) const {
-	std::cout << "in the finalize ivfflat index" << std::endl;
   D_ASSERT(g_index && g_index->type == IndexType::IVFFLAT);
   g_index->Verify();
 

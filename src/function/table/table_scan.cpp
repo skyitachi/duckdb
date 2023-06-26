@@ -382,6 +382,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 				D_ASSERT(!high_value.IsNull());
 				index_state = index.InitializeScanSinglePredicate(transaction, high_value, high_comparison_type);
 			}
+			// NOTE：完成实际index scan的工作
 			if (index.Scan(transaction, storage, *index_state, STANDARD_VECTOR_SIZE, bind_data.result_ids)) {
 				// use an index scan!
 				bind_data.is_index_scan = true;
