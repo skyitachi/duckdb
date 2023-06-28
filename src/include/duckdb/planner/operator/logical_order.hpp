@@ -21,12 +21,13 @@ public:
 	static constexpr const LogicalOperatorType TYPE = LogicalOperatorType::LOGICAL_ORDER_BY;
 
 public:
-	explicit LogicalOrder(vector<BoundOrderByNode> orders)
-	    : LogicalOperator(LogicalOperatorType::LOGICAL_ORDER_BY), orders(std::move(orders)) {
+	explicit LogicalOrder(vector<BoundOrderByNode> orders, TableCatalogEntry* from_table = nullptr)
+	    : LogicalOperator(LogicalOperatorType::LOGICAL_ORDER_BY), orders(std::move(orders)), table(from_table) {
 	}
 
 	vector<BoundOrderByNode> orders;
 	vector<idx_t> projections;
+	optional_ptr<TableCatalogEntry> table;
 
 public:
 	vector<ColumnBinding> GetColumnBindings() override {

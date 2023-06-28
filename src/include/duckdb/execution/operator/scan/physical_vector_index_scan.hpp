@@ -13,15 +13,34 @@
 
 namespace duckdb {
 
-class PhysicalVectorIndexScan: public PhysicalOperator {
+class PhysicalVectorIndexScan : public PhysicalOperator {
 public:
-  static constexpr const PhysicalOperatorType TYPE = PhysicalOperatorType::VECTOR_INDEX_SCAN;
+	static constexpr const PhysicalOperatorType TYPE = PhysicalOperatorType::VECTOR_INDEX_SCAN;
+
+  PhysicalVectorIndexScan(vector<LogicalType> types, vector<BoundOrderByNode> orders, idx_t limit, idx_t estimated_cardinality,
+	                        optional_ptr<TableCatalogEntry> table):
+	      PhysicalOperator(PhysicalOperatorType::VECTOR_INDEX_SCAN, std::move(types), estimated_cardinality),
+	      orders(std::move(orders)), limit(limit), table(table) {};
+
+  vector<BoundOrderByNode> orders;
+  idx_t limit;
+
+  optional_ptr<TableCatalogEntry> table;
 
 public:
-  string GetName() const override;
-  string ParamsToString() const override;
+	string GetName() const override;
+	string ParamsToString() const override;
+	bool IsSource() const override {
+		return true;
+	}
 
-  bool Equals(const PhysicalOperator& other) const override;
+	bool Equals(const PhysicalOperator &other) const override;
+
+	// sink
+public:
+	bool IsSink() const override {
+		return true;
+	}
 };
-}
+} // namespace duckdb
 #endif // DUCKDB_PHYSICAL_VECTOR_INDEX_SCAN_HPP

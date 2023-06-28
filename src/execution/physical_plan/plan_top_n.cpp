@@ -19,6 +19,8 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalTopN &op) 
 		  std::cout << "expression type: " << ExpressionTypeToString(order_node.expression->GetExpressionType()) << std::endl;
 		  std::cout << "expression class: " << ExpressionClassToString(order_node.expression->GetExpressionClass()) << std::endl;
 	}
+
+
 	auto top_n =
 	    make_uniq<PhysicalTopN>(op.types, std::move(op.orders), (idx_t)op.limit, op.offset, op.estimated_cardinality);
 	top_n->children.push_back(std::move(plan));

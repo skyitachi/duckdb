@@ -29,6 +29,8 @@ public:
 	//! The offset from the start to begin emitting elements
 	int64_t offset;
 
+	optional_ptr<TableCatalogEntry> table;
+
 public:
 	vector<ColumnBinding> GetColumnBindings() override {
 		return children[0]->GetColumnBindings();

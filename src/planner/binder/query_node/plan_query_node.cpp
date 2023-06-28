@@ -6,6 +6,7 @@
 #include "duckdb/planner/operator/logical_order.hpp"
 #include "duckdb/planner/bound_result_modifier.hpp"
 
+#include "duckdb/planner/tableref/bound_basetableref.hpp"
 namespace duckdb {
 
 unique_ptr<LogicalOperator> Binder::VisitQueryNode(BoundQueryNode &node, unique_ptr<LogicalOperator> root) {
@@ -31,7 +32,10 @@ unique_ptr<LogicalOperator> Binder::VisitQueryNode(BoundQueryNode &node, unique_
 					distinct.order_by = std::move(order_by);
 				}
 			}
-			auto order = make_uniq<LogicalOrder>(std::move(bound.orders));
+			// TODO: 异常情况的判断
+			auto &select_node = node.Cast<BoundSelectNode>();
+			auto &table_ref = select_node.from_table->Cast<BoundBaseTableRef>();
+			auto order = make_uniq<LogicalOrder>(std::move(bound.orders), &table_ref.table);
 			order->AddChild(std::move(root));
 			root = std::move(order);
 			break;
