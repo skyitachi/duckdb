@@ -67,7 +67,6 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
   case PhysicalType::INT16:
 	  break;
   case PhysicalType::UINT32:
-    std::cout << "physical uint32" << std::endl;
 	  break;
   case PhysicalType::UINT64:
     std::cout << "physical uint64" << std::endl;

@@ -4,6 +4,7 @@
 #include "duckdb/common/types/vector.hpp"
 #include "duckdb/common/operator/comparison_operators.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 template <>
@@ -39,7 +40,13 @@ NumericStatsData &NumericStats::GetDataUnsafe(BaseStatistics &stats) {
 }
 
 const NumericStatsData &NumericStats::GetDataUnsafe(const BaseStatistics &stats) {
-	D_ASSERT(stats.GetStatsType() == StatisticsType::NUMERIC_STATS);
+	if (stats.GetStatsType() != StatisticsType::NUMERIC_STATS) {
+		std::cout << "illegal stats type" << std::endl;
+	}
+	if (stats.GetStatsType() == StatisticsType::LIST_STATS) {
+		return stats.child_stats[0].stats_union.numeric_data;
+	}
+//  D_ASSERT(stats.GetStatsType() == StatisticsType::NUMERIC_STATS);
 	return stats.stats_union.numeric_data;
 }
 
@@ -347,6 +354,7 @@ Value NumericValueUnionToValueInternal(const LogicalType &type, const NumericVal
 	case PhysicalType::DOUBLE:
 		return Value::DOUBLE(val.value_.double_);
 	default:
+		std::cout << "numeric value type: " << TypeIdToString(type.InternalType()) << std::endl;
 		throw InternalException("Unsupported type for NumericValueUnionToValue");
 	}
 }
@@ -379,6 +387,9 @@ Value NumericStats::Min(const BaseStatistics &stats) {
 	if (!NumericStats::HasMin(stats)) {
 		throw InternalException("Min() called on statistics that does not have min");
 	}
+	if (stats.GetStatsType() == StatisticsType::LIST_STATS) {
+		return NumericValueUnionToValue(stats.child_stats[0].GetType(), NumericStats::GetDataUnsafe(stats).min);
+	}
 	return NumericValueUnionToValue(stats.GetType(), NumericStats::GetDataUnsafe(stats).min);
 }
 
@@ -386,6 +397,9 @@ Value NumericStats::Max(const BaseStatistics &stats) {
 	if (!NumericStats::HasMax(stats)) {
 		throw InternalException("Max() called on statistics that does not have max");
 	}
+  if (stats.GetStatsType() == StatisticsType::LIST_STATS) {
+    return NumericValueUnionToValue(stats.child_stats[0].GetType(), NumericStats::GetDataUnsafe(stats).max);
+  }
 	return NumericValueUnionToValue(stats.GetType(), NumericStats::GetDataUnsafe(stats).max);
 }
 

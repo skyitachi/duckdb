@@ -48,7 +48,6 @@ unique_ptr<Expression> TemplatedCastToSmallestType(unique_ptr<Expression> expr, 
 	if (!NumericStats::HasMinMax(stats)) {
 		return expr;
 	}
-
 	auto signed_min_val = NumericStats::Min(stats).GetValue<T>();
 	auto signed_max_val = NumericStats::Max(stats).GetValue<T>();
 	if (signed_max_val < signed_min_val) {

@@ -1,7 +1,8 @@
+#include "duckdb/common/enums/expression_type.hpp"
 #include "duckdb/execution/operator/order/physical_top_n.hpp"
+#include "duckdb/execution/operator/scan/physical_vector_index_scan.hpp"
 #include "duckdb/execution/physical_plan_generator.hpp"
 #include "duckdb/planner/operator/logical_top_n.hpp"
-#include "duckdb/common/enums/expression_type.hpp"
 
 namespace duckdb {
 
@@ -21,9 +22,13 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalTopN &op) 
 	}
 
 	auto expression_name = op.orders[0].expression->GetName();
-
-
-
+	auto fn_idx = expression_name.find("min_distance");
+	if (fn_idx != -1) {
+		  auto vector_index_scan = make_uniq<PhysicalVectorIndexScan>(
+		      op.types, std::move(op.orders), (idx_t)op.limit, op.estimated_cardinality, op.table);
+		  vector_index_scan->children.push_back(std::move(plan));
+		  return std::move(vector_index_scan);
+	}
 	auto top_n =
 	    make_uniq<PhysicalTopN>(op.types, std::move(op.orders), (idx_t)op.limit, op.offset, op.estimated_cardinality);
 	top_n->children.push_back(std::move(plan));

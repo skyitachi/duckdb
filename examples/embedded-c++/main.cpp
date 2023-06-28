@@ -194,9 +194,9 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-	con.Query("create table list_table (float_list FLOAT[], varchar_list VARCHAR[])");
+	con.Query("create table list_table (float_list FLOAT[], varchar_list VARCHAR[], integer_list INTEGER[])");
 
-	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], ['a', 'b', 'c']), ([3.3, 4.4, 5.5], ['c', 'd', 'e'])");
+	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], ['a', 'b', 'c'], [1, 2, 1]), ([3.3, 4.4, 5.5], ['c', 'd', 'e'], [1, 2, 3])");
 //
 //	con.Query("select * from list_table")->Print();
 
@@ -207,7 +207,7 @@ int main() {
 //
 //  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
 
-	con.Query("select list_min(float_list) as score from list_table order by score limit 10")->Print();
+	con.Query("select list_distance(integer_list, [1, 1, 1]) as score from list_table order by score limit 10")->Print();
   // min_distance aggregation
 //  con.Query("select min_distance(float_list) from list_table")->Print();
 //  con.Query("select min_distance(float_list, 3) from list_table")->Print();
