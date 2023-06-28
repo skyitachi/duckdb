@@ -14,6 +14,7 @@
 
 #include "parser/parser.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 Parser::Parser(ParserOptions options_p) : options(options_p) {
@@ -175,6 +176,7 @@ void Parser::ParseQuery(const string &query) {
 	if (!statements.empty()) {
 		auto &last_statement = statements.back();
 		last_statement->stmt_length = query.size() - last_statement->stmt_location;
+		std::cout << "statement size: " << statements.size() << std::endl;
 		for (auto &statement : statements) {
 			statement->query = query;
 			if (statement->type == StatementType::CREATE_STATEMENT) {

@@ -168,8 +168,8 @@ int main() {
 
 	Connection con(db);
 
-	con.Query("CREATE TABLE floats(i FLOAT)");
-	con.Query("INSERT INTO floats VALUES (1), (2), (3), (999)")->Print();
+//	con.Query("CREATE TABLE floats(i FLOAT)");
+//	con.Query("INSERT INTO floats VALUES (1), (2), (3), (999)")->Print();
 //	con.Query("create index idx_i on integers (i)")->Print();
 //	auto result = con.Query("SELECT * FROM integers");
 //	result->Print();
@@ -180,7 +180,7 @@ int main() {
 //	// 可以参考CreateScalarFunction 封装的用法
 //	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
 //
-	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+//	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 //	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 //	                                                                LogicalType::INTEGER);
 //
@@ -205,11 +205,11 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
+//  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(float_list vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
 
-//	con.Query("select list_min(float_list) from list_table")->Print();
+	con.Query("select list_min(float_list) as score from list_table order by score limit 10")->Print();
   // min_distance aggregation
-  con.Query("select min_distance(float_list) from list_table")->Print();
+//  con.Query("select min_distance(float_list) from list_table")->Print();
 //  con.Query("select min_distance(float_list, 3) from list_table")->Print();
 
 //  con.Query("select list_concat(int_list, [1, 2, 3]) from list_table")->Print();
