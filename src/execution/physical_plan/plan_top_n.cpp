@@ -22,11 +22,12 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalTopN &op) 
 	}
 
 	auto expression_name = op.orders[0].expression->GetName();
-	auto fn_idx = expression_name.find("min_distance");
+	auto fn_idx = expression_name.find("list_distance");
 	if (fn_idx != -1) {
 		  auto vector_index_scan = make_uniq<PhysicalVectorIndexScan>(
 		      op.types, std::move(op.orders), (idx_t)op.limit, op.estimated_cardinality, op.table);
-		  vector_index_scan->children.push_back(std::move(plan));
+		  // NOTE: no need to push back plan
+//		  vector_index_scan->children.push_back(std::move(plan));
 		  return std::move(vector_index_scan);
 	}
 	auto top_n =

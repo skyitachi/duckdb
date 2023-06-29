@@ -193,8 +193,8 @@ static unique_ptr<BaseStatistics> ListDistanceFunStats(ClientContext &context, F
 
 ScalarFunction ListDistanceFun::GetFunction() {
 
-	auto fn = ScalarFunction({LogicalType::LIST(LogicalType::INTEGER), LogicalType::LIST(LogicalType::INTEGER)},
-	                         LogicalType::INTEGER, ListDistanceFunction, ListDistanceBind, nullptr,
+	auto fn = ScalarFunction({LogicalType::LIST(LogicalType::ANY), LogicalType::LIST(LogicalType::ANY)},
+	                         LogicalType::ANY, ListDistanceFunction, ListDistanceBind, nullptr,
 	                         ListDistanceFunStats);
 
 	fn.null_handling = FunctionNullHandling::DEFAULT_NULL_HANDLING;

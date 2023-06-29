@@ -41,6 +41,8 @@ public:
 	bool IsSink() const override {
 		return true;
 	}
+  SinkResultType Sink(ExecutionContext &context, GlobalSinkState &state, LocalSinkState &lstate,
+                      DataChunk &input) const override;
 };
 } // namespace duckdb
 #endif // DUCKDB_PHYSICAL_VECTOR_INDEX_SCAN_HPP
