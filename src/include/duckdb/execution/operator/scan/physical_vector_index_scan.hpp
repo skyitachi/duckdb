@@ -34,15 +34,22 @@ public:
 		return true;
 	}
 
+  bool ParallelSource() const override {
+    return false;
+  }
+
+  bool SupportsBatchIndex() const override {
+	  return false;
+  }
+
 	bool Equals(const PhysicalOperator &other) const override;
 
-	// sink
-public:
-	bool IsSink() const override {
-		return true;
-	}
-  SinkResultType Sink(ExecutionContext &context, GlobalSinkState &state, LocalSinkState &lstate,
-                      DataChunk &input) const override;
+  void GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate,
+               LocalSourceState &lstate) const override;
+
+  unique_ptr<GlobalSourceState> GetGlobalSourceState(ClientContext &context) const override;
+
+
 };
 } // namespace duckdb
 #endif // DUCKDB_PHYSICAL_VECTOR_INDEX_SCAN_HPP
