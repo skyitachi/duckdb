@@ -28,6 +28,7 @@ public:
 	vector<BoundOrderByNode> orders;
 	vector<idx_t> projections;
 	optional_ptr<TableCatalogEntry> table;
+	vector<unique_ptr<Expression>> select_expressions;
 
 public:
 	vector<ColumnBinding> GetColumnBindings() override {

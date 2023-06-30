@@ -157,53 +157,6 @@ template <class FUNCTION_FUNCTOR, bool IS_AGGR = false>
 static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vector &result) {
 	auto count = args.size();
 	Vector &lists = args.data[0];
-
-	// NOTE: 只是为了做demo
-	QueryErrorContext error_context;
-	string catalog_name = "";
-	string schema_name = "";
-	string table_name = "list_table";
-	auto table_or_view = Catalog::GetEntry(state.GetContext(), CatalogType::TABLE_ENTRY, catalog_name, schema_name,
-	                                       table_name, true, error_context);
-	if (table_or_view->type == CatalogType::TABLE_ENTRY) {
-		auto &table = table_or_view->Cast<TableCatalogEntry>();
-		if (table.IsDuckTable()) {
-			auto &duck_table = table.Cast<DuckTableEntry>();
-			auto &dt = duck_table.GetStorage();
-//			auto &indexes = dt.info->indexes.Indexes();
-			for (auto &idx : dt.info->indexes.Indexes()) {
-				if (idx->type == IndexType::IVFFLAT) {
-					std::cout << "got IVFFLAT index here" << std::endl;
-					auto &ivf = idx->Cast<IvfflatIndex>();
-					//					UnifiedVectorFormat list_data;
-					//					lists.ToUnifiedFormat(args.size(), list_data);
-					//          auto list_entries = (list_entry_t*)list_data.data;
-					auto real_data_vector = ListVector::GetEntry(lists);
-					UnifiedVectorFormat real_data;
-					real_data_vector.ToUnifiedFormat(args.size(), real_data);
-					auto *data_ptr = (float *)real_data.data;
-					int k = 1;
-					int64_t *I = new int64_t[10];
-					float *D = new float[10];
-					float *xq = new float[3];
-					printf("index pointer: %p, ntotal: %ld, dimension: %d\n", ivf.index, ivf.index->ntotal, ivf.index->d);
-					//          int64_t* I = new int64_t[1];
-					//          float* D = new float[1];
-					ivf.index->search(1, data_ptr, k, D, I);
-					std::cout << "after merge search D[0] = " << D[0] << ", I[0] = " << I[0] << std::endl;
-					//					ivf.index->search(1, data_ptr, k, D, I);
-					//				  std::cout << "id: " << I[0] << " distance: " << D[0] <<  std::endl;
-
-					//          std::cout << "found duckdb ivfflat index trained: " << ivf->index->is_trained <<
-					//          std::endl;
-				}
-			}
-			//      std::cout << "duck_table: " << duck_table.ToSQL() << std::endl;
-		}
-	}
-	//		DuckTableEntry& duck_table = state.table->Cast<DuckTableEntry>();
-	//		std::cout << "duck table: " << duck_table.ToSQL() << std::endl;
-
 	// set the result vector
 	result.SetVectorType(VectorType::FLAT_VECTOR);
 	auto &result_validity = FlatVector::Validity(result);

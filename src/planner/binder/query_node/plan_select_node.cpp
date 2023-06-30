@@ -108,6 +108,7 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundSelectNode &statement) {
 		PlanSubqueries(expr, root);
 	}
 
+	// NOTE: LogicalProjection creator
 	auto proj = make_uniq<LogicalProjection>(statement.projection_index, std::move(statement.select_list));
 	auto &projection = *proj;
 	proj->AddChild(std::move(root));

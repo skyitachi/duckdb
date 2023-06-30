@@ -6,7 +6,6 @@ namespace duckdb {
 
 LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list)
     : LogicalOperator(LogicalOperatorType::LOGICAL_PROJECTION, std::move(select_list)), table_index(table_index) {
-	std::cout << "create logical projection operator" << std::endl;
 }
 
 LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list,

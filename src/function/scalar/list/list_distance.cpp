@@ -164,7 +164,7 @@ static unique_ptr<FunctionData> ListDistanceBind(ClientContext& context, ScalarF
 	for (const auto& argument: arguments) {
 		child_type = LogicalType::MaxLogicalType(child_type, ListType::GetChildType(argument->return_type));
 	}
-	std::cout << "bound function child_type: " << child_type.ToString() << std::endl;
+	std::cout << "in the ListDistanceBind bound function child_type: " << child_type.ToString() << std::endl;
 
 	auto list_type = LogicalType::LIST(child_type);
 

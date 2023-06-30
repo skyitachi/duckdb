@@ -27,6 +27,8 @@ public:
 
   optional_ptr<TableCatalogEntry> table;
 
+  vector<unique_ptr<Expression>> select_expressions;
+
 public:
 	string GetName() const override;
 	string ParamsToString() const override;

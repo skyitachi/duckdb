@@ -28,17 +28,20 @@ bool PhysicalVectorIndexScan::Equals(const PhysicalOperator &other) const {
 class VectorScanGlobalSourceState : public GlobalSourceState {
 public:
 	VectorScanGlobalSourceState(ClientContext &context, optional_ptr<TableCatalogEntry> table, idx_t limit,
-	                            const vector<BoundOrderByNode> &orders)
-	    : limit(limit), orders(orders) {
+	                            const vector<BoundOrderByNode> &orders, const vector<unique_ptr<Expression>>& sel_expr)
+	    : context(context), limit(limit), orders(orders), select_expressions(sel_expr) {
 
 		D_ASSERT(table);
 		D_ASSERT(orders.size() == 1);
 		auto &duck_table = table->Cast<DuckTableEntry>();
 		data_table = &duck_table.GetStorage();
 	}
+	ClientContext& context;
 	idx_t limit;
 	const vector<BoundOrderByNode>& orders;
 	optional_ptr<DataTable> data_table;
+	const vector<unique_ptr<Expression>>& select_expressions;
+
 
 	mutex lock;
 	bool scanned;
@@ -51,36 +54,51 @@ public:
 				continue;
 			}
 			auto &ivf = index->Cast<IvfflatIndex>();
-			std::cout << "successfull find ivfflat index" << std::endl;
-			std::cout << "has parameter: " << orders[0].expression->HasParameter() << std::endl;
-			std::cout << "expression: " << orders[0].expression->GetName() << std::endl;
-			if (orders[0].expression->GetExpressionClass() == ExpressionClass::BOUND_CAST) {
-				auto& cast_expression = orders[0].expression->Cast<BoundCastExpression>();
-				if (cast_expression.child->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
-					auto& bound_func_expr = cast_expression.child->Cast<BoundFunctionExpression>();
-					std::cout << "bound func name: " << bound_func_expr.GetName() << std::endl;
-					D_ASSERT(bound_func_expr.children.size() == 2);
-					D_ASSERT(bound_func_expr.children[0]->GetExpressionClass() == ExpressionClass::BOUND_REF);
-					auto& bound_ref_expr = bound_func_expr.children[0]->Cast<BoundReferenceExpression>();
-					std::cout << "bound ref expr params: " << bound_ref_expr.HasParameter() << std::endl;
-					std::cout << "bound ref expr scalar: " << bound_ref_expr.IsScalar() << std::endl;
-					std::cout << "bound ref expr name: " << bound_ref_expr.GetName() << std::endl;
-					std::cout << "bound ref expr aggregate: " << bound_ref_expr.IsAggregate() << std::endl;
+			D_ASSERT(select_expressions.size() == 1);
+			if (select_expressions[0]->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
+        auto& bound_func_expr = select_expressions[0]->Cast<BoundFunctionExpression>();
+        D_ASSERT(bound_func_expr.children.size() == 2);
+        D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
+		    auto& bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
+			  ExpressionExecutor expr_executor(context, bound_cast_expr);
+			  DataChunk chunk;
+			  vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
+			  chunk.Initialize(context, return_types);
+			  chunk.data[0];
+			  // NOTE: 终于获取到参数了
 
-					D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CONSTANT);
-					auto& bound_const_expr = bound_func_expr.children[1]->Cast<BoundConstantExpression>();
 
-					std::cout << "params :" << bound_const_expr.value.ToString() << std::endl;
-					std::cout << "const expr name: " << bound_const_expr.GetName() << std::endl;
-				}
+        std::cout << "before expr executor: " << chunk.size() << std::endl;
+			  expr_executor.Execute(chunk);
+			  std::cout << "after expr executor: " << chunk.size() << std::endl;
+
+        auto* qv = get_data_ptr(chunk);
+        int64_t *I = new int64_t[10];
+        float *D = new float[10];
+        ivf.index->search(1, qv, limit, D, I);
+        std::cout << "search in physical_vector_index search D[0] = " << D[0] << ", I[0] = " << I[0] << std::endl;
+        std::cout << "search in physical_vector_index search D[1] = " << D[1] << ", I[1] = " << I[1] << std::endl;
+		    // NOTE: 如何将结果输出到output中
+
 			}
 			// TODO: fetch params
 		}
 	}
+
+private:
+	float* get_data_ptr(DataChunk& input) {
+		D_ASSERT(input.data.size() == 1);
+    Vector& lists = input.data[0];
+    D_ASSERT(lists.GetType() == LogicalType::LIST(LogicalType::FLOAT));
+    auto real_data_vector = ListVector::GetEntry(lists);
+    UnifiedVectorFormat real_data;
+    real_data_vector.ToUnifiedFormat(input.size(), real_data);
+	  return (float*) real_data.data;
+	}
 };
 
 unique_ptr<GlobalSourceState> PhysicalVectorIndexScan::GetGlobalSourceState(ClientContext &context) const {
-	return make_uniq<VectorScanGlobalSourceState>(context, table, limit, orders);
+	return make_uniq<VectorScanGlobalSourceState>(context, table, limit, orders, select_expressions);
 };
 
 void PhysicalVectorIndexScan::GetData(ExecutionContext &context, DataChunk &chunk, GlobalSourceState &gstate,

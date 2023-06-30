@@ -31,6 +31,8 @@ public:
 
 	optional_ptr<TableCatalogEntry> table;
 
+	vector<unique_ptr<Expression>> select_expressions;
+
 public:
 	vector<ColumnBinding> GetColumnBindings() override {
 		return children[0]->GetColumnBindings();
