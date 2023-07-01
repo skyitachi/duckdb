@@ -166,8 +166,6 @@ static void ListAggregatesFunction(DataChunk &args, ExpressionState &state, Vect
 		return;
 	}
 
-	std::cout << "in the listaggrfunction aggr " << std::endl;
-
 	// get the aggregate function
 	auto &func_expr = state.expr.Cast<BoundFunctionExpression>();
 	auto &info = func_expr.bind_info->Cast<ListAggregatesBindData>();

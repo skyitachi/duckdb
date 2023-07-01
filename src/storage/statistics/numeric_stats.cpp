@@ -40,9 +40,6 @@ NumericStatsData &NumericStats::GetDataUnsafe(BaseStatistics &stats) {
 }
 
 const NumericStatsData &NumericStats::GetDataUnsafe(const BaseStatistics &stats) {
-	if (stats.GetStatsType() != StatisticsType::NUMERIC_STATS) {
-		std::cout << "illegal stats type" << std::endl;
-	}
 	if (stats.GetStatsType() == StatisticsType::LIST_STATS) {
 		return stats.child_stats[0].stats_union.numeric_data;
 	}

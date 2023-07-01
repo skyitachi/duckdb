@@ -171,7 +171,7 @@ static unique_ptr<FunctionData> ListDistanceBind(ClientContext& context, ScalarF
 	bound_function.arguments[0] = list_type;
 	bound_function.arguments[1] = list_type;
 
-	bound_function.return_type = LogicalType::INTEGER;
+	bound_function.return_type = LogicalType::FLOAT;
 
 	return make_uniq<VariableReturnBindData>(bound_function.return_type);
 }
