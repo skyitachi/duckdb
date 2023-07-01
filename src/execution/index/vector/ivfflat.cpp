@@ -45,8 +45,6 @@ IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 	metric_type = opToMetricType(opclz);
 	quantizer = nullptr;
 	if (quantizer_ptr != nullptr) {
-		std::cout << "create real IndexIVFFlat index initial dimension :" << dimension << ", thread_id " << std::this_thread::get_id() <<std::endl;
-
 		index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlists, metric_type);
 		created = true;
 		quantizer = quantizer_ptr;
@@ -57,8 +55,6 @@ IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 
 void IvfflatIndex::initialize(faiss::IndexFlatL2 *quantizer_ptr) {
 	if (quantizer_ptr != nullptr) {
-    std::cout << "initial real IndexIVFFlat index initial dimension :" << dimension << ", thread_id " << std::this_thread::get_id() <<std::endl;
-
 		index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlist, metric_type);
 		created = true;
 		quantizer = quantizer_ptr;
@@ -90,7 +86,6 @@ PreservedError IvfflatIndex::Append(IndexLock &lock, DataChunk &appended_data, V
 PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &row_ids) {
 	D_ASSERT(row_ids.GetType().InternalType() == ROW_TYPE);
 	D_ASSERT(logical_types[0] == input.data[0].GetType());
-  std::cout << "insert to ivfflat index dimension :" << dimension << ", thread_id " << std::this_thread::get_id() <<std::endl;
 
 
 	auto old_memory_size = memory_size;
@@ -128,24 +123,9 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	}
 	using faiss_idx_t = int64_t;
 
-	std::cout << "train and add data in the thread " << std::this_thread::get_id() << std::endl;
 	index->train(input.size(), vector_data_ptr);
 	index->add_with_ids(input.size(), vector_data_ptr, (faiss_idx_t *)row_identifiers);
-	//  std::cout << "create real ivfflat index here trained" <<  <<  std::endl;
-	//	arena_allocator.AllocateAligned()
-//	int k = 1;
-//	int nq = 1;
-//	auto *I = new int64_t[k * nq];
-//	float *D = new float[k * nq];
-//	float* xq = new float[nq * dimension];
-//	xq[0] = 3.0; xq[1] = 3.0; xq[2] = 3.0;
-//
-//	index->search(nq, xq, k, D, I);
-//	for(int i = 0; i < nq; i++) {
-//		for(int j = 0; j < k; j++) {
-//			printf("index search result: labels = [%ld], distance = [%f]\n", I[i * k + j], D[i * k + j]);
-//		}
-//	}
+
 	return PreservedError();
 }
 
