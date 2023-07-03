@@ -26,6 +26,12 @@ static OpClassType StringToOpClassType(const string& str) {
 	string lower_str = StringUtil::Lower(str);
 	if (lower_str == "vector_cosine_ops") {
 		return OpClassType::Vector_Cosine_OPS;
+	} else if (lower_str == "vector_ip_ops") {
+		return OpClassType::Vector_IP_OPS;
+	} else if (lower_str == "vector_l2_ops") {
+		return OpClassType::Vector_L2_OPS;
+	} else if (lower_str == "vector_l1_ops") {
+		return OpClassType::Vector_L1_OPS;
 	}
 	return OpClassType::INVALID;
 }
@@ -38,30 +44,21 @@ vector<unique_ptr<ParsedExpression>> Transformer::TransformIndexParameters(duckd
 		if (index_element->collation) {
 			throw NotImplementedException("Index with collation not supported yet!");
 		}
-		std::string opclass;
-		OpClassType op_type = OpClassType::INVALID;
-		{
-			// TODO: parse opclass here
-			auto list = index_element->opclass;
-//			std::cout << "opclass length: " << list->length << std::endl;
-      for (auto cell = list->head; cell != nullptr; cell = cell->next) {
-        auto def_elem = (duckdb_libpgquery::PGDefElem*) cell->data.ptr_value;
-		    if (def_elem->type == duckdb_libpgquery::T_PGString) {
-				  opclass = def_elem->defnamespace;
-				  op_type = StringToOpClassType(opclass);
-				  if (op_type == OpClassType::INVALID) {
-					  throw NotImplementedException("invalid opclass type");
-				  }
-//				  std::cout << "opclass: " << def_elem->defnamespace << std::endl;
-			  }
+		OpClassType op_type = OpClassType::Vector_IP_OPS;
+    auto opclass_list = index_element->opclass;
+	  if (opclass_list) {
+      std::string opclass;
+      for (auto opclass_cell = opclass_list->head; opclass_cell != nullptr; opclass_cell = opclass_cell->next) {
+        auto def_elem = (duckdb_libpgquery::PGDefElem*) opclass_cell->data.ptr_value;
+        if (def_elem->type == duckdb_libpgquery::T_PGString) {
+          opclass = def_elem->defnamespace;
+          op_type = StringToOpClassType(opclass);
+          if (op_type == OpClassType::INVALID) {
+            throw NotImplementedException("invalid opclass type");
+          }
+        }
       }
-		}
-
-//		if (index_element->opclass) {
-//			// TODO: add opclass support here
-//			throw NotImplementedException("Index with opclass not supported yet!");
-//		}
-
+	  }
 		if (index_element->name) {
 			// create a column reference expression
 			expressions.push_back(make_uniq<ColumnRefExpression>(index_element->name, relation_name, op_type));
@@ -97,10 +94,7 @@ unique_ptr<CreateStatement> Transformer::TransformCreateIndex(duckdb_libpgquery:
 			if (def_elem->arg != nullptr) {
 				switch (def_elem->arg->type) {
 				case duckdb_libpgquery::T_PGInteger: {
-
-				  std::cout << "find integer params: " << std::endl;
 				  auto pg_value = (duckdb_libpgquery::PGValue *)def_elem->arg;
-				  std::cout << def_elem->defname << "=" << pg_value->val.ival << std::endl;
 				  info->options.insert(std::make_pair(option_name, (int)pg_value->val.ival));
 				  break;
 				}

@@ -10,6 +10,7 @@
 #include "duckdb/common/serializer/format_serializer.hpp"
 #include "duckdb/common/serializer/format_deserializer.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 ColumnRefExpression::ColumnRefExpression(string column_name, string table_name, OpClassType opclass)
@@ -89,7 +90,7 @@ hash_t ColumnRefExpression::Hash() const {
 }
 
 unique_ptr<ParsedExpression> ColumnRefExpression::Copy() const {
-	auto copy = make_uniq<ColumnRefExpression>(column_names);
+	auto copy = make_uniq<ColumnRefExpression>(column_names, opclass_type);
 	copy->CopyProperties(*this);
 	return std::move(copy);
 }

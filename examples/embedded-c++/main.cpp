@@ -206,12 +206,12 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_cosine_ops) WITH (oplists = 1, d = 3)")->Print();
+  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_l2_ops) WITH (oplists = 1, d = 3)")->Print();
 
 //  con.Query("select list_min(float_list) as score from list_table order by score limit 10")->Print();
 //  con.Query("select list_concat(float_list, [1.0, 1.0, 3.0]) from list_table")->Print();
 
-	con.Query("select list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 10")->Print();
+//	con.Query("select list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 10")->Print();
   // min_distance aggregation
 //  con.Query("select min_distance(float_list) from list_table")->Print();
 //  con.Query("select min_distance(float_list, 3) from list_table")->Print();

@@ -43,7 +43,7 @@ public:
 	// global ivfflatindex
 	unique_ptr<Index> g_index;
 
-	~PhysicalCreateIndex();
+	~PhysicalCreateIndex() override;
 
 private:
 	SinkFinalizeType finalize_ivfflat_index(ClientContext &context) const;
@@ -73,10 +73,10 @@ public:
 		return true;
 	}
 	bool ParallelSink() const override {
-		return true;
+		return info->index_type != IndexType::IVFFLAT;
 	}
 
 private:
-	void create_ivfflat_index();
+	void init_ivfflat_index();
 };
 } // namespace duckdb

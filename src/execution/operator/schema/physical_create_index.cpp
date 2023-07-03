@@ -26,16 +26,19 @@ PhysicalCreateIndex::PhysicalCreateIndex(LogicalOperator &op, TableCatalogEntry 
 	for (auto &column_id : column_ids) {
 		storage_ids.push_back(table.GetColumns().LogicalToPhysical(LogicalIndex(column_id)).index);
 	}
-	create_ivfflat_index();
+	init_ivfflat_index();
 }
 
-void PhysicalCreateIndex::create_ivfflat_index() {
+void PhysicalCreateIndex::init_ivfflat_index() {
 	if (info->index_type == IndexType::IVFFLAT) {
 		int d = info->options["d"];
 		int nlists = info->options["oplists"];
     OpClassType opclz = OpClassType::Vector_IP_OPS;
 		auto& storage = table.GetStorage();
 	  faiss::IndexFlatL2* quantizer = new faiss::IndexFlatL2(d);
+	  D_ASSERT(info->parsed_expressions.size() == 1);
+	  opclz = info->parsed_expressions[0]->opclass_type;
+
     g_index = make_uniq<IvfflatIndex>(storage.db, TableIOManager::Get(storage), storage_ids, unbound_expressions,
                             info->constraint_type, true, d, nlists, opclz, quantizer);
 	}
@@ -85,7 +88,6 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 	return (std::move(state));
 }
 
-// TODO: 这里是如何保证是thread local state的
 unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionContext &context) const {
 	auto state = make_uniq<CreateIndexLocalSinkState>(context.client);
 
@@ -104,6 +106,7 @@ unique_ptr<LocalSinkState> PhysicalCreateIndex::GetLocalSinkState(ExecutionConte
 		break;
 	}
 	case IndexType::IVFFLAT: {
+		// NOTE: only use global index
 		D_ASSERT(g_index && g_index->type == IndexType::IVFFLAT);
 		break;
 	}
@@ -164,7 +167,7 @@ void PhysicalCreateIndex::Combine(ExecutionContext &context, GlobalSinkState &gs
 	auto &gstate = gstate_p.Cast<CreateIndexGlobalSinkState>();
 	auto &lstate = lstate_p.Cast<CreateIndexLocalSinkState>();
 
-	if (gstate.global_index == nullptr) {
+	if (gstate.global_index == nullptr || info->index_type == IndexType::IVFFLAT) {
 		return;
 	}
 	// merge the local index into the global index

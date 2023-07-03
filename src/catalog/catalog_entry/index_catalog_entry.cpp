@@ -29,6 +29,7 @@ void IndexCatalogEntry::Serialize(Serializer &serializer) const {
 	writer.WriteString(GetTableName());
 	writer.WriteString(name);
 	writer.WriteString(sql);
+	// TODO: 序列化的是index的相关信息
 	writer.WriteField(index->type);
 	writer.WriteField(index->constraint_type);
 	writer.WriteSerializableList(expressions);
@@ -56,6 +57,7 @@ unique_ptr<CreateIndexInfo> IndexCatalogEntry::Deserialize(Deserializer &source,
 	create_index_info->constraint_type = IndexConstraintType(reader.ReadRequired<uint8_t>());
 	create_index_info->expressions = reader.ReadRequiredSerializableList<ParsedExpression>();
 	create_index_info->parsed_expressions = reader.ReadRequiredSerializableList<ParsedExpression>();
+	// TODO: 反序列化的时候需要关注更多信息
 
 	create_index_info->column_ids = reader.ReadRequiredList<idx_t>();
 	reader.Finalize();
