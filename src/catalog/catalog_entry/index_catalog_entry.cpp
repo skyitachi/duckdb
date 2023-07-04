@@ -30,7 +30,6 @@ void IndexCatalogEntry::Serialize(Serializer &serializer) const {
 	writer.WriteString(GetTableName());
 	writer.WriteString(name);
 	writer.WriteString(sql);
-	// TODO: 序列化的是index的相关信息
 	writer.WriteField(index->type);
 	writer.WriteField(index->constraint_type);
 	SerializeIndexInfo(writer);
