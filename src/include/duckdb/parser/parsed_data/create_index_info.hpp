@@ -41,7 +41,6 @@ struct CreateIndexInfo : public CreateInfo {
 	//! Column IDs needed for index creation
 	vector<column_t> column_ids;
 
-	// TODO: store index options
 	std::unordered_map<std::string, int> options;
 
 protected:

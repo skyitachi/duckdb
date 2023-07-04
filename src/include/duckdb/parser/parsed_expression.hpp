@@ -49,7 +49,6 @@ public:
 	idx_t query_location = DConstants::INVALID_INDEX;
 
 	OpClassType opclass_type;
-	string opclass;
 
 public:
 	bool IsAggregate() const override;

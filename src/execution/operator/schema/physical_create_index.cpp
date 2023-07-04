@@ -73,7 +73,6 @@ unique_ptr<GlobalSinkState> PhysicalCreateIndex::GetGlobalSinkState(ClientContex
 	switch (info->index_type) {
 	case IndexType::ART: {
 		auto &storage = table.GetStorage();
-		// NOTE: 需要索引列，table信息
 		state->global_index = make_uniq<ART>(storage_ids, TableIOManager::Get(storage), unbound_expressions,
 		                                     info->constraint_type, storage.db, true);
 		break;

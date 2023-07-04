@@ -5,7 +5,8 @@
 namespace duckdb {
 
 IndexCatalogEntry::IndexCatalogEntry(Catalog *catalog, SchemaCatalogEntry *schema, CreateIndexInfo *info)
-    : StandardEntry(CatalogType::INDEX_ENTRY, schema, catalog, info->index_name), index(nullptr), sql(info->sql) {
+    : StandardEntry(CatalogType::INDEX_ENTRY, schema, catalog, info->index_name),
+      index(nullptr), sql(info->sql), info_ptr(info) {
 	this->temporary = info->temporary;
 }
 
@@ -32,6 +33,7 @@ void IndexCatalogEntry::Serialize(Serializer &serializer) const {
 	// TODO: 序列化的是index的相关信息
 	writer.WriteField(index->type);
 	writer.WriteField(index->constraint_type);
+	SerializeIndexInfo(writer);
 	writer.WriteSerializableList(expressions);
 	writer.WriteSerializableList(parsed_expressions);
 	writer.WriteList<idx_t>(index->column_ids);
@@ -55,13 +57,43 @@ unique_ptr<CreateIndexInfo> IndexCatalogEntry::Deserialize(Deserializer &source,
 	create_index_info->sql = reader.ReadRequired<string>();
 	create_index_info->index_type = IndexType(reader.ReadRequired<uint8_t>());
 	create_index_info->constraint_type = IndexConstraintType(reader.ReadRequired<uint8_t>());
+	auto oct = DeserializeIndexInfo(create_index_info.get(), reader);
 	create_index_info->expressions = reader.ReadRequiredSerializableList<ParsedExpression>();
 	create_index_info->parsed_expressions = reader.ReadRequiredSerializableList<ParsedExpression>();
-	// TODO: 反序列化的时候需要关注更多信息
+
+	if (create_index_info->index_type == IndexType::IVFFLAT) {
+		D_ASSERT(create_index_info->parsed_expressions.size() == 1);
+		create_index_info->parsed_expressions[0]->opclass_type = oct;
+	}
 
 	create_index_info->column_ids = reader.ReadRequiredList<idx_t>();
 	reader.Finalize();
 	return create_index_info;
+}
+
+OpClassType IndexCatalogEntry::DeserializeIndexInfo(duckdb::CreateIndexInfo *src, FieldReader& reader) {
+	if (src->index_type != IndexType::IVFFLAT) { return OpClassType::INVALID; }
+  OpClassType oct = OpClassType(reader.ReadRequired<uint8_t>());
+  src->options["oplists"] = reader.ReadRequired<int>();
+  src->options["d"] = reader.ReadRequired<int>();
+  D_ASSERT(oct != OpClassType::INVALID);
+  return oct;
+}
+
+void IndexCatalogEntry::SerializeIndexInfo(FieldWriter& writer) const {
+	if (info_ptr == nullptr || info_ptr->index_type != IndexType::IVFFLAT) {
+		return;
+  }
+	D_ASSERT(info_ptr->parsed_expressions.size() == 1);
+	auto cnt = info_ptr->options.size() + 1;
+
+  // opclass_type
+	writer.WriteField(uint8_t(info_ptr->parsed_expressions[0]->opclass_type));
+	D_ASSERT(info_ptr->options.size() == 2);
+	// nlists
+	writer.WriteField(info_ptr->options["oplists"]);
+	// dimension
+	writer.WriteField(info_ptr->options["d"]);
 }
 
 } // namespace duckdb

@@ -389,6 +389,9 @@ void CheckpointReader::ReadIndex(ClientContext &context, MetaBlockReader &reader
 		storage.info->indexes.AddIndex(std::move(art));
 		break;
 	}
+  case IndexType::IVFFLAT: {
+		break;
+	}
 	default:
 		throw InternalException("Can't read this index type");
 	}

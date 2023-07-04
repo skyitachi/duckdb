@@ -31,6 +31,7 @@ public:
 	string sql;
 	vector<unique_ptr<ParsedExpression>> expressions;
 	vector<unique_ptr<ParsedExpression>> parsed_expressions;
+	CreateIndexInfo* info_ptr;
 
 public:
 	string ToSQL() const override;
@@ -39,6 +40,10 @@ public:
 
 	virtual string GetSchemaName() const = 0;
 	virtual string GetTableName() const = 0;
+
+private:
+	void SerializeIndexInfo(FieldWriter& serializer) const;
+	static OpClassType DeserializeIndexInfo(CreateIndexInfo* src, FieldReader& reader);
 };
 
 } // namespace duckdb
