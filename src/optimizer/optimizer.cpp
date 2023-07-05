@@ -85,6 +85,7 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 	});
 
 	// perform filter pushdown
+	// 看起来这里做index scan更好
 	RunOptimizer(OptimizerType::FILTER_PUSHDOWN, [&]() {
 		FilterPushdown filter_pushdown(*this);
 		plan = filter_pushdown.Rewrite(std::move(plan));

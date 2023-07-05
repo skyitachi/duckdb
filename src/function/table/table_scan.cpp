@@ -274,9 +274,11 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		return;
 	}
 	if (bind_data.is_index_scan) {
+		// 这里控制已经是index扫描过了, 后面不需要重新index_scan
 		return;
 	}
 	if (filters.empty()) {
+		// TODO: 这里要改
 		// no indexes or no filters: skip the pushdown
 		return;
 	}
