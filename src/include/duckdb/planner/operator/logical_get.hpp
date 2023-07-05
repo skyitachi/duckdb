@@ -50,6 +50,9 @@ public:
 	//! For a table-in-out function, the set of projected input columns
 	vector<column_t> projected_input;
 
+	//! For Vector Index Scan
+	idx_t limit;
+
 	string GetName() const override;
 	string ParamsToString() const override;
 	//! Returns the underlying table that is being scanned, or nullptr if there is none

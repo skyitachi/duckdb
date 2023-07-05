@@ -1,11 +1,22 @@
 #include "duckdb/planner/operator/logical_projection.hpp"
 #include "duckdb/common/field_writer.hpp"
+#include "duckdb/planner/expression/bound_function_expression.hpp"
 
 #include <iostream>
 namespace duckdb {
 
 LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list)
     : LogicalOperator(LogicalOperatorType::LOGICAL_PROJECTION, std::move(select_list)), table_index(table_index) {
+	for(auto &expr: expressions) {
+		if (expr->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
+			auto &bound_expr = expr->Cast<BoundFunctionExpression>();
+			for(auto& child_expr: bound_expr.children) {
+				std::cout << "found child expr: " << child_expr->GetName() << std::endl;
+			}
+		}
+//		std::cout << "projection expr: " << expr->GetName() << std::endl;
+	}
+
 }
 
 LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expression>> select_list,
