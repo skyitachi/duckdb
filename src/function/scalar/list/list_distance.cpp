@@ -94,7 +94,6 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	for(idx_t i = 0; i < count; i++) {
 		auto lhs_list_index = lhs_data.sel->get_index(i);
 		auto rhs_list_index = rhs_data.sel->get_index(i);
-		std::cout << "lhs_list_index: " << lhs_list_index << " , rhs_list_index: " << rhs_list_index << std::endl;
 
 		if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
 			result_validity.SetInvalid(i);
@@ -112,24 +111,20 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 			for (int j = 0; j < lhs_entry.length; j++) {
         auto child_offset = lhs_entry.offset + j;
         auto child_index = lhs_child_data.sel->get_index(child_offset);
-        std::cout << "l_values real value: " << l_child_format[child_index] << " ";
 		    l_values.push_back(l_child_format[child_index]);
 			}
-			std::cout << std::endl;
 
       for (int j = 0; j < rhs_entry.length; j++) {
         auto child_offset = rhs_entry.offset + j;
         auto child_index = rhs_child_data.sel->get_index(child_offset);
-		    std::cout << "r_values real value: " << r_child_format[child_index] << " ";
 		    r_values.push_back(r_child_format[child_index]);
       }
-      std::cout << std::endl;
 
-	    std::cout << "l_values size: " << l_values.size() << " r_value size: " << r_values.size() << std::endl;
+//	    std::cout << "l_values size: " << l_values.size() << " r_value size: " << r_values.size() << std::endl;
 
 		  // TODO: 这里需要选用合适计算距离的方法
 	    auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
-      std::cout << "distance: " << dis << std::endl;
+		  std::cout << "list_distance distance: " << dis << std::endl;
 			result_entries[i] = dis;
 		}
 	}

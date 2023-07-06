@@ -281,17 +281,18 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 	if (filters.empty()) {
 		storage.info->indexes.Scan([&](Index &index) {
 			if (index.type == IndexType::IVFFLAT) {
-				// TODO: 这里要改
-				bind_data.is_index_scan = true;
 				auto &ivf = index.Cast<IvfflatIndex>();
 				auto limit = bind_data.limit;
 				int64_t *I = new int64_t[limit];
-				// TODO: 如何返回score
 				float *D = new float[limit];
 				ivf.index->search(1, bind_data.input_vectors.data(), limit, D, I);
 				for (idx_t i = 0; i < limit; i++) {
+					std::cout << "faiss index distance: " << D[i] << " , id: " << I[i] << std::endl;
           bind_data.result_ids.push_back(I[i]);
 				}
+        bind_data.is_index_scan = true;
+		    // NOTE: important
+        get.function = TableScanFunction::GetIndexScanFunction();
 				return true;
 			}
 			return false;

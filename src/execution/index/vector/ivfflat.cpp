@@ -134,11 +134,7 @@ bool IvfflatIndex::MergeIndexes(IndexLock &state, Index &other_index) {
 	auto &other = other_index.Cast<IvfflatIndex>();
 	D_ASSERT(quantizer == other.quantizer);
 	if (other.index != nullptr && index != nullptr) {
-    std::cout << "merge non null quantizer total: " << quantizer->ntotal << " other: " << other.quantizer->ntotal << std::endl;
     index->merge_from(*other.index, 0);
-	  std::cout << "merge index success" << std::endl;
-	} else {
-	  std::cout << "index is null no need to merge" << std::endl;
 	}
 
 	return true;
@@ -185,9 +181,7 @@ BlockPointer IvfflatIndex::Serialize(MetaBlockWriter &writer) {
 }
 
 IvfflatIndex::~IvfflatIndex() {
-	std::cout << "in the ivfflatindex destructor" << std::endl;
 	if (index != nullptr) {
-	  printf("destruct index pointer %p\n", index);
 		delete index;
 	}
   index = nullptr;
