@@ -29,6 +29,7 @@ public:
 	vector<idx_t> projections;
 	optional_ptr<TableCatalogEntry> table;
 	vector<unique_ptr<Expression>> select_expressions;
+	idx_t limit;
 
 public:
 	vector<ColumnBinding> GetColumnBindings() override {

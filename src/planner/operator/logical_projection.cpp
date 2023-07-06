@@ -11,7 +11,7 @@ LogicalProjection::LogicalProjection(idx_t table_index, vector<unique_ptr<Expres
 		if (expr->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
 			auto &bound_expr = expr->Cast<BoundFunctionExpression>();
 			for(auto& child_expr: bound_expr.children) {
-				std::cout << "found child expr: " << child_expr->GetName() << std::endl;
+				std::cout << "logical_projection found child expr: " << child_expr->GetName() << std::endl;
 			}
 		}
 //		std::cout << "projection expr: " << expr->GetName() << std::endl;

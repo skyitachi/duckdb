@@ -21,6 +21,7 @@
 #include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 #include "duckdb/function/table/read_csv.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 static bool IsTableInTableOutFunction(TableFunctionCatalogEntry &table_function) {
@@ -277,6 +278,8 @@ unique_ptr<BoundTableRef> Binder::Bind(TableFunctionRef &ref) {
 	                                     std::move(parameters), std::move(named_parameters),
 	                                     std::move(input_table_types), std::move(input_table_names),
 	                                     ref.column_name_alias, std::move(ref.external_dependency));
+
+	std::cout << "table function bind: " << table_function.name << std::endl;
 	if (subquery) {
 		get->children.push_back(Binder::CreatePlan(*subquery));
 	}

@@ -3,12 +3,19 @@
 #include "duckdb/execution/physical_plan_generator.hpp"
 #include "duckdb/main/config.hpp"
 #include "duckdb/planner/operator/logical_limit.hpp"
+#include "duckdb/planner/operator/logical_order.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalLimit &op) {
 	D_ASSERT(op.children.size() == 1);
 
+	if (op.children[0]->type == LogicalOperatorType::LOGICAL_ORDER_BY) {
+		auto &child = op.children[0]->Cast<LogicalOrder>();
+		child.limit = op.limit_val;
+		std::cout << "set limit to order children" << std::endl;
+	}
 	auto plan = CreatePlan(*op.children[0]);
 
 	unique_ptr<PhysicalOperator> limit;
