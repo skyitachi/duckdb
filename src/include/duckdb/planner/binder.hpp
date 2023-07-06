@@ -22,6 +22,7 @@
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
 #include "duckdb/planner/logical_operator.hpp"
 #include "duckdb/common/reference_map.hpp"
+#include "duckdb/function/function.hpp"
 
 namespace duckdb {
 class BoundResultModifier;
@@ -353,6 +354,10 @@ private:
 	SchemaCatalogEntry &BindCreateSchema(CreateInfo &info);
 
 	unique_ptr<BoundQueryNode> BindSelectNode(SelectNode &statement, unique_ptr<BoundTableRef> from_table);
+
+  void BindVectorIndexInfo(ClientContext& context, unique_ptr<FunctionData>& input,
+                           const unique_ptr<BoundSelectNode>& bound_select_node);
+
 
 public:
 	// This should really be a private constructor, but make_shared does not allow it...

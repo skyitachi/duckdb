@@ -30,6 +30,7 @@ public:
 	optional_ptr<TableCatalogEntry> table;
 	vector<unique_ptr<Expression>> select_expressions;
 	idx_t limit;
+	bool is_vector_scan;
 
 public:
 	vector<ColumnBinding> GetColumnBindings() override {

@@ -31,6 +31,9 @@ public:
 	//! The location in the query (if any)
 	idx_t query_location = DConstants::INVALID_INDEX;
 
+	//! The projection list, just copy from other location
+  vector<unique_ptr<ParsedExpression>> select_list;
+
 public:
 	//! Convert the object to a string
 	virtual string ToString() const = 0;

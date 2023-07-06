@@ -1,6 +1,11 @@
+//===----------------------------------------------------------------------===//
+//                         DuckDB
 //
-// Created by Shiping Yao on 2023/6/11.
+// duckdb/execution/index/vector/ivfflat.hpp
 //
+//
+//===----------------------------------------------------------------------===//
+
 
 #ifndef DUCKDB_IVFFLAT_H
 #define DUCKDB_IVFFLAT_H

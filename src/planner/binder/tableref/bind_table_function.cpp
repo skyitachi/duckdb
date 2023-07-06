@@ -123,6 +123,7 @@ Binder::BindTableFunctionInternal(TableFunction &table_function, const string &f
                                   named_parameter_map_t named_parameters, vector<LogicalType> input_table_types,
                                   vector<string> input_table_names, const vector<string> &column_name_alias,
                                   unique_ptr<ExternalDependency> external_dependency) {
+	std::cout << "bind table function: " << function_name << std::endl;
 	auto bind_index = GenerateTableIndex();
 	// perform the binding
 	unique_ptr<FunctionData> bind_data;

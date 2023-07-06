@@ -28,6 +28,8 @@ public:
   //! The base table to update
   TableCatalogEntry* table;
 
+  bool is_vector_scan;
+
 public:
 	vector<ColumnBinding> GetColumnBindings() override;
 	void Serialize(FieldWriter &writer) const override;

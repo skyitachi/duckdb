@@ -91,7 +91,8 @@ public:
 	DUCKDB_API LogicalIndex GetColumnIndex(string &name, bool if_exists = false);
 
 	//! Returns the scan function that can be used to scan the given table
-	virtual TableFunction GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data) = 0;
+	virtual TableFunction GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data,
+	                                      const vector<unique_ptr<ParsedExpression>>& selection_list) = 0;
 
 	virtual bool IsDuckTable() const {
 		return false;

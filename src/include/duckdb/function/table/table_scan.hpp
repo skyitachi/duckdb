@@ -30,6 +30,14 @@ struct TableScanBindData : public TableFunctionData {
 	//! The row ids to fetch (in case of an index scan)
 	vector<row_t> result_ids;
 
+	bool is_vector_index_scan;
+
+	idx_t limit;
+
+	unique_ptr<ParsedExpression> input_vector_expr;
+
+	vector<float> input_vectors;
+
 public:
 	bool Equals(const FunctionData &other_p) const override {
 		auto &other = (const TableScanBindData &)other_p;

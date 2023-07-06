@@ -1,20 +1,21 @@
 #include "duckdb/function/table/table_scan.hpp"
 
 #include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
+#include "duckdb/catalog/dependency_list.hpp"
 #include "duckdb/common/field_writer.hpp"
 #include "duckdb/common/mutex.hpp"
+#include "duckdb/execution/index/vector/ivfflat.hpp"
+#include "duckdb/function/function_set.hpp"
+#include "duckdb/main/attached_database.hpp"
 #include "duckdb/main/client_config.hpp"
 #include "duckdb/optimizer/matcher/expression_matcher.hpp"
 #include "duckdb/planner/expression/bound_between_expression.hpp"
 #include "duckdb/planner/expression_iterator.hpp"
 #include "duckdb/planner/operator/logical_get.hpp"
 #include "duckdb/storage/data_table.hpp"
-#include "duckdb/transaction/local_storage.hpp"
-#include "duckdb/transaction/duck_transaction.hpp"
-#include "duckdb/main/attached_database.hpp"
-#include "duckdb/catalog/dependency_list.hpp"
-#include "duckdb/function/function_set.hpp"
 #include "duckdb/storage/table/scan_state.hpp"
+#include "duckdb/transaction/duck_transaction.hpp"
+#include "duckdb/transaction/local_storage.hpp"
 
 namespace duckdb {
 
@@ -278,7 +279,23 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		return;
 	}
 	if (filters.empty()) {
-		// TODO: 这里要改
+		storage.info->indexes.Scan([&](Index &index) {
+			if (index.type == IndexType::IVFFLAT) {
+				// TODO: 这里要改
+				bind_data.is_index_scan = true;
+				auto &ivf = index.Cast<IvfflatIndex>();
+				auto limit = bind_data.limit;
+				int64_t *I = new int64_t[limit];
+				// TODO: 如何返回score
+				float *D = new float[limit];
+				ivf.index->search(1, bind_data.input_vectors.data(), limit, D, I);
+				for (idx_t i = 0; i < limit; i++) {
+          bind_data.result_ids.push_back(I[i]);
+				}
+				return true;
+			}
+			return false;
+		});
 		// no indexes or no filters: skip the pushdown
 		return;
 	}

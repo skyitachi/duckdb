@@ -13,19 +13,6 @@
 namespace duckdb {
 
 static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector& result) {
-	if (state.HasContext()) {
-    auto& context = state.GetContext();
-	  std::cout << "number of threads: "<<  context.db->NumberOfThreads() << std::endl;
-	  // 要获取DataTableInfo的信息
-//	  context.GetTableNames(
-//	  context.Get
-	  // NOTE: 需要知道table的indexes 信息
-
-    auto &func_expr = state.expr.Cast<BoundFunctionExpression>();
-	  std::cout << "bound function expr: " << func_expr.ToString() << std::endl;
-    auto &info = func_expr.bind_info->Cast<VariableReturnBindData>();
-
-	}
   D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
 	std::cout << "rows: " << count << std::endl;
@@ -40,7 +27,6 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	auto lhs_entries = (list_entry_t *)lhs_data.data;
 	auto rhs_entries = (list_entry_t *)rhs_data.data;
 
-	// 相当于rows
 	auto lhs_list_size = ListVector::GetListSize(lhs);
 	auto rhs_list_size = ListVector::GetListSize(rhs);
 
@@ -54,53 +40,54 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 //	D_ASSERT(lhs_list_size == rhs_list_size);
 	std::cout << "lhs_list_size: " << lhs_list_size << ", rhs_list_size: " << rhs_list_size << std::endl;
 
-  switch (lhs_child.GetType().InternalType()) {
-  case PhysicalType::INT32:
-	  std::cout << "physical int32" << std::endl;
-	  break;
-  case PhysicalType::UINT8:
-	  break;
-  case PhysicalType::INT8:
-	  break;
-  case PhysicalType::UINT16:
-	  break;
-  case PhysicalType::INT16:
-	  break;
-  case PhysicalType::UINT32:
-	  break;
-  case PhysicalType::UINT64:
-    std::cout << "physical uint64" << std::endl;
-	  break;
-  case PhysicalType::INT64:
-    std::cout << "physical int64" << std::endl;
-	  break;
-  case PhysicalType::FLOAT:
-	  break;
-  case PhysicalType::DOUBLE:
-	  break;
-  case PhysicalType::INTERVAL:
-	  break;
-  case PhysicalType::LIST:
-	  break;
-  case PhysicalType::STRUCT:
-	  break;
-  case PhysicalType::VARCHAR:
-	  break;
-  case PhysicalType::INT128:
-	  break;
-  case PhysicalType::UNKNOWN:
-	  break;
-  case PhysicalType::BIT:
-	  break;
-  case PhysicalType::INVALID:
-	  break;
-  case PhysicalType::BOOL:
-	  break;
-  }
+	// TODO: internal type的处理
+//  switch (lhs_child.GetType().InternalType()) {
+//  case PhysicalType::INT32:
+//	  break;
+//  case PhysicalType::UINT8:
+//	  break;
+//  case PhysicalType::INT8:
+//	  break;
+//  case PhysicalType::UINT16:
+//	  break;
+//  case PhysicalType::INT16:
+//	  break;
+//  case PhysicalType::UINT32:
+//	  break;
+//  case PhysicalType::UINT64:
+//    std::cout << "physical uint64" << std::endl;
+//	  break;
+//  case PhysicalType::INT64:
+//    std::cout << "physical int64" << std::endl;
+//	  break;
+//  case PhysicalType::FLOAT:
+//	  std::cout << "physical float" << std::endl;
+//	  break;
+//  case PhysicalType::DOUBLE:
+//	  break;
+//  case PhysicalType::INTERVAL:
+//	  break;
+//  case PhysicalType::LIST:
+//	  break;
+//  case PhysicalType::STRUCT:
+//	  break;
+//  case PhysicalType::VARCHAR:
+//	  break;
+//  case PhysicalType::INT128:
+//	  break;
+//  case PhysicalType::UNKNOWN:
+//	  break;
+//  case PhysicalType::BIT:
+//	  break;
+//  case PhysicalType::INVALID:
+//	  break;
+//  case PhysicalType::BOOL:
+//	  break;
+//  }
 
   result.SetVectorType(VectorType::FLAT_VECTOR);
 	// set result vector type
-	auto result_entries = FlatVector::GetData<int32_t>(result);
+	auto result_entries = FlatVector::GetData<float>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
 	idx_t offset = 0;
@@ -116,35 +103,33 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 		if (lhs_data.validity.RowIsValid(lhs_list_index) && rhs_data.validity.RowIsValid(rhs_list_index)) {
 			const auto& lhs_entry = lhs_entries[lhs_list_index];
 			const auto& rhs_entry = rhs_entries[rhs_list_index];
-			std::vector<int32_t> l_values;
-			std::vector<int32_t> r_values;
-//			rhs_child_data.data[lhs_entry.offset]
-//			for(int j = 0; j < lhs_list_size; j++) {
-//			}
+			std::vector<float> l_values;
+			std::vector<float> r_values;
 
-      auto l_child_format = (int32_t *) lhs_child_data.data;
-	    auto r_child_format = (int32_t *) rhs_child_data.data;
+      auto l_child_format = (float *) lhs_child_data.data;
+	    auto r_child_format = (float *) rhs_child_data.data;
 
 			for (int j = 0; j < lhs_entry.length; j++) {
         auto child_offset = lhs_entry.offset + j;
         auto child_index = lhs_child_data.sel->get_index(child_offset);
+        std::cout << "l_values real value: " << l_child_format[child_index] << " ";
 		    l_values.push_back(l_child_format[child_index]);
-        std::cout << "child_index: " << child_index << ", child data: " << l_child_format[child_index] << std::endl;
 			}
+			std::cout << std::endl;
 
       for (int j = 0; j < rhs_entry.length; j++) {
         auto child_offset = rhs_entry.offset + j;
         auto child_index = rhs_child_data.sel->get_index(child_offset);
+		    std::cout << "r_values real value: " << r_child_format[child_index] << " ";
 		    r_values.push_back(r_child_format[child_index]);
-        std::cout << "child_index: " << child_index << ", child data: " << r_child_format[child_index] << std::endl;
       }
+      std::cout << std::endl;
 
-	    auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0);
-//			int32_t * lhs_start = (int32_t* )lhs_child_data.data[lhs_list_index];
-			std::cout << "list entry value offset: " << lhs_entry.offset << ", length: " << lhs_entry.length << std::endl;
-//			for(int j = 0; j < lhs_list_size; j++) {
-//				std::cout << "value: " << lhs_start[j] << std::endl;
-//			}
+	    std::cout << "l_values size: " << l_values.size() << " r_value size: " << r_values.size() << std::endl;
+
+		  // TODO: 这里需要选用合适计算距离的方法
+	    auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
+      std::cout << "distance: " << dis << std::endl;
 			result_entries[i] = dis;
 		}
 	}
@@ -164,7 +149,6 @@ static unique_ptr<FunctionData> ListDistanceBind(ClientContext& context, ScalarF
 	for (const auto& argument: arguments) {
 		child_type = LogicalType::MaxLogicalType(child_type, ListType::GetChildType(argument->return_type));
 	}
-	std::cout << "in the ListDistanceBind bound function child_type: " << child_type.ToString() << std::endl;
 
 	auto list_type = LogicalType::LIST(child_type);
 

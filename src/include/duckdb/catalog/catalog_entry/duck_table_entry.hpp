@@ -37,7 +37,8 @@ public:
 	void CommitAlter(string &column_name);
 	void CommitDrop();
 
-	TableFunction GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data) override;
+	TableFunction GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data,
+	                              const vector<unique_ptr<ParsedExpression>>& selection_list) override;
 
 	TableStorageInfo GetStorageInfo(ClientContext &context) override;
 
@@ -66,5 +67,8 @@ private:
 	vector<unique_ptr<BoundConstraint>> bound_constraints;
 	//! Manages dependencies of the individual columns of the table
 	ColumnDependencyManager column_dependency_manager;
+
+	void BindVectorIndexInfo(ClientContext& context, unique_ptr<FunctionData>& input,
+	                         const vector<unique_ptr<ParsedExpression>>& selection_list);
 };
 } // namespace duckdb

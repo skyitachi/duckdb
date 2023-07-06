@@ -15,6 +15,7 @@
 #include "duckdb/planner/tableref/bound_dummytableref.hpp"
 #include "duckdb/main/client_context.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 unique_ptr<BoundTableRef> Binder::Bind(BaseTableRef &ref) {
@@ -120,7 +121,7 @@ unique_ptr<BoundTableRef> Binder::Bind(BaseTableRef &ref) {
 		auto &table = table_or_view->Cast<TableCatalogEntry>();
 
 		unique_ptr<FunctionData> bind_data;
-		auto scan_function = table.GetScanFunction(context, bind_data);
+		auto scan_function = table.GetScanFunction(context, bind_data, ref.select_list);
 		auto alias = ref.alias.empty() ? ref.table_name : ref.alias;
 		// TODO: bundle the type and name vector in a struct (e.g PackedColumnMetadata)
 		vector<LogicalType> table_types;
@@ -137,6 +138,12 @@ unique_ptr<BoundTableRef> Binder::Bind(BaseTableRef &ref) {
 		}
 		table_names = BindContext::AliasColumnNames(alias, table_names, ref.column_name_alias);
 
+    std::cout << "root statement: " << StatementTypeToString(root_statement->type) << std::endl;
+	  if (root_statement->type == StatementType::SELECT_STATEMENT) {
+			auto& select = root_statement->Cast<SelectStatement>();
+	  }
+		std::cout << "bind basetableref" << std::endl;
+		// NOTE: 这里比bound selection list更早, 所以需要在bound 完selection list之后再来改变bind_data
 		auto logical_get = make_uniq<LogicalGet>(table_index, scan_function, std::move(bind_data),
 		                                         std::move(return_types), std::move(return_names));
 		bind_context.AddBaseTable(table_index, alias, table_names, table_types, logical_get->column_ids,

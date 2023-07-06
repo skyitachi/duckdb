@@ -11,6 +11,7 @@
 #include "duckdb/common/serializer/buffered_deserializer.hpp"
 #include "duckdb/transaction/meta_transaction.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 Planner::Planner(ClientContext &context) : binder(Binder::CreateBinder(context)), context(context) {
@@ -36,6 +37,7 @@ void Planner::CreatePlan(SQLStatement &statement) {
 	try {
 		profiler.StartPhase("binder");
 		binder->parameters = &bound_parameters;
+		std::cout << "planner binder start bind" << std::endl;
 		auto bound_statement = binder->Bind(statement);
 		profiler.EndPhase();
 

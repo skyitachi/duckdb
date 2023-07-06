@@ -16,7 +16,9 @@
 #include "duckdb/parser/constraints/list.hpp"
 #include "duckdb/function/table/table_scan.hpp"
 #include "duckdb/storage/table_storage_info.hpp"
+#include "duckdb/parser/expression/function_expression.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 void AddDataTableIndex(DataTable *storage, const ColumnList &columns, const vector<PhysicalIndex> &keys,
@@ -711,9 +713,42 @@ const vector<unique_ptr<BoundConstraint>> &DuckTableEntry::GetBoundConstraints()
 	return bound_constraints;
 }
 
-TableFunction DuckTableEntry::GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data) {
+TableFunction DuckTableEntry::GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data,
+                                              const vector<unique_ptr<ParsedExpression>>& selection_list) {
 	bind_data = make_uniq<TableScanBindData>(this);
+	BindVectorIndexInfo(context, bind_data, selection_list);
 	return TableScanFunction::GetFunction();
+}
+
+void DuckTableEntry::BindVectorIndexInfo(ClientContext& context, unique_ptr<FunctionData>& input,
+                         const vector<unique_ptr<ParsedExpression>>& selection_list) {
+	auto& table_scan_data = input->Cast<TableScanBindData>();
+	for(auto& expr: selection_list) {
+		std::cout << "bind_vector: " << expr->GetName() << std::endl;
+		// selection_ist 是unbound的状态
+		if (expr->GetExpressionClass() == ExpressionClass::FUNCTION) {
+			auto& fn_expr = expr->Cast<FunctionExpression>();
+			if (fn_expr.function_name == "list_distance") {
+				table_scan_data.is_vector_index_scan = true;
+				if (fn_expr.children[1]->GetExpressionClass() == ExpressionClass::FUNCTION) {
+          auto& list_value_expr = fn_expr.children[1]->Cast<FunctionExpression>();
+		      // 这里必须是bound expression才行
+		      if (list_value_expr.function_name == "list_value") {
+//            ExpressionExecutor expr_executor(context, list_value_expr);
+//            DataChunk chunk;
+//            vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
+//            chunk.Initialize(context, return_types);
+//            // NOTE: 终于获取到参数了
+//            expr_executor.Execute(chunk);
+
+			    }
+
+				}
+			}
+
+		}
+	}
+  std::cout << "selection_list: " << selection_list.size() << std::endl;
 }
 
 TableStorageInfo DuckTableEntry::GetStorageInfo(ClientContext &context) {
