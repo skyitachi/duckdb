@@ -120,11 +120,7 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 		    r_values.push_back(r_child_format[child_index]);
       }
 
-//	    std::cout << "l_values size: " << l_values.size() << " r_value size: " << r_values.size() << std::endl;
-
-		  // TODO: 这里需要选用合适计算距离的方法
 	    auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
-		  std::cout << "list_distance distance: " << dis << std::endl;
 			result_entries[i] = dis;
 		}
 	}

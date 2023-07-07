@@ -16,8 +16,6 @@ static IndexType StringToIndexType(const string &str) {
 		return IndexType::ART;
 	} else if (upper_str == "IVFFLAT") {
 		return IndexType::IVFFLAT;
-	} else {
-		throw ConversionException("No IndexType conversion from string '%s'", upper_str);
 	}
 	return IndexType::INVALID;
 }

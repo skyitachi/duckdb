@@ -233,6 +233,7 @@ static void IndexScanFunction(ClientContext &context, TableFunctionInput &data_p
 	auto &transaction = DuckTransaction::Get(context, *bind_data.table->catalog);
 	auto &local_storage = LocalStorage::Get(transaction);
 
+	std::cout << "IndexScanFunction called" << std::endl;
 	if (!state.finished) {
 		bind_data.table->GetStorage().Fetch(transaction, output, state.column_ids, state.row_ids,
 		                                    bind_data.result_ids.size(), state.fetch_state);
@@ -278,25 +279,31 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		// 这里控制已经是index扫描过了, 后面不需要重新index_scan
 		return;
 	}
-	if (filters.empty()) {
-		storage.info->indexes.Scan([&](Index &index) {
-			if (index.type == IndexType::IVFFLAT) {
-				auto &ivf = index.Cast<IvfflatIndex>();
-				auto limit = bind_data.limit;
-				int64_t *I = new int64_t[limit];
-				float *D = new float[limit];
-				ivf.index->search(1, bind_data.input_vectors.data(), limit, D, I);
-				for (idx_t i = 0; i < limit; i++) {
-					std::cout << "faiss index distance: " << D[i] << " , id: " << I[i] << std::endl;
+	if (bind_data.is_vector_index_scan) {
+    std::cout << "TableScanPushdownComplexFilter called" << std::endl;
+    storage.info->indexes.Scan([&](Index &index) {
+			// TODO: 得看是否命中索引
+      if (index.type == IndexType::IVFFLAT) {
+        auto &ivf = index.Cast<IvfflatIndex>();
+        auto limit = bind_data.limit;
+        int64_t *I = new int64_t[limit];
+        float *D = new float[limit];
+        ivf.index->search(1, bind_data.input_vectors.data(), limit, D, I);
+        for (idx_t i = 0; i < limit; i++) {
+          std::cout << "faiss index distance: " << D[i] << " , id: " << I[i] << std::endl;
           bind_data.result_ids.push_back(I[i]);
-				}
+        }
         bind_data.is_index_scan = true;
-		    // NOTE: important
+        // NOTE: important
         get.function = TableScanFunction::GetIndexScanFunction();
-				return true;
-			}
-			return false;
-		});
+        return true;
+      }
+      return false;
+    });
+	  // TODO: 不支持filter的index
+    return;
+	}
+	if (filters.empty()) {
 		// no indexes or no filters: skip the pushdown
 		return;
 	}
