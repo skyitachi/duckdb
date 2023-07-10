@@ -748,7 +748,7 @@ void DuckTableEntry::BindVectorIndexInfo(ClientContext& context, unique_ptr<Func
 
 		}
 	}
-  std::cout << "selection_list: " << selection_list.size() << std::endl;
+//  std::cout << "selection_list: " << selection_list.size() << std::endl;
 }
 
 TableStorageInfo DuckTableEntry::GetStorageInfo(ClientContext &context) {

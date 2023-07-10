@@ -10,6 +10,7 @@
 #include <faiss/MetricType.h>
 #include <memory>
 // #include <faiss/IndexShardsIVF.h>
+#include <faiss/IndexHNSW.h>
 
 #include <iostream>
 #include <thread>

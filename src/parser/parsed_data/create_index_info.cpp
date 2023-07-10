@@ -4,6 +4,7 @@
 
 namespace duckdb {
 
+// TODO: 这里没有copy options
 unique_ptr<CreateInfo> CreateIndexInfo::Copy() const {
 
 	auto result = make_uniq<CreateIndexInfo>();
@@ -23,6 +24,7 @@ unique_ptr<CreateInfo> CreateIndexInfo::Copy() const {
 	result->scan_types = scan_types;
 	result->names = names;
 	result->column_ids = column_ids;
+	result->options = options;
 	return std::move(result);
 }
 

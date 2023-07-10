@@ -37,7 +37,6 @@ void Planner::CreatePlan(SQLStatement &statement) {
 	try {
 		profiler.StartPhase("binder");
 		binder->parameters = &bound_parameters;
-		std::cout << "planner binder start bind" << std::endl;
 		auto bound_statement = binder->Bind(statement);
 		profiler.EndPhase();
 

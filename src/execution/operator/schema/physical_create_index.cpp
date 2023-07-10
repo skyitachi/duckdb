@@ -185,6 +185,7 @@ SinkFinalizeType PhysicalCreateIndex::finalize_ivfflat_index(ClientContext &cont
 
   auto &schema = *table.schema;
   auto index_entry = (DuckIndexEntry *)schema.CreateIndex(context, info.get(), &table);
+
   if (!index_entry) {
     // index already exists, but error ignored because of IF NOT EXISTS
     return SinkFinalizeType::READY;
@@ -254,9 +255,12 @@ void PhysicalCreateIndex::GetData(ExecutionContext &context, DataChunk &chunk, G
 	// NOP
 }
 
-PhysicalCreateIndex::~PhysicalCreateIndex() noexcept {
+PhysicalCreateIndex::~PhysicalCreateIndex() {
 	if (g_index) {
 		g_index.release();
+	}
+	if (info) {
+		printf("create index info ptr released: %p\n", info.release());
 	}
 }
 

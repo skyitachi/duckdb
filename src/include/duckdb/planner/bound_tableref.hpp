@@ -12,6 +12,9 @@
 #include "duckdb/common/enums/tableref_type.hpp"
 #include "duckdb/parser/parsed_data/sample_options.hpp"
 
+#include <cstdlib>
+#include <execinfo.h>
+#include <iostream>
 namespace duckdb {
 
 class BoundTableRef {
@@ -26,10 +29,13 @@ public:
 	//! The sample options (if any)
 	unique_ptr<SampleOptions> sample;
 
+
+
 public:
 	template <class TARGET>
 	TARGET &Cast() {
 		if (type != TARGET::TYPE) {
+			PrintStackTrace<void>();
 			throw InternalException("Failed to cast bound table ref to type - table ref type mismatch");
 		}
 		return (TARGET &)*this;

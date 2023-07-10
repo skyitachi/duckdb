@@ -25,6 +25,10 @@ void IndexCatalogEntry::Serialize(Serializer &serializer) const {
 	// schema name, table name, index name, sql, index type, index constraint type, expression list, parsed expressions,
 	// column IDs
 
+	if (index->type == IndexType::IVFFLAT) {
+		// no need serialize ivfflat index
+		return;
+	}
 	FieldWriter writer(serializer);
 	writer.WriteString(GetSchemaName());
 	writer.WriteString(GetTableName());
@@ -67,6 +71,7 @@ unique_ptr<CreateIndexInfo> IndexCatalogEntry::Deserialize(Deserializer &source,
 
 	create_index_info->column_ids = reader.ReadRequiredList<idx_t>();
 	reader.Finalize();
+	std::cout << "deserialize create index info success: " << create_index_info->index_name << std::endl;
 	return create_index_info;
 }
 
@@ -80,19 +85,22 @@ OpClassType IndexCatalogEntry::DeserializeIndexInfo(duckdb::CreateIndexInfo *src
 }
 
 void IndexCatalogEntry::SerializeIndexInfo(FieldWriter& writer) const {
-	if (info_ptr == nullptr || info_ptr->index_type != IndexType::IVFFLAT) {
+  if (info_ptr == nullptr) {
 		return;
   }
-	D_ASSERT(info_ptr->parsed_expressions.size() == 1);
-	auto cnt = info_ptr->options.size() + 1;
+  unique_ptr<CreateIndexInfo> owned_info_ptr(info_ptr);
+	if (index->type != IndexType::IVFFLAT) {
+		return;
+  }
+	D_ASSERT(owned_info_ptr->parsed_expressions.size() == 1);
 
   // opclass_type
-	writer.WriteField(uint8_t(info_ptr->parsed_expressions[0]->opclass_type));
-	D_ASSERT(info_ptr->options.size() == 2);
+	writer.WriteField(uint8_t(owned_info_ptr->parsed_expressions[0]->opclass_type));
+	D_ASSERT(owned_info_ptr->options.size() == 2);
 	// nlists
-	writer.WriteField(info_ptr->options["oplists"]);
+	writer.WriteField(owned_info_ptr->options["oplists"]);
 	// dimension
-	writer.WriteField(info_ptr->options["d"]);
+	writer.WriteField(owned_info_ptr->options["d"]);
 }
 
 } // namespace duckdb

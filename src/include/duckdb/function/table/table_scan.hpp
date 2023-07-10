@@ -17,7 +17,8 @@ class DuckTableEntry;
 class TableCatalogEntry;
 
 struct TableScanBindData : public TableFunctionData {
-	explicit TableScanBindData(DuckTableEntry *table) : table(table), is_index_scan(false), is_create_index(false) {
+	explicit TableScanBindData(DuckTableEntry *table) : table(table), is_index_scan(false), is_create_index(false),
+	      is_vector_index_scan(false) {
 	}
 
 	//! The table to scan

@@ -97,7 +97,6 @@ unique_ptr<PhysicalOperator> DuckCatalog::PlanInsert(ClientContext &context, Log
 		    std::move(op.do_update_condition), std::move(op.on_conflict_filter), std::move(op.columns_to_fetch));
 	}
 	D_ASSERT(plan);
-  std::cout << "insert child operator: " << plan->GetName() << std::endl;
 
 	insert->children.push_back(std::move(plan));
 	return insert;

@@ -35,22 +35,27 @@ unique_ptr<LogicalOperator> Binder::VisitQueryNode(BoundQueryNode &node, unique_
 				}
 			}
 			auto &select_node = node.Cast<BoundSelectNode>();
-			auto &table_ref = select_node.from_table->Cast<BoundBaseTableRef>();
-			bool found_vector_scan = false;
-			for (auto &order_node : bound.orders) {
-				auto expression_name = order_node.expression->GetName();
-				auto fn_idx = expression_name.find("list_distance");
-				if (fn_idx != -1) {
-					found_vector_scan = true;
-					break;
-				}
-			}
-			if (root->type == LogicalOperatorType::LOGICAL_PROJECTION) {
-				auto& proj = root->Cast<LogicalProjection>();
-				proj.is_vector_scan = found_vector_scan;
+      bool found_vector_scan = false;
+	    TableCatalogEntry* table_ptr = nullptr;
+			if (select_node.from_table->type == TableReferenceType::BASE_TABLE) {
+        auto &table_ref = select_node.from_table->Cast<BoundBaseTableRef>();
+		    table_ptr = &table_ref.table;
+        for (auto &order_node : bound.orders) {
+          auto expression_name = order_node.expression->GetName();
+          auto fn_idx = expression_name.find("list_distance");
+          if (fn_idx != -1) {
+            found_vector_scan = true;
+            break;
+          }
+        }
+        if (root->type == LogicalOperatorType::LOGICAL_PROJECTION) {
+          auto& proj = root->Cast<LogicalProjection>();
+          proj.is_vector_scan = found_vector_scan;
+        }
+
 			}
 
-			auto order = make_uniq<LogicalOrder>(std::move(bound.orders), &table_ref.table);
+			auto order = make_uniq<LogicalOrder>(std::move(bound.orders), table_ptr);
 			order->is_vector_scan = found_vector_scan;
 
 			// IMPORTANT: need copy projection expressions

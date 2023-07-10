@@ -361,6 +361,7 @@ void CheckpointReader::ReadIndex(ClientContext &context, MetaBlockReader &reader
 
 	auto binder = Binder::CreateBinder(context);
 	auto table_ref = (TableRef *)info->table.get();
+	// TODO
 	auto bound_table = binder->Bind(*table_ref);
 	D_ASSERT(bound_table->type == TableReferenceType::BASE_TABLE);
 	IndexBinder idx_binder(*binder, context);

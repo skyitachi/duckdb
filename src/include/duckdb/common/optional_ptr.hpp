@@ -24,6 +24,7 @@ public:
 
 	void CheckValid() const {
 		if (!ptr) {
+      PrintStackTrace<void>();
 			throw InternalException("Attempting to dereference an optional pointer that is not set");
 		}
 	}

@@ -13,6 +13,10 @@
 #include <string.h>
 #include <type_traits>
 
+#include <cstdlib>
+#include <execinfo.h>
+#include <iostream>
+
 #ifdef _MSC_VER
 #define suint64_t int64_t
 #endif
@@ -56,7 +60,7 @@ struct __unique_if<_Tp[_Np]>
 };
 
 template<class _Tp, class... _Args>
-inline 
+inline
 typename __unique_if<_Tp>::__unique_single
 make_uniq(_Args&&... __args)
 {
@@ -64,7 +68,7 @@ make_uniq(_Args&&... __args)
 }
 
 template<class _Tp>
-inline 
+inline
 typename __unique_if<_Tp>::__unique_array_unknown_bound
 make_uniq(size_t __n)
 {
@@ -190,6 +194,20 @@ using const_reference = std::reference_wrapper<const T>;
 template<class T>
 bool RefersToSameObject(const reference<T> &A, const reference<T> &B) {
 	return &A.get() == &B.get();
+}
+
+template<class T>
+void PrintStackTrace()
+{
+  const int max_frames = 64;
+  void* frames[max_frames];
+  int num_frames = backtrace(frames, max_frames);
+  char** symbols = backtrace_symbols(frames, num_frames);
+  std::cout << "Call stack:" << std::endl;
+  for (int i = 0; i < num_frames; i++) {
+    std::cout << symbols[i] << std::endl;
+  }
+  free(symbols);
 }
 
 } // namespace duckdb

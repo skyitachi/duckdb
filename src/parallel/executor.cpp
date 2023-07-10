@@ -90,7 +90,7 @@ void Executor::SchedulePipeline(const shared_ptr<MetaPipeline> &meta_pipeline, S
 	// create an event and stack for all pipelines in the MetaPipeline
 	vector<shared_ptr<Pipeline>> pipelines;
 	meta_pipeline->GetPipelines(pipelines, false);
-	std::cout << "pipeline size from meta_pipeline: " << pipelines.size() << std::endl;
+//	std::cout << "pipeline size from meta_pipeline: " << pipelines.size() << std::endl;
 	for (idx_t i = 1; i < pipelines.size(); i++) { // loop starts at 1 because 0 is the base pipeline
 		auto &pipeline = pipelines[i];
 		D_ASSERT(pipeline);
@@ -187,7 +187,6 @@ void Executor::ScheduleEventsInternal(ScheduleEventData &event_data) {
 
 void Executor::ScheduleEvents(const vector<shared_ptr<MetaPipeline>> &meta_pipelines) {
 	// meta_pipelines.size() means how many different sink operators
-	std::cout << "meta pipeline size: " << meta_pipelines.size() << std::endl;
 	ScheduleEventData event_data(meta_pipelines, events, true);
 	ScheduleEventsInternal(event_data);
 }
@@ -319,7 +318,7 @@ void Executor::InitializeInternal(PhysicalOperator &plan) {
 		// build and ready the pipelines
 		PipelineBuildState state;
 		auto root_pipeline = make_shared<MetaPipeline>(*this, state, nullptr);
-		plan.Print();
+//		plan.Print();
 		root_pipeline->Build(*physical_plan);
 		root_pipeline->Ready();
 
@@ -346,10 +345,10 @@ void Executor::InitializeInternal(PhysicalOperator &plan) {
 		// collect all pipelines from the root pipelines (recursively) for the progress bar and verify them
 		root_pipeline->GetPipelines(pipelines, true);
 
-		std::cout << "total pipelines: " << pipelines.size() << ", root pipelines size: " << root_pipelines.size() << std::endl;
-		for(auto p: pipelines) {
-			p->Print();
-		}
+//		std::cout << "total pipelines: " << pipelines.size() << ", root pipelines size: " << root_pipelines.size() << std::endl;
+//		for(auto p: pipelines) {
+//			p->Print();
+//		}
 //		root_pipeline->GetBasePipeline()->Print();
 
 		// finally, verify and schedule

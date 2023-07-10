@@ -119,7 +119,6 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
         auto child_index = rhs_child_data.sel->get_index(child_offset);
 		    r_values.push_back(r_child_format[child_index]);
       }
-
 	    auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
 			result_entries[i] = dis;
 		}
