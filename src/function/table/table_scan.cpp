@@ -127,6 +127,7 @@ static void TableScanFunc(ClientContext &context, TableFunctionInput &data_p, Da
 			output.ReferenceColumns(state.all_columns, gstate.projection_ids);
 		} else {
 			storage.Scan(transaction, output, state.scan_state);
+      std::cout << "[TableScanFunc] storage.Scan result size: " << output.size() << std::endl;
 		}
 		if (output.size() > 0) {
 			return;
@@ -411,6 +412,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 			}
 			// NOTE：完成实际index scan的工作
 			if (index.Scan(transaction, storage, *index_state, STANDARD_VECTOR_SIZE, bind_data.result_ids)) {
+				std::cout << "use index scan in search" << std::endl;
 				// use an index scan!
 				bind_data.is_index_scan = true;
 				get.function = TableScanFunction::GetIndexScanFunction();

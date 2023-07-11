@@ -199,6 +199,9 @@ int main() {
 //	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], 1)");
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
+	// NOTE: DataChunk output为什么是Dictionary Vector
+	con.Query("select * from list_table where id < 10")->Print();
+
 //	con.Query("select * from list_table")->Print();
 
 //	con.CreateAggregateFunction<MyListSumAggr, my_list_sum_t<int>, int, int>("my_list_sum", LogicalType::INTEGER,
@@ -206,14 +209,14 @@ int main() {
 
 //	con.Query("select list_count(int_list), list_avg(int_list) from list_table")->Print();
 //
-  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
+//  con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
 
 //  con.Query("select embedding, list_min(embedding) as score from list_table order by score limit 10")->Print();
 //  con.Query("select list_concat(float_list, [1.0, 1.0, 3.0]) from list_table")->Print();
 
-  con.Query("select embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 3")->Print();
+//  con.Query("select embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 3")->Print();
 
-	con.Query("select embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 order by score limit 3")->Print();
+//	con.Query("select embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 order by score limit 3")->Print();
 //	con.Query("checkpoint(demo)")->Print();
   // min_distance aggregation
 //  con.Query("select min_distance(float_list) from list_table")->Print();

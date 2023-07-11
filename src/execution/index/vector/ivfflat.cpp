@@ -88,8 +88,7 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	D_ASSERT(row_ids.GetType().InternalType() == ROW_TYPE);
 	D_ASSERT(logical_types[0] == input.data[0].GetType());
 
-
-	auto old_memory_size = memory_size;
+	std::cout << "IvfflatIndex, input size: " << input.size() << ", row_id size: " << "" << std::endl;
 	ArenaAllocator arena_allocator(BufferAllocator::Get(db));
 	int v_size = 4;
 	// TODO: support Physical::FLOAT and Physical::DOUBLE
@@ -110,6 +109,7 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	real_data_vector.ToUnifiedFormat(input.size(), real_data);
 
 	int values_count = 0;
+	// TODO: 这里如果是顾虑会是什么情况
 	for (idx_t i = 0; i < input.size(); i++) {
 		// NOTE: 这里为什么一定需要sel
 		auto list_index = input_data.sel->get_index(i);
