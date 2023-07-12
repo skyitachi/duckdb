@@ -401,6 +401,8 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 				get.function = TableScanFunction::GetIndexScanFunction();
 			} else {
 				bind_data.result_ids.clear();
+				// look for storage
+				bind_data.is_vector_index_scan = false;
 			}
 			return true;
 		}
@@ -414,11 +416,10 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
   if (bind_data.is_vector_index_scan) {
     std::cout << "TableScanPushdownComplexFilter vector index called" << std::endl;
     storage.info->indexes.Scan([&](Index &index) {
-      // TODO: 得看是否命中索引
       auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
       if (index.type == IndexType::IVFFLAT) {
         auto &ivf = index.Cast<IvfflatIndex>();
-		    ivf.ScanWithBindData(transaction, storage, bind_data, bind_data.is_index_scan);
+		    ivf.ScanWithBindData(transaction, storage, bind_data, true);
         bind_data.is_index_scan = true;
         // NOTE: important
         get.function = TableScanFunction::GetIndexScanFunction();

@@ -25,6 +25,7 @@ public:
 		}
 	}
 	bool is_member(faiss::idx_t id) const override {
+		std::cout << "is_member id: " << id << ", collection size: " << collection.size() << std::endl;
 		return collection.find(id) != collection.end();
 	}
 private:
@@ -99,7 +100,7 @@ bool IvfflatIndex::ScanWithBindData(Transaction &transaction, DataTable &table, 
   faiss::SearchParametersIVF* params = nullptr;
   std::cout << "ivfflatindex_scanwithbinddata: " << bind_data.result_ids.size() << std::endl;
   if (filtered) {
-    new faiss::SearchParametersIVF();
+    params = new faiss::SearchParametersIVF();
     params->sel = new CustomIDSelector(bind_data.result_ids);
   }
   auto limit = bind_data.limit;
@@ -112,6 +113,9 @@ bool IvfflatIndex::ScanWithBindData(Transaction &transaction, DataTable &table, 
   }
   delete[] I;
   delete[] D;
+  if (params != nullptr) {
+	  delete params;
+  }
   return true;
 }
 
