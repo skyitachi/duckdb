@@ -194,13 +194,15 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-	con.Query("create table list_table(embedding FLOAT[], id INTEGER)");
+	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
 
 //	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], 1)");
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
+	con.Query("create INDEX idx_id on list_table(id)")->Print();
+
 	// NOTE: DataChunk output为什么是Dictionary Vector
-	con.Query("select * from list_table where id < 10")->Print();
+	con.Query("select * from list_table where c < 10")->Print();
 
 //	con.Query("select * from list_table")->Print();
 

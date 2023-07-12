@@ -271,6 +271,8 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 	auto table = bind_data.table;
 	auto &storage = table->GetStorage();
 
+	std::cout << "TableScanPushdownComplexFilter index size:  " << storage.info->indexes.Indexes().size() << std::endl;
+
 	auto &config = ClientConfig::GetConfig(context);
 	if (!config.enable_optimizer) {
 		// we only push index scans if the optimizer is enabled
@@ -308,7 +310,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		// no indexes or no filters: skip the pushdown
 		return;
 	}
-	// behold
+	// TODO: 区分普通索引和向量索引
 	storage.info->indexes.Scan([&](Index &index) {
 		// first rewrite the index expression so the ColumnBindings align with the column bindings of the current table
 
@@ -321,6 +323,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		bool rewrite_possible = true;
 		RewriteIndexExpression(index, get, *index_expression, rewrite_possible);
 		if (!rewrite_possible) {
+			std::cout << "rewrite is no possible" << std::endl;
 			// could not rewrite!
 			return false;
 		}
@@ -391,6 +394,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 				break;
 			}
 		}
+		// NOTE: 没有match到索引所以equal_value, low_valule, high_value都是null
 		if (!equal_value.IsNull() || !low_value.IsNull() || !high_value.IsNull()) {
 			// we can scan this index using this predicate: try a scan
 			auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
