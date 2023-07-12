@@ -201,8 +201,16 @@ int main() {
 
 	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
+	con.Query("select id, embedding from list_table where id < 10")->Print();
+
+//	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
+//
+//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 3")->Print();
+//
+//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 order by score limit 3")->Print();
+
 	// NOTE: DataChunk output为什么是Dictionary Vector
-	con.Query("select * from list_table where c < 10")->Print();
+//	con.Query("select * from list_table where c < 10")->Print();
 
 //	con.Query("select * from list_table")->Print();
 

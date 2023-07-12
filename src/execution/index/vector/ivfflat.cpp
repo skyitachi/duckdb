@@ -11,10 +11,25 @@
 #include <memory>
 // #include <faiss/IndexShardsIVF.h>
 #include <faiss/IndexHNSW.h>
+#include <faiss/impl/IDSelector.h>
 
 #include <iostream>
 #include <thread>
 namespace duckdb {
+
+class CustomIDSelector: public faiss::IDSelector {
+public:
+	CustomIDSelector(const std::vector<row_t>&row_ids) {
+		for(auto& row_id: row_ids) {
+			collection.insert(faiss::idx_t(row_id));
+		}
+	}
+	bool is_member(faiss::idx_t id) const override {
+		return collection.find(id) != collection.end();
+	}
+private:
+	std::set<faiss::idx_t> collection;
+};
 
 struct IvfflatIndexScanState : public IndexScanState {
 
@@ -73,7 +88,31 @@ unique_ptr<IndexScanState> IvfflatIndex::InitializeScanSinglePredicate(const Tra
 
 bool IvfflatIndex::Scan(Transaction &transaction, DataTable &table, IndexScanState &state, idx_t max_count,
                         vector<row_t> &result_ids) {
+  faiss::SearchParametersIVF* params = new faiss::SearchParametersIVF();
+  params->sel = new CustomIDSelector(result_ids);
+
+
 	return false;
+}
+
+bool IvfflatIndex::ScanWithBindData(Transaction &transaction, DataTable &table, TableScanBindData &bind_data, bool filtered) {
+  faiss::SearchParametersIVF* params = nullptr;
+  std::cout << "ivfflatindex_scanwithbinddata: " << bind_data.result_ids.size() << std::endl;
+  if (filtered) {
+    new faiss::SearchParametersIVF();
+    params->sel = new CustomIDSelector(bind_data.result_ids);
+  }
+  auto limit = bind_data.limit;
+  int64_t *I = new int64_t[limit];
+  float *D = new float[limit];
+  index->search(1, bind_data.input_vectors.data(), limit, D, I, params);
+  bind_data.result_ids.clear();
+  for (idx_t i = 0; i < limit; i++) {
+    bind_data.result_ids.push_back(I[i]);
+  }
+  delete[] I;
+  delete[] D;
+  return true;
 }
 
 PreservedError IvfflatIndex::Append(IndexLock &lock, DataChunk &appended_data, Vector &row_identifiers) {

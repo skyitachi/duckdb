@@ -11,10 +11,12 @@
 #define DUCKDB_IVFFLAT_H
 #pragma once
 
+#include "duckdb/function/table/table_scan.hpp"
 #include "duckdb/storage/index.hpp"
-#include <faiss/index_io.h>
+
 #include <faiss/IndexFlat.h>
 #include <faiss/IndexIVFFlat.h>
+#include <faiss/index_io.h>
 
 namespace duckdb {
 class IvfflatIndex: public Index {
@@ -39,6 +41,8 @@ public:
 
 	bool Scan(Transaction &transaction, DataTable &table, IndexScanState &state, idx_t max_count,
 	     vector<row_t> &result_ids) override;
+
+	bool ScanWithBindData(Transaction& transaction, DataTable& table, TableScanBindData& bind_data, bool filtered = false);
 
 	PreservedError Append(IndexLock &lock, DataChunk &appended_data, Vector &row_identifiers) override;
   //! Insert a chunk of entries into the index

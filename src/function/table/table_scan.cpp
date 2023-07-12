@@ -234,7 +234,6 @@ static void IndexScanFunction(ClientContext &context, TableFunctionInput &data_p
 	auto &transaction = DuckTransaction::Get(context, *bind_data.table->catalog);
 	auto &local_storage = LocalStorage::Get(transaction);
 
-	std::cout << "IndexScanFunction called" << std::endl;
 	if (!state.finished) {
 		bind_data.table->GetStorage().Fetch(transaction, output, state.column_ids, state.row_ids,
 		                                    bind_data.result_ids.size(), state.fetch_state);
@@ -282,38 +281,18 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		// 这里控制已经是index扫描过了, 后面不需要重新index_scan
 		return;
 	}
-	if (bind_data.is_vector_index_scan) {
-    std::cout << "TableScanPushdownComplexFilter called" << std::endl;
-    storage.info->indexes.Scan([&](Index &index) {
-			// TODO: 得看是否命中索引
-      if (index.type == IndexType::IVFFLAT) {
-        auto &ivf = index.Cast<IvfflatIndex>();
-        auto limit = bind_data.limit;
-        int64_t *I = new int64_t[limit];
-        float *D = new float[limit];
-        ivf.index->search(1, bind_data.input_vectors.data(), limit, D, I);
-        for (idx_t i = 0; i < limit; i++) {
-          std::cout << "faiss index distance: " << D[i] << " , id: " << I[i] << std::endl;
-          bind_data.result_ids.push_back(I[i]);
-        }
-        bind_data.is_index_scan = true;
-        // NOTE: important
-        get.function = TableScanFunction::GetIndexScanFunction();
-        return true;
-      }
-      return false;
-    });
-	  // TODO: 不支持filter的index
-    return;
-	}
-	if (filters.empty()) {
+	if (filters.empty() && !bind_data.is_vector_index_scan) {
 		// no indexes or no filters: skip the pushdown
 		return;
 	}
+  bool found_filter = false;
 	// TODO: 区分普通索引和向量索引
 	storage.info->indexes.Scan([&](Index &index) {
-		// first rewrite the index expression so the ColumnBindings align with the column bindings of the current table
-
+    if (index.type == IndexType::IVFFLAT) {
+		  // ignore vector index this phase
+		  return false;
+	  }
+    // first rewrite the index expression so the ColumnBindings align with the column bindings of the current table
 		if (index.unbound_expressions.size() > 1) {
 			// NOTE: index scans are not (yet) supported for compound index keys
 			return false;
@@ -323,7 +302,6 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		bool rewrite_possible = true;
 		RewriteIndexExpression(index, get, *index_expression, rewrite_possible);
 		if (!rewrite_possible) {
-			std::cout << "rewrite is no possible" << std::endl;
 			// could not rewrite!
 			return false;
 		}
@@ -396,6 +374,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		}
 		// NOTE: 没有match到索引所以equal_value, low_valule, high_value都是null
 		if (!equal_value.IsNull() || !low_value.IsNull() || !high_value.IsNull()) {
+			found_filter = true;
 			// we can scan this index using this predicate: try a scan
 			auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
 			unique_ptr<IndexScanState> index_state;
@@ -416,7 +395,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 			}
 			// NOTE：完成实际index scan的工作
 			if (index.Scan(transaction, storage, *index_state, STANDARD_VECTOR_SIZE, bind_data.result_ids)) {
-				std::cout << "use index scan in search" << std::endl;
+				std::cout << "use index scan in search, result_ids size: " << bind_data.result_ids.size() << std::endl;
 				// use an index scan!
 				bind_data.is_index_scan = true;
 				get.function = TableScanFunction::GetIndexScanFunction();
@@ -427,6 +406,28 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		}
 		return false;
 	});
+	// 未命中索引的filter, 不走index
+	if (!found_filter && !filters.empty()) {
+		std::cout << "no need use index" << std::endl;
+	  return;
+	}
+  if (bind_data.is_vector_index_scan) {
+    std::cout << "TableScanPushdownComplexFilter vector index called" << std::endl;
+    storage.info->indexes.Scan([&](Index &index) {
+      // TODO: 得看是否命中索引
+      auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
+      if (index.type == IndexType::IVFFLAT) {
+        auto &ivf = index.Cast<IvfflatIndex>();
+		    ivf.ScanWithBindData(transaction, storage, bind_data, bind_data.is_index_scan);
+        bind_data.is_index_scan = true;
+        // NOTE: important
+        get.function = TableScanFunction::GetIndexScanFunction();
+        return true;
+      }
+      return false;
+    });
+    return;
+  }
 }
 
 string TableScanToString(const FunctionData *bind_data_p) {
