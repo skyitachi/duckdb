@@ -25,7 +25,6 @@ public:
 		}
 	}
 	bool is_member(faiss::idx_t id) const override {
-		std::cout << "is_member id: " << id << ", collection size: " << collection.size() << std::endl;
 		return collection.find(id) != collection.end();
 	}
 private:
