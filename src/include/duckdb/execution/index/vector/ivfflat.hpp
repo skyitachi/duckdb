@@ -24,17 +24,17 @@ public:
 	IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 	             const vector<column_t> &columnIds, const vector<unique_ptr<Expression>> &unboundExpressions,
 	             IndexConstraintType constraintType, bool trackMemory, int dimension, int nlists, OpClassType opclz,
-	             faiss::IndexFlatL2* quantizer_ptr = nullptr);
-  faiss::IndexIVFFlat* index;
+	             shared_ptr<faiss::IndexFlatL2> quantizer_ptr = nullptr);
+//  faiss::IndexIVFFlat* index;
+  unique_ptr<faiss::IndexIVFFlat> index;
   int dimension;
   int nlist;
   faiss::MetricType metric_type;
-  faiss::IndexFlatL2* quantizer;
-  bool created;
+  shared_ptr<faiss::IndexFlatL2> quantizer;
 
   ~IvfflatIndex() override;
 
-  void initialize(faiss::IndexFlatL2* quantizer_ptr);
+  void initialize(shared_ptr<faiss::IndexFlatL2> quantizer_ptr);
 public:
 	unique_ptr<IndexScanState> InitializeScanSinglePredicate(const Transaction &transaction, const Value &value,
 	                                                           ExpressionType expressionType) override;

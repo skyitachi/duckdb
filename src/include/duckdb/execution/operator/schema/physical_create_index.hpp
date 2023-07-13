@@ -36,7 +36,8 @@ public:
 	//! The list of column IDs required for the index
 	vector<column_t> storage_ids;
 	//! Info for index creation
-	unique_ptr<CreateIndexInfo> info;
+//	unique_ptr<CreateIndexInfo> info;
+	shared_ptr<CreateIndexInfo> info;
 	//! Unbound expressions to be used in the optimizer
 	vector<unique_ptr<Expression>> unbound_expressions;
 

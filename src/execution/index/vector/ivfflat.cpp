@@ -53,7 +53,7 @@ static faiss::MetricType opToMetricType(OpClassType opclass) {
 
 IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager, const vector<column_t> &columnIds,
                            const vector<unique_ptr<Expression>> &unboundExpressions, IndexConstraintType constraintType,
-                           bool trackMemory, int dim, int nlists, OpClassType opclz, faiss::IndexFlatL2 *quantizer_ptr)
+                           bool trackMemory, int dim, int nlists, OpClassType opclz, shared_ptr<faiss::IndexFlatL2> quantizer_ptr)
     : Index(db, IndexType::IVFFLAT, tableIoManager, columnIds, unboundExpressions, constraintType, trackMemory) {
 	dimension = dim;
 	// quantizer 需要全局的，这样才可以merge
@@ -61,18 +61,16 @@ IvfflatIndex::IvfflatIndex(AttachedDatabase &db, TableIOManager &tableIoManager,
 	metric_type = opToMetricType(opclz);
 	quantizer = nullptr;
 	if (quantizer_ptr != nullptr) {
-		index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlists, metric_type);
-		created = true;
+		index = make_uniq<faiss::IndexIVFFlat>(quantizer_ptr.get(), dimension, nlists, metric_type);
 		quantizer = quantizer_ptr;
 	} else {
 		index = nullptr;
 	}
 }
 
-void IvfflatIndex::initialize(faiss::IndexFlatL2 *quantizer_ptr) {
+void IvfflatIndex::initialize(shared_ptr<faiss::IndexFlatL2> quantizer_ptr) {
 	if (quantizer_ptr != nullptr) {
-		index = new faiss::IndexIVFFlat(quantizer_ptr, dimension, nlist, metric_type);
-		created = true;
+		index = make_uniq<faiss::IndexIVFFlat>(quantizer_ptr.get(), dimension, nlist, metric_type);
 		quantizer = quantizer_ptr;
 	}
 }
@@ -88,19 +86,17 @@ unique_ptr<IndexScanState> IvfflatIndex::InitializeScanSinglePredicate(const Tra
 
 bool IvfflatIndex::Scan(Transaction &transaction, DataTable &table, IndexScanState &state, idx_t max_count,
                         vector<row_t> &result_ids) {
-  faiss::SearchParametersIVF* params = new faiss::SearchParametersIVF();
-  params->sel = new CustomIDSelector(result_ids);
-
-
 	return false;
 }
 
 bool IvfflatIndex::ScanWithBindData(Transaction &transaction, DataTable &table, TableScanBindData &bind_data, bool filtered) {
   faiss::SearchParametersIVF* params = nullptr;
   std::cout << "ivfflatindex_scanwithbinddata: " << bind_data.result_ids.size() << std::endl;
+  unique_ptr<CustomIDSelector> id_selector = nullptr;
   if (filtered) {
     params = new faiss::SearchParametersIVF();
-    params->sel = new CustomIDSelector(bind_data.result_ids);
+	  id_selector = make_uniq<CustomIDSelector>(bind_data.result_ids);
+    params->sel = id_selector.get();
   }
   auto limit = bind_data.limit;
   int64_t *I = new int64_t[limit];
@@ -130,7 +126,6 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	D_ASSERT(row_ids.GetType().InternalType() == ROW_TYPE);
 	D_ASSERT(logical_types[0] == input.data[0].GetType());
 
-	std::cout << "IvfflatIndex, input size: " << input.size() << ", row_id size: " << "" << std::endl;
 	ArenaAllocator arena_allocator(BufferAllocator::Get(db));
 	int v_size = 4;
 	// TODO: support Physical::FLOAT and Physical::DOUBLE
@@ -224,9 +219,5 @@ BlockPointer IvfflatIndex::Serialize(MetaBlockWriter &writer) {
 }
 
 IvfflatIndex::~IvfflatIndex() {
-	if (index != nullptr) {
-		delete index;
-	}
-  index = nullptr;
 }
 } // namespace duckdb

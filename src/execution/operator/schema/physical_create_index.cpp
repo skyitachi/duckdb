@@ -35,7 +35,7 @@ void PhysicalCreateIndex::init_ivfflat_index() {
 		int nlists = info->options["oplists"];
     OpClassType opclz = OpClassType::Vector_IP_OPS;
 		auto& storage = table.GetStorage();
-	  faiss::IndexFlatL2* quantizer = new faiss::IndexFlatL2(d);
+	  auto quantizer = make_shared<faiss::IndexFlatL2>(d);
 	  D_ASSERT(info->parsed_expressions.size() == 1);
 	  opclz = info->parsed_expressions[0]->opclass_type;
 
@@ -259,9 +259,9 @@ PhysicalCreateIndex::~PhysicalCreateIndex() {
 	if (g_index) {
 		g_index.release();
 	}
-	if (info) {
-		printf("create index info ptr released: %p\n", info.release());
-	}
+//	if (info) {
+//		printf("create index info ptr released: %p\n", info.release());
+//	}
 }
 
 } // namespace duckdb
