@@ -65,9 +65,25 @@ struct list_entry_t {
 
 	uint64_t offset;
 	uint64_t length;
+
+	void *data_ptr = nullptr;
 };
 
-using union_tag_t = uint8_t; 
+struct list_data_t {
+	list_data_t() = default;
+	list_entry_t entry;
+	void *data_ptr = nullptr;
+	idx_t idx;
+
+  inline constexpr bool operator != (const list_data_t &other) const {
+    return !(*this == other);
+  }
+  inline constexpr bool operator == (const list_data_t &other) const {
+	  return entry == other.entry;
+  }
+};
+
+using union_tag_t = uint8_t;
 
 //===--------------------------------------------------------------------===//
 // Internal Types

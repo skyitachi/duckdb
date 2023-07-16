@@ -201,6 +201,8 @@ private:
 			return LogicalType(LogicalTypeId::DOUBLE);
 		} else if (std::is_same<T, string_t>()) {
 			return LogicalType(LogicalTypeId::VARCHAR);
+		} else if (std::is_same<T, list_entry_t>()) {
+			return LogicalType::LIST(LogicalType::FLOAT);
 		} else { // LCOV_EXCL_START
 			throw std::runtime_error("Unrecognized type!");
 		} // LCOV_EXCL_STOP
@@ -299,6 +301,7 @@ private:
 
 	template <typename T>
 	static bool TypesMatch(const LogicalType &sql_type) {
+    std::cout << "T is: " << typeid(T).name() << ", sql_type: " << sql_type.ToString() << std::endl;
 		switch (sql_type.id()) {
 		case LogicalTypeId::BOOLEAN:
 			return std::is_same<T, bool>();
@@ -329,6 +332,8 @@ private:
 		case LogicalTypeId::CHAR:
 		case LogicalTypeId::BLOB:
 			return std::is_same<T, string_t>();
+		case LogicalTypeId::LIST:
+			return std::is_same<T, list_entry_t>();
 		default: // LCOV_EXCL_START
 			std::cout << "udf_function type: " <<  sql_type.ToString() << std::endl;
 			throw std::runtime_error("Type is not supported!");
@@ -348,7 +353,7 @@ private:
 	static AggregateFunction CreateUnaryAggregateFunction(const string &name, LogicalType ret_type,
 	                                                      LogicalType input_type) {
 		AggregateFunction aggr_function =
-		    AggregateFunction::UnaryAggregate<STATE, TR, TA, UDF_OP>(input_type, ret_type);
+		    AggregateFunction::UnaryAggregate<STATE, TA, TR, UDF_OP>(input_type, ret_type);
 		aggr_function.name = name;
 		return aggr_function;
 	}

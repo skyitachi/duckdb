@@ -12,6 +12,7 @@
 #include "duckdb/common/types/vector.hpp"
 #include "duckdb/common/vector_operations/vector_operations.hpp"
 
+#include <typeindex>
 namespace duckdb {
 
 struct AggregateInputData;
@@ -268,6 +269,14 @@ public:
 		}
 		case VectorType::FLAT_VECTOR: {
 			auto idata = FlatVector::GetData<INPUT_TYPE>(input);
+			if (input.GetType().id() == LogicalTypeId::LIST) {
+				std::cout << "in the my_sum operation, input_type: " << std::type_index(typeid(INPUT_TYPE)).name() << std::endl;
+        auto &child = ListVector::GetEntry(input);
+		    auto entries = reinterpret_cast<list_entry_t*>(idata);
+			  for(idx_t i = 0; i < count; i++) {
+					entries[i].data_ptr = child.GetData();
+			  }
+			}
 			UnaryFlatUpdateLoop<STATE_TYPE, INPUT_TYPE, OP>(idata, aggr_input_data, (STATE_TYPE *)state, count,
 			                                                FlatVector::Validity(input));
 			break;

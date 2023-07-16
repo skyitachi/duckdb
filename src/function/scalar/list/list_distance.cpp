@@ -15,7 +15,6 @@ namespace duckdb {
 static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector& result) {
   D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
-	std::cout << "rows: " << count << std::endl;
 
 	Vector& lhs = args.data[0];
 	Vector& rhs = args.data[1];
@@ -24,8 +23,9 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	UnifiedVectorFormat rhs_data;
 	lhs.ToUnifiedFormat(count, lhs_data);
 	rhs.ToUnifiedFormat(count, rhs_data);
-	auto lhs_entries = (list_entry_t *)lhs_data.data;
-	auto rhs_entries = (list_entry_t *)rhs_data.data;
+
+	auto lhs_entries = ListVector::GetData(lhs);
+	auto rhs_entries = ListVector::GetData(rhs);
 
 	auto lhs_list_size = ListVector::GetListSize(lhs);
 	auto rhs_list_size = ListVector::GetListSize(rhs);

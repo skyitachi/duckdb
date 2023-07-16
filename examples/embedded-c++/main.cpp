@@ -4,11 +4,80 @@
 
 #include <iostream>
 #include <vector>
+#include <typeindex>
+#include <typeinfo>
+#include <numeric>
 
 using namespace duckdb;
 
 bool bigger_than_four(int value) {
 	return value > 4;
+}
+
+static void list_distance(DataChunk&args, ExpressionState &state, Vector &result) {
+	D_ASSERT(args.ColumnCount() == 2);
+  auto count = args.size();
+
+  Vector& lhs = args.data[0];
+  Vector& rhs = args.data[1];
+
+  UnifiedVectorFormat lhs_data;
+  UnifiedVectorFormat rhs_data;
+  lhs.ToUnifiedFormat(count, lhs_data);
+  rhs.ToUnifiedFormat(count, rhs_data);
+
+  auto lhs_entries = ListVector::GetData(lhs);
+  auto rhs_entries = ListVector::GetData(rhs);
+
+  auto lhs_list_size = ListVector::GetListSize(lhs);
+  auto rhs_list_size = ListVector::GetListSize(rhs);
+
+  auto &lhs_child = ListVector::GetEntry(lhs);
+  auto &rhs_child = ListVector::GetEntry(rhs);
+  UnifiedVectorFormat lhs_child_data;
+  UnifiedVectorFormat rhs_child_data;
+  lhs_child.ToUnifiedFormat(lhs_list_size, lhs_child_data);
+  rhs_child.ToUnifiedFormat(rhs_list_size, rhs_child_data);
+
+  result.SetVectorType(VectorType::FLAT_VECTOR);
+  // set result vector type
+  auto result_entries = FlatVector::GetData<float>(result);
+  auto &result_validity = FlatVector::Validity(result);
+
+  idx_t offset = 0;
+  for(idx_t i = 0; i < count; i++) {
+    auto lhs_list_index = lhs_data.sel->get_index(i);
+    auto rhs_list_index = rhs_data.sel->get_index(i);
+
+    if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
+      result_validity.SetInvalid(i);
+      continue;
+    }
+    if (lhs_data.validity.RowIsValid(lhs_list_index) && rhs_data.validity.RowIsValid(rhs_list_index)) {
+      const auto& lhs_entry = lhs_entries[lhs_list_index];
+      const auto& rhs_entry = rhs_entries[rhs_list_index];
+      std::vector<float> l_values;
+      std::vector<float> r_values;
+
+      auto l_child_format = (float *) lhs_child_data.data;
+      auto r_child_format = (float *) rhs_child_data.data;
+
+      for (int j = 0; j < lhs_entry.length; j++) {
+        auto child_offset = lhs_entry.offset + j;
+        auto child_index = lhs_child_data.sel->get_index(child_offset);
+        l_values.push_back(l_child_format[child_index]);
+      }
+
+      for (int j = 0; j < rhs_entry.length; j++) {
+        auto child_offset = rhs_entry.offset + j;
+        auto child_index = rhs_child_data.sel->get_index(child_offset);
+        r_values.push_back(r_child_format[child_index]);
+      }
+      auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
+      result_entries[i] = dis;
+    }
+  }
+
 }
 
 // scalar function
@@ -42,9 +111,23 @@ static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &resu
 	}
 }
 
+
 template <class T>
 struct my_sum_t {
 	T sum;
+};
+
+struct my_sum_state {
+  void* data;
+  LogicalType type;
+};
+
+struct my_sum_input_state {
+
+};
+
+struct my_sum_output_state {
+
 };
 
 class MySumAggr {
@@ -52,22 +135,28 @@ public:
 	template <class STATE>
 	static void Initialize(STATE* state) {
 		std::cout << "my sum initialize " << std::endl;
-		state->sum = 0;
+    state->sum = 0;
 	}
 	static bool IgnoreNull() {
 		return true;
 	}
 
 	template <class INPUT_TYPE, class STATE, class OP>
-	static void Operation(STATE *state, AggregateInputData &, INPUT_TYPE *input, ValidityMask &mask, idx_t idx) {
-		std::cout << "in the my_sum operation: " << input[idx] << std::endl;
-		state->sum += input[idx];
+	static void Operation(STATE *state, AggregateInputData & data, INPUT_TYPE *input, ValidityMask &mask, idx_t idx) {
+//		std::cout << "in the my_sum operation, input_type: " << std::type_index(typeid(INPUT_TYPE)).name() << std::endl;
+		auto entries = (list_entry_t*)input;
+		if (entries[idx].data_ptr != nullptr) {
+			auto data_ptr = (float*) entries[idx].data_ptr;
+			for(idx_t i =0; i < entries[idx].length; i++) {
+				state->sum += data_ptr[entries[idx].offset + i];
+			}
+		}
 	}
 
 	template <class INPUT_TYPE, class STATE, class OP>
 	static void ConstantOperation(STATE *state, AggregateInputData &, INPUT_TYPE *input, ValidityMask &mask,
 	                              idx_t count) {
-		state->sum += input[0] * count;
+//		state->sum += input[0] * count;
 	}
 
 	template <class STATE, class OP>
@@ -79,7 +168,7 @@ public:
 	template <class T, class STATE>
 	static void Finalize(Vector &result, AggregateInputData &, STATE *state, T *target, ValidityMask &mask, idx_t idx) {
 		// pass
-		std::cout << "in the my_sum finalize" << std::endl;
+		std::cout << "in the my_sum finalize" <<  std::endl;
 		target[idx] = state->sum;
 	}
 };
@@ -163,6 +252,7 @@ void vector_demo() {
 
 // 复合类型的custom aggr
 
+
 int main() {
 	DuckDB db(nullptr);
 
@@ -179,10 +269,17 @@ int main() {
 //	//	con.CreateAggregateFunction("my_min", args, return_type);
 //	// 可以参考CreateScalarFunction 封装的用法
 //	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
+	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 //
 //	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 //	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 //	                                                                LogicalType::INTEGER);
+
+	con.CreateAggregateFunction<MySumAggr, my_sum_t<float>, float, list_entry_t>
+	    ("my_list_sum", LogicalType::FLOAT, LogicalType::LIST(LogicalType::FLOAT));
+
+//  con.CreateAggregateFunction<MySumAggr, my_sum_t<float>, float, list_data_t<float>>
+//      ("my_list_sum2", LogicalType::FLOAT, LogicalType::LIST(LogicalType::FLOAT));
 //
 //	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
 //
@@ -196,18 +293,21 @@ int main() {
 
 	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
 
-//	con.Query("insert into list_table VALUES ([1.1, 2.2, 3.3], 1)");
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
-	con.Query("create INDEX idx_id on list_table(id)")->Print();
+	con.Query("select my_list_distance(embedding, [1.0, 1.0, 1.0]) from list_table limit 10")->Print();
+
+//	con.Query("select my_sum(c) from list_table")->Print();
+
+//	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
 //	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 
-	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
+//	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
 //
 //  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score limit 3")->Print();
 //
-  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 and id > 90 order by score limit 3")->Print();
+//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 and id > 90 order by score limit 3")->Print();
 
 	// NOTE: DataChunk output为什么是Dictionary Vector
 //	con.Query("select * from list_table where c < 10")->Print();
