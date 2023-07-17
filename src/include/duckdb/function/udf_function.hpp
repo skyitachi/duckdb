@@ -202,7 +202,7 @@ private:
 		} else if (std::is_same<T, string_t>()) {
 			return LogicalType(LogicalTypeId::VARCHAR);
 		} else if (std::is_same<T, list_entry_t>()) {
-			return LogicalType::LIST(LogicalType::FLOAT);
+			return LogicalType::LIST(LogicalType::ANY);
 		} else { // LCOV_EXCL_START
 			throw std::runtime_error("Unrecognized type!");
 		} // LCOV_EXCL_STOP

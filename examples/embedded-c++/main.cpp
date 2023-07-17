@@ -44,6 +44,7 @@ static void list_distance(DataChunk&args, ExpressionState &state, Vector &result
   auto result_entries = FlatVector::GetData<float>(result);
   auto &result_validity = FlatVector::Validity(result);
 
+
   idx_t offset = 0;
   for(idx_t i = 0; i < count; i++) {
     auto lhs_list_index = lhs_data.sel->get_index(i);
@@ -86,29 +87,40 @@ static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &resu
 	// set the result vector type
 	result.SetVectorType(VectorType::FLAT_VECTOR);
 	// get a raw array from the result
-	auto result_data = FlatVector::GetData<TYPE>(result);
+	// nested vector
+	D_ASSERT(args.ColumnCount() == 1);
+	std::cout << "args.size = " << args.size() << std::endl;
 
 	// get the solely input vector
 	auto &input = args.data[0];
+	D_ASSERT(input.GetType().id() == LogicalTypeId::LIST);
+
+	auto* entries = ListVector::GetData(input);
+	std::cout << entries[0].offset << ", " << entries->length << std::endl;
+
+	auto& data = ListVector::GetEntry(input);
+	std::cout << "child vector type: " << data.GetType().ToString() << std::endl;
+
 	// now get an orrified vector
 	//	FlatVector vdata;
-	UnifiedVectorFormat vdata;
-	input.ToUnifiedFormat(args.size(), vdata);
-	//	input.Orrify(args.size(), vdata);
-
-	// get a raw array from the orrified input
-	//	auto input_data = (TYPE *)vdata.GetData();
-
-	auto input_data = FlatVector::GetData<TYPE>(input);
-
-	// handling the data
-	for (idx_t i = 0; i < args.size(); i++) {
-		auto idx = vdata.sel->get_index(i);
-		// 判断validity
-		if (vdata.validity.RowIsValid(idx)) {
-			result_data[i] = input_data[idx];
-		}
-	}
+//  auto result_data = FlatVector::GetData<TYPE>(result);
+//	UnifiedVectorFormat vdata;
+//	input.ToUnifiedFormat(args.size(), vdata);
+//	//	input.Orrify(args.size(), vdata);
+//
+//	// get a raw array from the orrified input
+//	//	auto input_data = (TYPE *)vdata.GetData();
+//
+//	auto input_data = FlatVector::GetData<TYPE>(input);
+//
+//	// handling the data
+//	for (idx_t i = 0; i < args.size(); i++) {
+//		auto idx = vdata.sel->get_index(i);
+//		// 判断validity
+//		if (vdata.validity.RowIsValid(idx)) {
+//			result_data[i] = input_data[idx];
+//		}
+//	}
 }
 
 
@@ -268,15 +280,17 @@ int main() {
 //	LogicalType return_type {LogicalTypeId::INTEGER};
 //	//	con.CreateAggregateFunction("my_min", args, return_type);
 //	// 可以参考CreateScalarFunction 封装的用法
-//	con.CreateVectorizedFunction<int, int>("udf_vectorized_int", udf_vectorized<int>);
-	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
+	con.CreateVectorizedFunction<float, list_entry_t>("udf_vectorized_int", udf_vectorized<float>);
+	con.Query("select udf_vectorized_int([[1], [2, 3], [1,2,3]])")->Print();
+
+//	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 //
 //	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 //	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 //	                                                                LogicalType::INTEGER);
 
-	con.CreateAggregateFunction<MySumAggr, my_sum_t<float>, float, list_entry_t>
-	    ("my_list_sum", LogicalType::FLOAT, LogicalType::LIST(LogicalType::FLOAT));
+//	con.CreateAggregateFunction<MySumAggr, my_sum_t<float>, float, list_entry_t>
+//	    ("my_list_sum", LogicalType::FLOAT, LogicalType::LIST(LogicalType::FLOAT));
 
 //  con.CreateAggregateFunction<MySumAggr, my_sum_t<float>, float, list_data_t<float>>
 //      ("my_list_sum2", LogicalType::FLOAT, LogicalType::LIST(LogicalType::FLOAT));
@@ -291,11 +305,11 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
-
-	con.Query("copy list_table from 'embedding.json'")->Print();
-
-	con.Query("select my_list_distance(embedding, [1.0, 1.0, 1.0]) from list_table limit 10")->Print();
+//	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
+//
+//	con.Query("copy list_table from 'embedding.json'")->Print();
+//
+//	con.Query("select my_list_distance(embedding, [1.0, 1.0, 1.0]) from list_table limit 10")->Print();
 
 //	con.Query("select my_sum(c) from list_table")->Print();
 
