@@ -81,6 +81,27 @@ static void list_distance(DataChunk&args, ExpressionState &state, Vector &result
 
 }
 
+void parse(Vector& input, list_entry_t* parent_entries, int parent_count, int count) {
+  if (input.GetType().id() != LogicalTypeId::LIST) {
+	  for(int i = 0; i < parent_count; i++) {
+	    std::cout << "data[i].offset = " << parent_entries[i].offset << ", length = " << parent_entries[i].length << std::endl;
+	  }
+	  return;
+  }
+  auto* entries = ListVector::GetData(input);
+  auto& data = ListVector::GetEntry(input);
+
+  // 这里的count有问题
+  auto sz = ListVector::GetListSize(input);
+  std::cout << "count = " << sz << std::endl;
+  if (count != -1) {
+	  parent_count = count;
+  }
+  count = sz;
+  parse(data, entries, parent_count, count);
+
+
+}
 // scalar function
 template <typename TYPE>
 static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &result) {
@@ -93,6 +114,7 @@ static void udf_vectorized(DataChunk &args, ExpressionState &state, Vector &resu
 
 	// get the solely input vector
 	auto &input = args.data[0];
+	parse(input, nullptr, -1, -1);
 	D_ASSERT(input.GetType().id() == LogicalTypeId::LIST);
 
 	auto* entries = ListVector::GetData(input);
