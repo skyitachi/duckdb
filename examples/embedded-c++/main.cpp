@@ -82,6 +82,7 @@ static void list_distance(DataChunk&args, ExpressionState &state, Vector &result
 }
 
 void parse(Vector& input, list_entry_t* parent_entries, int parent_count, int count) {
+  std::cout << "parse vector type: " << VectorTypeToString(input.GetVectorType()) << std::endl;
   if (input.GetType().id() != LogicalTypeId::LIST) {
 	  for(int i = 0; i < parent_count; i++) {
 	    std::cout << "data[i].offset = " << parent_entries[i].offset << ", length = " << parent_entries[i].length << std::endl;
