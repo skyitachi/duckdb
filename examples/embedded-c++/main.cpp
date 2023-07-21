@@ -287,6 +287,17 @@ void vector_demo() {
 
 // 复合类型的custom aggr
 
+void list_value_demo() {
+	auto iv = Value::INTEGER(1);
+	auto iv1 = Value::INTEGER(2);
+	auto iv2 = Value::INTEGER(3);
+	auto li_v = Value::LIST(std::vector<Value>{iv, iv1, iv2});
+//	std::vector<Value> values;
+	auto values = ListValue::GetChildren(li_v);
+	for(auto& v: values) {
+		std::cout << "v: " << v << std::endl;
+	}
+}
 
 int main() {
 	DuckDB db(nullptr);
@@ -324,7 +335,8 @@ int main() {
 
 //	auto fn = UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
 
-//	vector_demo();
+	vector_demo();
+	list_value_demo();
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
