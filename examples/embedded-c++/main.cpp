@@ -45,10 +45,10 @@ static void list_distance(DataChunk&args, ExpressionState &state, Vector &result
   auto &result_validity = FlatVector::Validity(result);
 
 
-  idx_t offset = 0;
   for(idx_t i = 0; i < count; i++) {
     auto lhs_list_index = lhs_data.sel->get_index(i);
     auto rhs_list_index = rhs_data.sel->get_index(i);
+    std::cout << "lhs_list_index: " << lhs_list_index << ", i = " << i << std::endl;
 
     if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
       result_validity.SetInvalid(i);
@@ -314,10 +314,10 @@ int main() {
 //	LogicalType return_type {LogicalTypeId::INTEGER};
 //	//	con.CreateAggregateFunction("my_min", args, return_type);
 //	// 可以参考CreateScalarFunction 封装的用法
-	con.CreateVectorizedFunction<float, list_entry_t>("udf_vectorized_int", udf_vectorized<float>);
-	con.Query("select udf_vectorized_int([[1], [2, 3], [1,2,3]])")->Print();
+//	con.CreateVectorizedFunction<float, list_entry_t>("udf_vectorized_int", udf_vectorized<float>);
+//	con.Query("select udf_vectorized_int([[1], [2, 3], [1,2,3]])")->Print();
 
-//	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
+	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 //
 //	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 //	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
@@ -340,9 +340,11 @@ int main() {
 
 //	con.Query("select my_sum(i) from integers")->Print();
 
-//	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
-//
-//	con.Query("copy list_table from 'embedding.json'")->Print();
+	con.Query("create table list_table(embedding FLOAT[], id INTEGER, c INTEGER)");
+
+	con.Query("copy list_table from 'embedding.json'")->Print();
+
+  con.Query("select id, embedding, my_list_distance(embedding, [2.0, 1.2, 2.0]) from list_table order by id desc limit 3")->Print();
 //
 //	con.Query("select my_list_distance(embedding, [1.0, 1.0, 1.0]) from list_table limit 10")->Print();
 

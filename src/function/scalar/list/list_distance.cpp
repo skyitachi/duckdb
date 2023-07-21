@@ -90,10 +90,10 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	auto result_entries = FlatVector::GetData<float>(result);
 	auto &result_validity = FlatVector::Validity(result);
 
-	idx_t offset = 0;
 	for(idx_t i = 0; i < count; i++) {
 		auto lhs_list_index = lhs_data.sel->get_index(i);
 		auto rhs_list_index = rhs_data.sel->get_index(i);
+		std::cout << "lhs_list_index: " << lhs_list_index << ", i = " << i << std::endl;
 
 		if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
 			result_validity.SetInvalid(i);
