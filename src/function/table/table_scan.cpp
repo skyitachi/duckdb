@@ -127,7 +127,7 @@ static void TableScanFunc(ClientContext &context, TableFunctionInput &data_p, Da
 			output.ReferenceColumns(state.all_columns, gstate.projection_ids);
 		} else {
 			storage.Scan(transaction, output, state.scan_state);
-      std::cout << "[TableScanFunc] storage.Scan result size: " << output.size() << std::endl;
+//      std::cout << "[TableScanFunc] storage.Scan result size: " << output.size() << std::endl;
 		}
 		if (output.size() > 0) {
 			return;

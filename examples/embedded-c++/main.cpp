@@ -344,13 +344,22 @@ int main() {
 
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
-  con.Query("select id, embedding, my_list_distance(embedding, [2.0, 1.2, 2.0]) from list_table order by id desc limit 3")->Print();
+  con.Query("create INDEX idx_id on list_table(id)")->Print();
+
+//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
+//
+//  con.Query("select id, (id + 1) as score from list_table order by score limit 3")->Print();
+
+  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by id desc limit 3")->Print();
+
+  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score desc limit 3")->Print();
+
+//  con.Query("select id, embedding, my_list_distance(embedding, [2.0, 1.2, 2.0]) from list_table order by id desc limit 3")->Print();
 //
 //	con.Query("select my_list_distance(embedding, [1.0, 1.0, 1.0]) from list_table limit 10")->Print();
 
 //	con.Query("select my_sum(c) from list_table")->Print();
 
-//	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
 //	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 

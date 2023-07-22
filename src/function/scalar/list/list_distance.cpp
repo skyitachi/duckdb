@@ -38,7 +38,7 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	rhs_child.ToUnifiedFormat(rhs_list_size, rhs_child_data);
 
 //	D_ASSERT(lhs_list_size == rhs_list_size);
-	std::cout << "lhs_list_size: " << lhs_list_size << ", rhs_list_size: " << rhs_list_size << std::endl;
+//	std::cout << "lhs_list_size: " << lhs_list_size << ", rhs_list_size: " << rhs_list_size << std::endl;
 
 	// TODO: internal type的处理
 //  switch (lhs_child.GetType().InternalType()) {
@@ -93,7 +93,7 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	for(idx_t i = 0; i < count; i++) {
 		auto lhs_list_index = lhs_data.sel->get_index(i);
 		auto rhs_list_index = rhs_data.sel->get_index(i);
-		std::cout << "lhs_list_index: " << lhs_list_index << ", i = " << i << std::endl;
+//		std::cout << "lhs_list_index: " << lhs_list_index << ", i = " << i << std::endl;
 
 		if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
 			result_validity.SetInvalid(i);
