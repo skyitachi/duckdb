@@ -21,6 +21,7 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 
 	UnifiedVectorFormat lhs_data;
 	UnifiedVectorFormat rhs_data;
+	// NOTE: 这一步是必须的
 	lhs.ToUnifiedFormat(count, lhs_data);
 	rhs.ToUnifiedFormat(count, rhs_data);
 
@@ -93,7 +94,6 @@ static void ListDistanceFunction(DataChunk& args, ExpressionState& state, Vector
 	for(idx_t i = 0; i < count; i++) {
 		auto lhs_list_index = lhs_data.sel->get_index(i);
 		auto rhs_list_index = rhs_data.sel->get_index(i);
-//		std::cout << "lhs_list_index: " << lhs_list_index << ", i = " << i << std::endl;
 
 		if (!lhs_data.validity.RowIsValid(lhs_list_index) && !rhs_data.validity.RowIsValid(rhs_list_index)) {
 			result_validity.SetInvalid(i);

@@ -80,6 +80,9 @@ void ExpressionExecutor::Execute(const BoundFunctionExpression &expr, Expression
 	state->profiler.EndSample(count);
 
 	VerifyNullHandling(expr, arguments, result);
+	if (result.GetType() != expr.return_type) {
+		std::cout << "execution: " << LogicalTypeIdToString(result.GetType().id()) << ", " << LogicalTypeIdToString(expr.return_type.id()) << std::endl;
+	}
 	D_ASSERT(result.GetType() == expr.return_type);
 }
 

@@ -29,6 +29,10 @@
 #include <iostream>
 namespace duckdb {
 
+static bool FindVectorFunc(const std::string& func_name) {
+  return func_name.find("list_distance") == 0;
+}
+
 unique_ptr<Expression> Binder::BindOrderExpression(OrderBinder &order_binder, unique_ptr<ParsedExpression> expr) {
 	// we treat the Distinct list as a order by
 	auto bound_expr = order_binder.Bind(std::move(expr));
@@ -578,7 +582,7 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 				D_ASSERT(expr->type == ExpressionType::BOUND_COLUMN_REF);
 				auto &bound_colref = expr->Cast<BoundColumnRefExpression>();
 				auto column_name = bound_colref.GetName();
-				if (column_name.find("list_distance") == 0) {
+				if (FindVectorFunc(column_name)) {
           found_order_by = true;
 		      break;
 				}
@@ -592,12 +596,17 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 		if (expr->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
 			auto &bound_func_expr = expr->Cast<BoundFunctionExpression>();
 			auto func_name = bound_func_expr.function.name;
-			if (func_name.find("list_distance") != 0) { continue; }
+			if (!FindVectorFunc(func_name)) { continue ;}
 
 			D_ASSERT(bound_func_expr.children.size() == 2);
-			D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
-			auto &bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
-			ExpressionExecutor expr_executor(context, bound_cast_expr);
+
+			if (bound_func_expr.children[1]->GetExpressionClass() != ExpressionClass::BOUND_CAST) {
+        std::cout << "bound_func_expr.children[1]: " << ExpressionClassToString(bound_func_expr.children[1]->GetExpressionClass()) << std::endl;
+
+			}
+//			D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
+//			auto &bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
+			ExpressionExecutor expr_executor(context, *bound_func_expr.children[1]);
 			DataChunk chunk;
 			vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
 			chunk.Initialize(context, return_types);
@@ -609,4 +618,5 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 		}
 	}
 }
+
 } // namespace duckdb
