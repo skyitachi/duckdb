@@ -37,6 +37,7 @@ static unique_ptr<FunctionData> ListValueBind(ClientContext &context, ScalarFunc
 	// collect names and deconflict, construct return type
 	LogicalType child_type = arguments.empty() ? LogicalType::SQLNULL : arguments[0]->return_type;
 	for (idx_t i = 1; i < arguments.size(); i++) {
+		std::cout << "list_value arg return type: " << arguments[i]->return_type.ToString() << std::endl;
 		child_type = LogicalType::MaxLogicalType(child_type, arguments[i]->return_type);
 	}
 

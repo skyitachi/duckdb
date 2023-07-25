@@ -30,6 +30,9 @@
 namespace duckdb {
 
 static bool FindVectorFunc(const std::string& func_name) {
+	if (func_name.find("my_list_distance") == 0) {
+		return true;
+	}
   return func_name.find("list_distance") == 0;
 }
 
@@ -606,10 +609,18 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 			}
 //			D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
 //			auto &bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
+			std::cout << "[debug] bound_function_return_type: " << LogicalTypeIdToString(bound_func_expr.function.return_type.id()) << std::endl;
+      auto& child_expr = *bound_func_expr.children[1];
+	    auto target_type = LogicalType::LIST(LogicalType::FLOAT);
+//		BoundCastInfo cast_info;
+//      make_uniq<BoundCastExpression>(bound_func_expr.children[1], target_type);
+
 			ExpressionExecutor expr_executor(context, *bound_func_expr.children[1]);
 			DataChunk chunk;
 			vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
 			chunk.Initialize(context, return_types);
+			// TODO: 需要类型转化
+
 			// NOTE: 终于获取到参数了
 			expr_executor.Execute(chunk);
 			table_scan_data.is_vector_index_scan = true;

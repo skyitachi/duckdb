@@ -337,14 +337,14 @@ int main() {
 
 	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
-	    ->Print();
+//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
+//	    ->Print();
 
   con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
       ->Print();
 
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
-	    ->Print();
+//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
+//	    ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
 	//
