@@ -310,7 +310,7 @@ int main() {
 
 	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 	//
-	//	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+		con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 	//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	//	                                                                LogicalType::INTEGER);
 
@@ -339,12 +339,16 @@ int main() {
 
 //	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 //	    ->Print();
+//	con.Query("select * from list_table where bigger_than_four(id)")->Print();
+
+//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
+//	    ->Print();
 
   con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
       ->Print();
 
-//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
-//	    ->Print();
+	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
+	    ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
 	//

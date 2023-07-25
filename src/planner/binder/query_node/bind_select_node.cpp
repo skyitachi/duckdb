@@ -546,7 +546,8 @@ unique_ptr<BoundQueryNode> Binder::BindSelectNode(SelectNode &statement, unique_
 	return std::move(result);
 }
 
-static vector<float> GetData(DataChunk &input) {
+// TODO: 这里要做好泛型
+static vector<float> GetData(ClientContext& context, DataChunk &input) {
 	D_ASSERT(input.data.size() == 1);
 	Vector &lists = input.data[0];
 	UnifiedVectorFormat lhs_data;
@@ -554,15 +555,16 @@ static vector<float> GetData(DataChunk &input) {
 	lists.ToUnifiedFormat(size, lhs_data);
 	auto lhs_entries = (list_entry_t *)lhs_data.data;
 	auto columns = lhs_entries->length;
-
-	D_ASSERT(lists.GetType() == LogicalType::LIST(LogicalType::FLOAT));
+//	D_ASSERT(lists.GetType() == LogicalType::LIST(LogicalType::ANY));
 	auto real_data_vector = ListVector::GetEntry(lists);
 	UnifiedVectorFormat real_data;
 	real_data_vector.ToUnifiedFormat(input.size(), real_data);
-	auto ptr = (float *)real_data.data;
 	vector<float> result;
-	for (int i = 0; i < columns; i++) {
-		result.push_back(ptr[i]);
+	for (idx_t i = 0; i < columns; i++) {
+		auto float_value = real_data_vector.GetValue(i)
+		                       .CastAs(context, LogicalType::FLOAT)
+		                       .GetValue<float>();
+		result.push_back(float_value);
 	}
 	return result;
 }
@@ -609,22 +611,20 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 			}
 //			D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
 //			auto &bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
-			std::cout << "[debug] bound_function_return_type: " << LogicalTypeIdToString(bound_func_expr.function.return_type.id()) << std::endl;
       auto& child_expr = *bound_func_expr.children[1];
 	    auto target_type = LogicalType::LIST(LogicalType::FLOAT);
-//		BoundCastInfo cast_info;
-//      make_uniq<BoundCastExpression>(bound_func_expr.children[1], target_type);
 
-			ExpressionExecutor expr_executor(context, *bound_func_expr.children[1]);
+			ExpressionExecutor expr_executor(context, child_expr);
 			DataChunk chunk;
-			vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
+			vector<LogicalType> return_types = {child_expr.return_type};
+			// ANY 居然不支持
 			chunk.Initialize(context, return_types);
 			// TODO: 需要类型转化
 
 			// NOTE: 终于获取到参数了
 			expr_executor.Execute(chunk);
 			table_scan_data.is_vector_index_scan = true;
-			table_scan_data.input_vectors = GetData(chunk);
+			table_scan_data.input_vectors = GetData(context, chunk);
 			break;
 		}
 	}

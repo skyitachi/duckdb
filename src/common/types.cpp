@@ -313,6 +313,7 @@ idx_t GetTypeIdSize(PhysicalType type) {
 	case PhysicalType::LIST:
 		return sizeof(list_entry_t); // offset + len
 	default:
+		std::cout << "type: " << (uint8_t)type << std::endl;
 		throw InternalException("Invalid PhysicalType for GetTypeIdSize");
 	}
 }
