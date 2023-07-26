@@ -270,8 +270,6 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 	auto table = bind_data.table;
 	auto &storage = table->GetStorage();
 
-	std::cout << "TableScanPushdownComplexFilter index size:  " << storage.info->indexes.Indexes().size() << std::endl;
-
 	auto &config = ClientConfig::GetConfig(context);
 	if (!config.enable_optimizer) {
 		// we only push index scans if the optimizer is enabled
@@ -416,6 +414,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
   if (bind_data.is_vector_index_scan) {
     std::cout << "TableScanPushdownComplexFilter vector index called" << std::endl;
     storage.info->indexes.Scan([&](Index &index) {
+		  std::cout << "in the indexes Scan Loop, index_type: " << int(index.type) << std::endl;
       auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
       if (index.type == IndexType::IVFFLAT) {
         auto &ivf = index.Cast<IvfflatIndex>();

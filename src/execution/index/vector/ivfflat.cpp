@@ -146,7 +146,7 @@ PreservedError IvfflatIndex::Insert(IndexLock &lock, DataChunk &input, Vector &r
 	real_data_vector.ToUnifiedFormat(input.size(), real_data);
 
 	int values_count = 0;
-	// TODO: 这里如果是顾虑会是什么情况
+	// TODO: 这里如果是过虑会是什么情况
 	for (idx_t i = 0; i < input.size(); i++) {
 		// NOTE: 这里为什么一定需要sel
 		auto list_index = input_data.sel->get_index(i);

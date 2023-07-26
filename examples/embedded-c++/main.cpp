@@ -39,6 +39,8 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 	UnifiedVectorFormat rhs_child_data;
 	lhs_child.ToUnifiedFormat(lhs_list_size, lhs_child_data);
 	rhs_child.ToUnifiedFormat(rhs_list_size, rhs_child_data);
+	// TODO: 这里需要对类型做统一的换算
+	std::cout << lhs.GetType().ToString() << " rhs type: " << rhs.GetType().ToString() << " physical type: " << int(rhs_child.GetType().InternalType()) << std::endl;
 
 	result.SetVectorType(VectorType::FLAT_VECTOR);
 	// set result vector type

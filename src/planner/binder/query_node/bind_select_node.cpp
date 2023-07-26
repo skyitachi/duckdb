@@ -561,9 +561,11 @@ static vector<float> GetData(ClientContext& context, DataChunk &input) {
 	real_data_vector.ToUnifiedFormat(input.size(), real_data);
 	vector<float> result;
 	for (idx_t i = 0; i < columns; i++) {
-		auto float_value = real_data_vector.GetValue(i)
+		auto origin_value = real_data_vector.GetValue(i);
+		auto float_value = origin_value
 		                       .CastAs(context, LogicalType::FLOAT)
 		                       .GetValue<float>();
+//    std::cout << "origin_value: " << origin_value << ", float_value: " << float_value << std::endl;
 		result.push_back(float_value);
 	}
 	return result;
