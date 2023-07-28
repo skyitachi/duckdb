@@ -14,6 +14,24 @@ bool bigger_than_four(int value) {
 	return value > 4;
 }
 
+template <class T>
+class DataAccessor {
+public:
+	DataAccessor(PhysicalType pt, data_ptr_t * data): physical_type(pt), data_(data) {}
+
+	struct Iterator {
+
+	};
+
+  Iterator begin() {}
+  Iterator end() {
+
+  }
+private:
+	PhysicalType physical_type;
+	data_ptr_t* data_;
+};
+
 static void list_distance(DataChunk &args, ExpressionState &state, Vector &result) {
 	std::cout << "in the vectorized list_distance" << std::endl;
 	D_ASSERT(args.ColumnCount() == 2);
