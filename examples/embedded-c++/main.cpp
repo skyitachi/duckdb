@@ -14,28 +14,28 @@ bool bigger_than_four(int value) {
 	return value > 4;
 }
 
-template <class T>
+template <class T, class R>
 class DataAccessor {
 public:
-	DataAccessor(PhysicalType pt, data_ptr_t * data): physical_type(pt), data_(data) {}
+	DataAccessor(PhysicalType pt, data_ptr_t  data): physical_type(pt), data_(data) {
+		size_ = GetTypeIdSize(pt);
+	}
 
-	struct Iterator {
+	T GetData(idx_t idx) {
+		return static_cast<T>(*(reinterpret_cast<R*>(data_ + (idx * size_))));
+	}
 
-	};
-
-  Iterator begin() {}
-  Iterator end() {
-
-  }
 private:
 	PhysicalType physical_type;
-	data_ptr_t* data_;
+	data_ptr_t data_;
+	idx_t size_;
 };
 
 static void list_distance(DataChunk &args, ExpressionState &state, Vector &result) {
 	std::cout << "in the vectorized list_distance" << std::endl;
 	D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
+	auto& ctx = state.GetContext();
 
 	Vector &lhs = args.data[0];
 	Vector &rhs = args.data[1];
@@ -60,6 +60,9 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 	// TODO: 这里需要对类型做统一的换算
 	std::cout << lhs.GetType().ToString() << " rhs type: " << rhs.GetType().ToString() << " physical type: " << int(rhs_child.GetType().InternalType()) << std::endl;
 
+
+	DataAccessor<float, int16_t> rhs_accessor(rhs_child.GetType().InternalType(), rhs_child_data.data);
+
 	result.SetVectorType(VectorType::FLAT_VECTOR);
 	// set result vector type
 	auto result_entries = FlatVector::GetData<float>(result);
@@ -80,6 +83,7 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 			std::vector<float> r_values;
 
 			auto l_child_format = (float *)lhs_child_data.data;
+			// 如何根据physical type 获取实际的类型
 			auto r_child_format = (float *)rhs_child_data.data;
 
 			for (int j = 0; j < lhs_entry.length; j++) {
@@ -91,7 +95,10 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 			for (int j = 0; j < rhs_entry.length; j++) {
 				auto child_offset = rhs_entry.offset + j;
 				auto child_index = rhs_child_data.sel->get_index(child_offset);
-				r_values.push_back(r_child_format[child_index]);
+				auto rv = rhs_child.GetValue(child_index).CastAs(ctx, LogicalType::FLOAT);
+				auto fv = rv.GetValue<float>();
+				r_values.push_back(fv);
+//				r_values.push_back(r_child_format[child_index]);
 			}
 			auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
 			result_entries[i] = dis;
