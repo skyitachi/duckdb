@@ -32,7 +32,6 @@ private:
 };
 
 static void list_distance(DataChunk &args, ExpressionState &state, Vector &result) {
-	std::cout << "in the vectorized list_distance" << std::endl;
 	D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
 	auto& ctx = state.GetContext();

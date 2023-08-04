@@ -1,0 +1,16 @@
+# name: test/sql/vector_search/test_vector_index.test
+# description: Test vector_search
+# group: [vector_search]
+
+statement ok
+PRAGMA enable_verification
+
+statement ok
+create table list_table(embedding FLOAT[], id INTEGER, c INTEGER);
+
+require json
+
+statement ok
+copy list_table from 'test/sql/vector_search/embedding.json';
+
+
