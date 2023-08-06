@@ -1,6 +1,7 @@
 #include "duckdb.hpp"
 #include "duckdb/common/types/vector.hpp"
 #include "duckdb/function/udf_function.hpp"
+#include "duckdb/execution/index/art/art_key.hpp"
 
 #include <iostream>
 #include <numeric>
@@ -17,12 +18,12 @@ bool bigger_than_four(int value) {
 template <class T, class R>
 class DataAccessor {
 public:
-	DataAccessor(PhysicalType pt, data_ptr_t  data): physical_type(pt), data_(data) {
+	DataAccessor(PhysicalType pt, data_ptr_t data) : physical_type(pt), data_(data) {
 		size_ = GetTypeIdSize(pt);
 	}
 
 	T GetData(idx_t idx) {
-		return static_cast<T>(*(reinterpret_cast<R*>(data_ + (idx * size_))));
+		return static_cast<T>(*(reinterpret_cast<R *>(data_ + (idx * size_))));
 	}
 
 private:
@@ -34,7 +35,7 @@ private:
 static void list_distance(DataChunk &args, ExpressionState &state, Vector &result) {
 	D_ASSERT(args.ColumnCount() == 2);
 	auto count = args.size();
-	auto& ctx = state.GetContext();
+	auto &ctx = state.GetContext();
 
 	Vector &lhs = args.data[0];
 	Vector &rhs = args.data[1];
@@ -57,8 +58,8 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 	lhs_child.ToUnifiedFormat(lhs_list_size, lhs_child_data);
 	rhs_child.ToUnifiedFormat(rhs_list_size, rhs_child_data);
 	// TODO: 这里需要对类型做统一的换算
-	std::cout << lhs.GetType().ToString() << " rhs type: " << rhs.GetType().ToString() << " physical type: " << int(rhs_child.GetType().InternalType()) << std::endl;
-
+	std::cout << lhs.GetType().ToString() << " rhs type: " << rhs.GetType().ToString()
+	          << " physical type: " << int(rhs_child.GetType().InternalType()) << std::endl;
 
 	DataAccessor<float, int16_t> rhs_accessor(rhs_child.GetType().InternalType(), rhs_child_data.data);
 
@@ -97,7 +98,7 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 				auto rv = rhs_child.GetValue(child_index).CastAs(ctx, LogicalType::FLOAT);
 				auto fv = rv.GetValue<float>();
 				r_values.push_back(fv);
-//				r_values.push_back(r_child_format[child_index]);
+				//				r_values.push_back(r_child_format[child_index]);
 			}
 			auto dis = std::inner_product(l_values.begin(), l_values.end(), r_values.begin(), 0.0);
 			result_entries[i] = dis;
@@ -197,7 +198,7 @@ public:
 	template <class INPUT_TYPE, class STATE, class OP>
 	static void Operation(STATE *state, AggregateInputData &data, INPUT_TYPE *input, ValidityMask &mask, idx_t idx) {
 		//		std::cout << "in the my_sum operation, input_type: " << std::type_index(typeid(INPUT_TYPE)).name() <<
-		//std::endl;
+		// std::endl;
 		auto entries = (list_entry_t *)input;
 		if (entries[idx].data_ptr != nullptr) {
 			auto data_ptr = (float *)entries[idx].data_ptr;
@@ -316,10 +317,19 @@ void list_value_demo() {
 	}
 }
 
+void art_index_demo(ClientContext& db) {
+	ArenaAllocator arena_allocator(Allocator::Get(db));
+	uint16_t v = (1 << 8 | 2);
+	auto u16v = Value::USMALLINT(v);
+	auto key = Key::CreateKey<uint16_t>(arena_allocator, u16v.type(), u16v);
+	std::cout << "origin key: " << v << ", art key: " << *reinterpret_cast<uint16_t*>(key.data) << std::endl;
+}
+
 int main() {
 	DuckDB db(nullptr);
 
 	Connection con(db);
+	art_index_demo(*con.context);
 
 	//	con.Query("CREATE TABLE floats(i FLOAT)");
 	//	con.Query("INSERT INTO floats VALUES (1), (2), (3), (999)")->Print();
@@ -336,7 +346,7 @@ int main() {
 
 	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 	//
-		con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 	//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	//	                                                                LogicalType::INTEGER);
 
@@ -363,17 +373,19 @@ int main() {
 
 	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
-//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
-//	    ->Print();
-//	con.Query("select * from list_table where bigger_than_four(id)")->Print();
+	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
+	//	    ->Print();
+	//	con.Query("select * from list_table where bigger_than_four(id)")->Print();
 
-//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
-//	    ->Print();
+	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
+	//	    ->Print();
 
-  con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
-      ->Print();
+	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
+	          "score limit 3")
+	    ->Print();
 
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score limit 3")
+	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score "
+	          "limit 3")
 	    ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
@@ -396,7 +408,7 @@ int main() {
 	//	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 
 	//	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d =
-	//3)")->Print();
+	// 3)")->Print();
 	//
 	//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by
 	//  score limit 3")->Print();
@@ -424,7 +436,7 @@ int main() {
 	//  limit 3")->Print();
 
 	//	con.Query("select embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10
-	//order by score limit 3")->Print(); 	con.Query("checkpoint(demo)")->Print();
+	// order by score limit 3")->Print(); 	con.Query("checkpoint(demo)")->Print();
 	// min_distance aggregation
 	//  con.Query("select min_distance(float_list) from list_table")->Print();
 	//  con.Query("select min_distance(float_list, 3) from list_table")->Print();
@@ -434,5 +446,5 @@ int main() {
 	//	con.Query("select min(list_distance(int_list, [1, 2, 3])) from list_table")->Print();
 	//
 	//	con.Query("CREATE INDEX ON list_table ivfflat(int_list) USING ivfflat (vector_cosine_ops) WITH (oplists =
-	//100)")->Print();
+	// 100)")->Print();
 }

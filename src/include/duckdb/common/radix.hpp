@@ -132,6 +132,7 @@ inline void Radix::EncodeData(data_ptr_t dataptr, int8_t value) {
 	dataptr[0] = FlipSign(dataptr[0]);
 }
 
+// NOTE: 转化成大端地址好比较
 template <>
 inline void Radix::EncodeData(data_ptr_t dataptr, int16_t value) {
 	Store<uint16_t>(BSWAP16(value), dataptr);
