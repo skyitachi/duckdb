@@ -138,6 +138,7 @@ void Node48::EraseChild(ART &art, Node *&node, idx_t pos) {
 	n->count--;
 
 	// shrink node to Node16
+	// NOTE: 这里相当于path compression了
 	if (node->count < NODE_48_SHRINK_THRESHOLD) {
 
 		auto new_node = Node16::New();
