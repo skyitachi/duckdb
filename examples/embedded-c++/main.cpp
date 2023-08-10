@@ -325,11 +325,24 @@ void art_index_demo(ClientContext& db) {
 	std::cout << "origin key: " << v << ", art key: " << *reinterpret_cast<uint16_t*>(key.data) << std::endl;
 }
 
+void value_demo() {
+	std::cout << "------------value_demo--------------" << '\n';
+	vector<Value> values = {1.0, 2.0, 3.0};
+	auto list = Value::LIST(values);
+	std::cout << list.ToString() << std::endl;
+	auto real_values = ListValue::GetChildren(list);
+	assert(values.size() == real_values.size());
+	printf("\n");
+
+	std::cout << "------------------------------------" << '\n';
+}
+
 int main() {
 	DuckDB db(nullptr);
 
 	Connection con(db);
 	art_index_demo(*con.context);
+	value_demo();
 
 	//	con.Query("CREATE TABLE floats(i FLOAT)");
 	//	con.Query("INSERT INTO floats VALUES (1), (2), (3), (999)")->Print();
