@@ -94,6 +94,7 @@ private:
 		}
 	}
 
+	// 使用向量化执行
 	template <class INPUT_TYPE, class RESULT_TYPE, class OPWRAPPER, class OP>
 	static inline void ExecuteFlat(INPUT_TYPE *__restrict ldata, RESULT_TYPE *__restrict result_data, idx_t count,
 	                               ValidityMask &mask, ValidityMask &result_mask, void *dataptr, bool adds_nulls) {
@@ -143,9 +144,59 @@ private:
 		}
 	}
 
-  //OP is UnaryUDFExecutor
-	// OPWRAPPER is GenericUnaryWrapper
-	// dataptr is udf_func
+	template <class INPUT_TYPE, class RESULT_TYPE, class OPWRAPPER, class OP>
+	static inline void ExecuteFlatForValue(Vector &input, RESULT_TYPE *__restrict result_data, idx_t count,
+	                                       ValidityMask &mask, ValidityMask &result_mask, void *dataptr,
+	                                       bool adds_nulls) {
+		std::cout << "in the executeFlatForValue: " << std::endl;
+
+		if (!mask.AllValid()) {
+			if (!adds_nulls) {
+				result_mask.Initialize(mask);
+			} else {
+				result_mask.Copy(mask, count);
+			}
+			idx_t base_idx = 0;
+			auto entry_count = ValidityMask::EntryCount(count);
+			for (idx_t entry_idx = 0; entry_idx < entry_count; entry_idx++) {
+				auto validity_entry = mask.GetValidityEntry(entry_idx);
+				idx_t next = MinValue<idx_t>(base_idx + ValidityMask::BITS_PER_VALUE, count);
+				if (ValidityMask::AllValid(validity_entry)) {
+					// all valid: perform operation
+					for (; base_idx < next; base_idx++) {
+						result_data[base_idx] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+						    input.GetValue(base_idx), result_mask, base_idx, dataptr);
+					}
+				} else if (ValidityMask::NoneValid(validity_entry)) {
+					// nothing valid: skip all
+					base_idx = next;
+					continue;
+				} else {
+					// partially valid: need to check individual elements for validity
+					idx_t start = base_idx;
+					for (; base_idx < next; base_idx++) {
+						if (ValidityMask::RowIsValid(validity_entry, base_idx - start)) {
+							D_ASSERT(mask.RowIsValid(base_idx));
+							result_data[base_idx] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+							    input.GetValue(base_idx), result_mask, base_idx, dataptr);
+						}
+					}
+				}
+			}
+		} else {
+			if (adds_nulls) {
+				result_mask.EnsureWritable();
+			}
+			for (idx_t i = 0; i < count; i++) {
+				result_data[i] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(input.GetValue(i),
+				                                                                            result_mask, i, dataptr);
+			}
+		}
+	}
+
+	// OP is UnaryUDFExecutor
+	//  OPWRAPPER is GenericUnaryWrapper
+	//  dataptr is udf_func
 	template <class INPUT_TYPE, class RESULT_TYPE, class OPWRAPPER, class OP>
 	static inline void ExecuteStandard(Vector &input, Vector &result, idx_t count, void *dataptr, bool adds_nulls) {
 		switch (input.GetVectorType()) {
@@ -156,17 +207,31 @@ private:
 
 			if (ConstantVector::IsNull(input)) {
 				ConstantVector::SetNull(result, true);
-			} else {
-				ConstantVector::SetNull(result, false);
-				*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
-				    *ldata, ConstantVector::Validity(result), 0, dataptr);
+				break;
 			}
+			ConstantVector::SetNull(result, false);
+			if (std::is_same<INPUT_TYPE, Value>()) {
+				// NOTE: construct data for function
+				Value v = input.GetValue(0);
+				*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+				    v, ConstantVector::Validity(result), 0, dataptr);
+				break;
+			}
+
+			*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+			    *ldata, ConstantVector::Validity(result), 0, dataptr);
 			break;
 		}
 		case VectorType::FLAT_VECTOR: {
 			result.SetVectorType(VectorType::FLAT_VECTOR);
 			auto result_data = FlatVector::GetData<RESULT_TYPE>(result);
 			auto ldata = FlatVector::GetData<INPUT_TYPE>(input);
+
+			if (std::is_same<INPUT_TYPE, Value>()) {
+				ExecuteFlatForValue<Value, RESULT_TYPE, OPWRAPPER, OP>(
+				    input, result_data, FlatVector::Validity(input), FlatVector::Validity(result), dataptr, adds_nulls);
+				break;
+			}
 
 			ExecuteFlat<INPUT_TYPE, RESULT_TYPE, OPWRAPPER, OP>(ldata, result_data, count, FlatVector::Validity(input),
 			                                                    FlatVector::Validity(result), dataptr, adds_nulls);

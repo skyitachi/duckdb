@@ -15,6 +15,14 @@ bool bigger_than_four(int value) {
 	return value > 4;
 }
 
+bool bigger_than_five(Value input) {
+	if (input.IsNull()) {
+		return false;
+	}
+	auto cast_value = input.DefaultCastAs(LogicalType::INTEGER, false);
+	return cast_value > 5;
+}
+
 template <class T, class R>
 class DataAccessor {
 public:
@@ -306,6 +314,7 @@ void vector_demo() {
 // 复合类型的custom aggr
 
 void list_value_demo() {
+	std::cout << "-----------------list_value_demo------------------\n";
 	auto iv = Value::INTEGER(1);
 	auto iv1 = Value::INTEGER(2);
 	auto iv2 = Value::INTEGER(3);
@@ -334,6 +343,16 @@ void value_demo() {
 	assert(values.size() == real_values.size());
 	printf("\n");
 
+  // create LogicalType First
+  Value fv(LogicalType::FLOAT);
+  fv = fv.CreateValue(1);
+  std::cout << "create value: " << fv.ToString() << ", " << fv.ToSQLString() << std::endl;
+
+  Value iv(LogicalType::SMALLINT);
+  iv = iv.CreateValue(10000000);
+
+  std::cout << "create value: " << iv.ToString() << ", " << iv.ToSQLString() << ", type: " << iv.type().ToString()<< std::endl;
+
 	std::cout << "------------------------------------" << '\n';
 }
 
@@ -360,6 +379,14 @@ int main() {
 	con.CreateVectorizedFunction<float, list_entry_t, list_entry_t>("my_list_distance", list_distance);
 	//
 	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
+
+	try {
+    con.CreateScalarFunction<bool, Value>("bigger_than_five", &bigger_than_five);
+
+	} catch (const std::runtime_error& e) {
+	  std::cout << e.what() << '\n';
+	}
+
 	//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	//	                                                                LogicalType::INTEGER);
 

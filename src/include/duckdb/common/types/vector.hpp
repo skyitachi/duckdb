@@ -240,6 +240,11 @@ struct ConstantVector {
 	static inline T *GetData(Vector &vector) {
 		return (T *)ConstantVector::GetData(vector);
 	}
+
+	template <>
+	static inline Value *GetData(Vector &vector) {
+		return (Value*)ConstantVector::GetData(vector);
+	}
 	static inline bool IsNull(const Vector &vector) {
 		D_ASSERT(vector.GetVectorType() == VectorType::CONSTANT_VECTOR);
 		return !vector.validity.RowIsValid(0);
