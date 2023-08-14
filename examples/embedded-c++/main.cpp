@@ -23,6 +23,27 @@ bool bigger_than_five(Value input) {
 	return cast_value > 5;
 }
 
+float list_max(Value input) {
+	if (input.IsNull()) {
+		return -1.0;
+	}
+	D_ASSERT(input.type().InternalType() == PhysicalType::LIST);
+	auto li = ListValue::GetChildren(input);
+	bool flag = false;
+	float max = 0.0;
+	for (auto &v: li) {
+		auto fv = v.DefaultCastAs(LogicalType::FLOAT, false);
+		auto ff = FloatValue::Get(fv);
+		if (!flag) {
+			max = ff;
+			flag = true;
+		} else if (ff > max) {
+			max = ff;
+		}
+	}
+	return max;
+}
+
 template <class T, class R>
 class DataAccessor {
 public:
@@ -385,6 +406,8 @@ int main() {
 	  std::cout << e.what() << '\n';
 	}
 
+	con.CreateScalarFunction<float, Value>("my_list_max", &list_max);
+
 	//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	//	                                                                LogicalType::INTEGER);
 
@@ -408,7 +431,9 @@ int main() {
 
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
-  con.Query("SELECT bigger_than_five(c) FROM list_table")->Print();
+  con.Query("SELECT bigger_than_five(c) FROM list_table limit 3")->Print();
+
+  con.Query("select id, embedding, my_list_max(embedding) from list_table limit 3")->Print();
 
 //	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
