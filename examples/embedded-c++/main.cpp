@@ -91,8 +91,6 @@ static void list_distance(DataChunk &args, ExpressionState &state, Vector &resul
 			std::vector<float> r_values;
 
 			auto l_child_format = (float *)lhs_child_data.data;
-			// 如何根据physical type 获取实际的类型
-			auto r_child_format = (float *)rhs_child_data.data;
 
 			for (int j = 0; j < lhs_entry.length; j++) {
 				auto child_offset = lhs_entry.offset + j;
@@ -398,7 +396,6 @@ int main() {
 	//
 	//	con.Query("SELECT udf_vectorized_int(i) FROM integers")->Print();
 	//
-	//	con.Query("SELECT bigger_than_four(i) FROM integers")->Print();
 
 	//	auto fn = UDFWrapper::CreateScalarFunction("bigger_than_four", &bigger_than_four);
 
@@ -411,7 +408,9 @@ int main() {
 
 	con.Query("copy list_table from 'embedding.json'")->Print();
 
-	con.Query("create INDEX idx_id on list_table(id)")->Print();
+  con.Query("SELECT bigger_than_five(c) FROM list_table")->Print();
+
+//	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
@@ -420,13 +419,13 @@ int main() {
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
 
-	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
-	          "score limit 3")
-	    ->Print();
-
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score "
-	          "limit 3")
-	    ->Print();
+//	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
+//	          "score limit 3")
+//	    ->Print();
+//
+//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score "
+//	          "limit 3")
+//	    ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
 	//

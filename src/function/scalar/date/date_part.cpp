@@ -209,6 +209,8 @@ struct DatePart {
 				return TR();
 			}
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void  *dataptr) {}
 	};
 
 	template <class TA, class TR, class OP>
@@ -223,6 +225,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractYear(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -235,6 +239,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractMonth(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -248,6 +254,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractDay(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -262,6 +270,8 @@ struct DatePart {
 		static inline TR DecadeFromYear(TR yyyy) {
 			return yyyy / 10;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class TA, class TR>
 		static inline TR Operation(TA input) {
@@ -295,6 +305,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return CenturyFromYear(YearOperator::Operation<TA, TR>(input));
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -318,6 +330,9 @@ struct DatePart {
 			return MillenniumFromYear<TR>(YearOperator::Operation<TA, TR>(input));
 		}
 
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
+
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
 			return PropagateDatePartStatistics<T, MillenniumOperator>(input.child_stats);
@@ -334,6 +349,9 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return QuarterFromMonth(Date::ExtractMonth(input));
 		}
+
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -354,6 +372,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return DayOfWeekFromISO(Date::ExtractISODayOfTheWeek(input));
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -368,6 +388,8 @@ struct DatePart {
 			return Date::ExtractISODayOfTheWeek(input);
 		}
 
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
 			return PropagateSimpleDatePartStatistics<1, 7>(input.child_stats);
@@ -379,6 +401,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractDayOfTheYear(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -391,6 +415,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractISOWeekNumber(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -403,6 +429,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::ExtractISOYearNumber(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -422,6 +450,8 @@ struct DatePart {
 			Date::ExtractISOYearWeek(input, yyyy, ww);
 			return YearWeekFromParts(yyyy, ww);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -434,6 +464,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -446,6 +478,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -458,6 +492,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -470,6 +506,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -482,6 +520,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -494,6 +534,8 @@ struct DatePart {
 		static inline TR Operation(TA input) {
 			return Date::Epoch(input);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -512,6 +554,9 @@ struct DatePart {
 			return EraFromYear(Date::ExtractYear(input));
 		}
 
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
+
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
 			return PropagateSimpleDatePartStatistics<0, 1>(input.child_stats);
@@ -524,6 +569,8 @@ struct DatePart {
 			// Regular timestamps are UTC.
 			return 0;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 
 		template <class T>
 		static unique_ptr<BaseStatistics> PropagateStatistics(ClientContext &context, FunctionStatisticsInput &input) {
@@ -1258,6 +1305,8 @@ struct LastDayOperator {
 		++mm;
 		return Date::FromDate(yyyy, mm, 1) - 1;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 template <>

@@ -19,6 +19,11 @@ struct AbsOperator {
 	static inline TR Operation(TA input) {
 		return input < 0 ? -input : input;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+//    return input < 0 ? -input : input;
+  }
+
 };
 
 template <>
@@ -32,6 +37,12 @@ struct TryAbsOperator {
 	static inline TR Operation(TA input) {
 		return AbsOperator::Operation<TA, TR>(input);
 	}
+
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+//    return AbsOperator::Operation<TA, TR>(input);
+  }
+
 };
 
 template <>

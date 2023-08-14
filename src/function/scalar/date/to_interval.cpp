@@ -16,6 +16,8 @@ struct ToYearsOperator {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToMonthsOperator {
@@ -27,6 +29,8 @@ struct ToMonthsOperator {
 		result.micros = 0;
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToDaysOperator {
@@ -38,6 +42,8 @@ struct ToDaysOperator {
 		result.micros = 0;
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToHoursOperator {
@@ -52,6 +58,8 @@ struct ToHoursOperator {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToMinutesOperator {
@@ -66,6 +74,8 @@ struct ToMinutesOperator {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToSecondsOperator {
@@ -80,6 +90,8 @@ struct ToSecondsOperator {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToMilliSecondsOperator {
@@ -94,6 +106,8 @@ struct ToMilliSecondsOperator {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ToMicroSecondsOperator {
@@ -105,6 +119,8 @@ struct ToMicroSecondsOperator {
 		result.micros = input;
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 void ToIntervalFun::RegisterFunction(BuiltinFunctions &set) {

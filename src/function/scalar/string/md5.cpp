@@ -28,6 +28,8 @@ struct MD5Number128Operator {
 		context.Finish(digest);
 		return *reinterpret_cast<hugeint_t *>(digest);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 template <bool lower>
@@ -41,6 +43,8 @@ struct MD5Number64Operator {
 		context.Finish(digest);
 		return *reinterpret_cast<uint64_t *>(&digest[lower ? 8 : 0]);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 static void MD5Function(DataChunk &args, ExpressionState &state, Vector &result) {

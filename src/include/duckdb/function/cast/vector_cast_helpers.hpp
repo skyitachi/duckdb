@@ -24,6 +24,11 @@ struct VectorStringCastOperator {
 		auto result = (Vector *)dataptr;
 		return OP::template Operation<INPUT_TYPE>(input, *result);
 	}
+
+	template <class RESULT_TYPE>
+	static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+
+	}
 };
 
 struct VectorTryCastData {
@@ -49,6 +54,8 @@ struct VectorTryCastOperator {
 		return HandleVectorCastError::Operation<RESULT_TYPE>(CastExceptionText<INPUT_TYPE, RESULT_TYPE>(input), mask,
 		                                                     idx, data->error_message, data->all_converted);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 template <class OP>
@@ -63,6 +70,8 @@ struct VectorTryCastStrictOperator {
 		return HandleVectorCastError::Operation<RESULT_TYPE>(CastExceptionText<INPUT_TYPE, RESULT_TYPE>(input), mask,
 		                                                     idx, data->error_message, data->all_converted);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 template <class OP>
@@ -80,6 +89,8 @@ struct VectorTryCastErrorOperator {
 		    has_error ? *data->error_message : CastExceptionText<INPUT_TYPE, RESULT_TYPE>(input), mask, idx,
 		    data->error_message, data->all_converted);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 template <class OP>
@@ -95,6 +106,8 @@ struct VectorTryCastStringOperator {
 		return HandleVectorCastError::Operation<RESULT_TYPE>(CastExceptionText<INPUT_TYPE, RESULT_TYPE>(input), mask,
 		                                                     idx, data->error_message, data->all_converted);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 struct VectorDecimalCastData {
@@ -121,6 +134,10 @@ struct VectorDecimalCastOperator {
 		}
 		return result_value;
 	}
+
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+  }
 };
 
 struct VectorCastHelpers {

@@ -203,6 +203,9 @@ struct BitCntOperator {
 		}
 		return count;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+  }
 };
 
 struct HugeIntBitCntOperator {
@@ -219,6 +222,9 @@ struct HugeIntBitCntOperator {
 		}
 		return count;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+  }
 };
 
 struct BitStringBitCntOperator {
@@ -227,6 +233,9 @@ struct BitStringBitCntOperator {
 		TR count = Bit::BitCount(input);
 		return count;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+  }
 };
 
 void BitCountFun::RegisterFunction(BuiltinFunctions &set) {
@@ -260,6 +269,8 @@ struct SignOperator {
 			return -1;
 		}
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 template <>
@@ -306,6 +317,8 @@ struct CeilOperator {
 	static inline TR Operation(TA left) {
 		return std::ceil(left);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 template <class T, class POWERS_OF_TEN, class OP>
@@ -398,6 +411,8 @@ struct FloorOperator {
 	static inline TR Operation(TA left) {
 		return std::floor(left);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 struct FloorDecimalOperator {
@@ -452,6 +467,8 @@ struct TruncOperator {
 	static inline TR Operation(TA left) {
 		return std::trunc(left);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 struct TruncDecimalOperator {
@@ -533,6 +550,8 @@ struct RoundOperator {
 		}
 		return rounded_value;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 struct RoundDecimalOperator {
@@ -724,6 +743,8 @@ struct ExpOperator {
 	static inline TR Operation(TA left) {
 		return std::exp(left);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void ExpFun::RegisterFunction(BuiltinFunctions &set) {
@@ -764,6 +785,8 @@ struct SqrtOperator {
 		}
 		return std::sqrt(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void SqrtFun::RegisterFunction(BuiltinFunctions &set) {
@@ -779,6 +802,8 @@ struct CbRtOperator {
 	static inline TR Operation(TA left) {
 		return std::cbrt(left);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void CbrtFun::RegisterFunction(BuiltinFunctions &set) {
@@ -801,6 +826,8 @@ struct LnOperator {
 		}
 		return std::log(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void LnFun::RegisterFunction(BuiltinFunctions &set) {
@@ -822,6 +849,8 @@ struct Log10Operator {
 		}
 		return std::log10(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void Log10Fun::RegisterFunction(BuiltinFunctions &set) {
@@ -843,6 +872,8 @@ struct Log2Operator {
 		}
 		return std::log2(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void Log2Fun::RegisterFunction(BuiltinFunctions &set) {
@@ -871,6 +902,8 @@ struct DegreesOperator {
 	static inline TR Operation(TA left) {
 		return left * (180 / PI);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void DegreesFun::RegisterFunction(BuiltinFunctions &set) {
@@ -886,6 +919,8 @@ struct RadiansOperator {
 	static inline TR Operation(TA left) {
 		return left * (PI / 180);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void RadiansFun::RegisterFunction(BuiltinFunctions &set) {
@@ -901,6 +936,10 @@ struct IsNanOperator {
 	static inline TR Operation(TA input) {
 		return Value::IsNan(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+		return Value::IsNan(input);
+  }
 };
 
 void IsNanFun::RegisterFunction(BuiltinFunctions &set) {
@@ -920,6 +959,8 @@ struct SignBitOperator {
 	static inline TR Operation(TA input) {
 		return std::signbit(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void SignBitFun::RegisterFunction(BuiltinFunctions &set) {
@@ -939,6 +980,8 @@ struct IsInfiniteOperator {
 	static inline TR Operation(TA input) {
 		return !Value::IsNan(input) && !Value::IsFinite(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 template <>
@@ -974,6 +1017,8 @@ struct IsFiniteOperator {
 	static inline TR Operation(TA input) {
 		return Value::IsFinite(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void IsFiniteFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1006,6 +1051,8 @@ struct NoInfiniteDoubleWrapper {
 		}
 		return OP::template Operation<INPUT_TYPE, RESULT_TYPE>(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 struct SinOperator {
@@ -1013,6 +1060,8 @@ struct SinOperator {
 	static inline TR Operation(TA input) {
 		return std::sin(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void SinFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1029,6 +1078,8 @@ struct CosOperator {
 	static inline TR Operation(TA input) {
 		return (double)std::cos(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void CosFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1045,6 +1096,8 @@ struct TanOperator {
 	static inline TR Operation(TA input) {
 		return (double)std::tan(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void TanFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1064,6 +1117,8 @@ struct ASinOperator {
 		}
 		return (double)std::asin(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void AsinFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1080,6 +1135,8 @@ struct ATanOperator {
 	static inline TR Operation(TA input) {
 		return (double)std::atan(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void AtanFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1095,6 +1152,8 @@ struct ATan2 {
 	static inline TR Operation(TA left, TB right) {
 		return (double)std::atan2(left, right);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void Atan2Fun::RegisterFunction(BuiltinFunctions &set) {
@@ -1144,6 +1203,8 @@ struct GammaOperator {
 		}
 		return std::tgamma(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void GammaFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1162,6 +1223,8 @@ struct LogGammaOperator {
 		}
 		return std::lgamma(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void LogGammaFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1182,6 +1245,8 @@ struct FactorialOperator {
 		}
 		return ret;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void FactorialFun::RegisterFunction(BuiltinFunctions &set) {
@@ -1212,6 +1277,8 @@ struct EvenOperator {
 		}
 		return value;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 void EvenFun::RegisterFunction(BuiltinFunctions &set) {

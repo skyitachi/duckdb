@@ -424,6 +424,15 @@ struct NegateOperator {
 		}
 		return -cast;
 	}
+
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+//    auto cast = (TR)input;
+//    if (!CanNegate<TR>(cast)) {
+//      throw OutOfRangeException("Overflow in negation of integer!");
+//    }
+//    return -cast;
+  }
 };
 
 template <>

@@ -56,6 +56,9 @@ struct DecimalScaleUpOperator {
 		auto data = (DecimalScaleInput<INPUT_TYPE, RESULT_TYPE> *)dataptr;
 		return Cast::Operation<INPUT_TYPE, RESULT_TYPE>(input) * data->factor;
 	}
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+  }
 };
 
 struct DecimalScaleUpCheckOperator {
@@ -71,6 +74,9 @@ struct DecimalScaleUpCheckOperator {
 		}
 		return Cast::Operation<INPUT_TYPE, RESULT_TYPE>(input) * data->factor;
 	}
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+  }
 };
 
 template <class SOURCE, class DEST, class POWERS_SOURCE, class POWERS_DEST>
@@ -105,6 +111,8 @@ struct DecimalScaleDownOperator {
 		auto data = (DecimalScaleInput<INPUT_TYPE> *)dataptr;
 		return Cast::Operation<INPUT_TYPE, RESULT_TYPE>(input / data->factor);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 struct DecimalScaleDownCheckOperator {
@@ -120,6 +128,10 @@ struct DecimalScaleDownCheckOperator {
 		}
 		return Cast::Operation<INPUT_TYPE, RESULT_TYPE>(input / data->factor);
 	}
+
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+  }
 };
 
 template <class SOURCE, class DEST, class POWERS_SOURCE>
@@ -210,6 +222,8 @@ struct StringCastFromDecimalOperator {
 		auto data = (DecimalCastInput *)dataptr;
 		return StringCastFromDecimal::Operation<INPUT_TYPE>(input, data->width, data->scale, data->result);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {}
 };
 
 template <class SRC>

@@ -20,6 +20,9 @@ struct BlobDecodeOperator {
 		}
 		return input;
 	}
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input) {
+  }
 };
 
 static void DecodeFunction(DataChunk &args, ExpressionState &state, Vector &result) {

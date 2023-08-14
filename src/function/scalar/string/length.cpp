@@ -16,6 +16,8 @@ struct StringLengthOperator {
 	static inline TR Operation(TA input) {
 		return LengthFun::Length<TA, TR>(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct GraphemeCountOperator {
@@ -23,6 +25,8 @@ struct GraphemeCountOperator {
 	static inline TR Operation(TA input) {
 		return LengthFun::GraphemeCount<TA, TR>(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ArrayLengthOperator {
@@ -30,6 +34,8 @@ struct ArrayLengthOperator {
 	static inline TR Operation(TA input) {
 		return input.length;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct ArrayLengthBinaryOperator {
@@ -40,6 +46,8 @@ struct ArrayLengthBinaryOperator {
 		}
 		return input.length;
 	}
+  template <class TB, class TR>
+  static inline TR OperationForValue(Value input, TB dimension) {};
 };
 
 // strlen returns the size in bytes
@@ -48,6 +56,8 @@ struct StrLenOperator {
 	static inline TR Operation(TA input) {
 		return input.GetSize();
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct OctetLenOperator {
@@ -55,6 +65,8 @@ struct OctetLenOperator {
 	static inline TR Operation(TA input) {
 		return Bit::OctetLength(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 // bitlen returns the size in bits
@@ -63,6 +75,8 @@ struct BitLenOperator {
 	static inline TR Operation(TA input) {
 		return 8 * input.GetSize();
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 // bitstringlen returns the amount of bits in a bitstring
@@ -71,6 +85,8 @@ struct BitStringLenOperator {
 	static inline TR Operation(TA input) {
 		return Bit::BitLength(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 static unique_ptr<BaseStatistics> LengthPropagateStats(ClientContext &context, FunctionStatisticsInput &input) {
@@ -147,6 +163,8 @@ struct UnicodeOperator {
 		(void)utf8proc_iterate(str, len, &codepoint);
 		return codepoint;
 	}
+  template <class TR>
+  static inline TR OperationForValue(const Value &input) {};
 };
 
 void UnicodeFun::RegisterFunction(BuiltinFunctions &set) {

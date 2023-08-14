@@ -178,6 +178,8 @@ struct BitwiseNotOperator {
 	static inline TR Operation(TA input) {
 		return ~input;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 static void BitwiseNOTOperation(DataChunk &args, ExpressionState &state, Vector &result) {

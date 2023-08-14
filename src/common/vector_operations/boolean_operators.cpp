@@ -167,6 +167,11 @@ struct NotOperator {
 	static inline TR Operation(TA left) {
 		return !left;
 	}
+
+	template <class TR>
+	static inline TR OperationForValue(Value left) {
+		return left != true;
+	}
 };
 
 void VectorOperations::Not(Vector &input, Vector &result, idx_t count) {

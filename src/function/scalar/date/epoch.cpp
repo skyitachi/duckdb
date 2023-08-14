@@ -12,6 +12,8 @@ struct EpochSecOperator {
 	static RESULT_TYPE Operation(INPUT_TYPE input) {
 		return Timestamp::FromEpochSeconds(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 static void EpochSecFunction(DataChunk &input, ExpressionState &state, Vector &result) {
@@ -25,6 +27,8 @@ struct EpochMillisOperator {
 	static RESULT_TYPE Operation(INPUT_TYPE input) {
 		return Timestamp::FromEpochMs(input);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {}
 };
 
 static void EpochMillisFunction(DataChunk &input, ExpressionState &state, Vector &result) {

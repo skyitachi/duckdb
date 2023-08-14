@@ -9,12 +9,13 @@
 #pragma once
 
 #include "duckdb/common/constants.hpp"
-#include "duckdb/common/limits.hpp"
 #include "duckdb/common/exception.hpp"
-#include "duckdb/common/types/string_type.hpp"
-#include "duckdb/common/types.hpp"
+#include "duckdb/common/limits.hpp"
 #include "duckdb/common/operator/convert_to_string.hpp"
+#include "duckdb/common/types.hpp"
 #include "duckdb/common/types/null_value.hpp"
+#include "duckdb/common/types/string_type.hpp"
+#include "duckdb/common/types/value.hpp"
 
 namespace duckdb {
 struct ValidityMask;
@@ -65,6 +66,8 @@ struct Cast {
 		}
 		return result;
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct HandleCastError {
@@ -583,6 +586,8 @@ struct CastTimestampUsToMs {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct CastTimestampUsToNs {
@@ -590,6 +595,8 @@ struct CastTimestampUsToNs {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct CastTimestampUsToSec {
@@ -597,6 +604,8 @@ struct CastTimestampUsToSec {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct CastTimestampMsToUs {
@@ -604,6 +613,8 @@ struct CastTimestampMsToUs {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct CastTimestampNsToUs {
@@ -611,6 +622,8 @@ struct CastTimestampNsToUs {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 struct CastTimestampSecToUs {
@@ -618,6 +631,8 @@ struct CastTimestampSecToUs {
 	static inline DST Operation(SRC input) {
 		throw duckdb::NotImplementedException("Cast to timestamp could not be performed!");
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 template <>

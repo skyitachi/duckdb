@@ -18,6 +18,8 @@ struct ChrOperator {
 		GetCodepoint(input, c, utf8_bytes);
 		return string_t(&c[0], utf8_bytes);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 #ifdef DUCKDB_DEBUG_NO_INLINE

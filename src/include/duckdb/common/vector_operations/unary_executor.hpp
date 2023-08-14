@@ -21,6 +21,11 @@ struct UnaryOperatorWrapper {
 	static inline RESULT_TYPE Operation(INPUT_TYPE input, ValidityMask &mask, idx_t idx, void *dataptr) {
 		return OP::template Operation<INPUT_TYPE, RESULT_TYPE>(input);
 	}
+
+  template <class OP, class RESULT_TYPE>
+  static inline RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+    return OP::template OperationForValue<RESULT_TYPE>(input);
+  }
 };
 
 struct UnaryLambdaWrapper {
@@ -29,6 +34,12 @@ struct UnaryLambdaWrapper {
 		auto fun = (FUNC *)dataptr;
 		return (*fun)(input);
 	}
+  template <class FUNC, class RESULT_TYPE>
+  static inline RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+//		auto fun = (FUNC *)dataptr;
+//		return (*fun)(input);
+		// TODO
+  }
 };
 
 struct GenericUnaryWrapper {
@@ -36,6 +47,10 @@ struct GenericUnaryWrapper {
 	static inline RESULT_TYPE Operation(INPUT_TYPE input, ValidityMask &mask, idx_t idx, void *dataptr) {
 		return OP::template Operation<INPUT_TYPE, RESULT_TYPE>(input, mask, idx, dataptr);
 	}
+  template <class OP, class RESULT_TYPE>
+  static inline RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+    return OP::template OperationForValue<RESULT_TYPE>(input, mask, idx, dataptr);
+  }
 };
 
 struct UnaryLambdaWrapperWithNulls {
@@ -44,6 +59,12 @@ struct UnaryLambdaWrapperWithNulls {
 		auto fun = (FUNC *)dataptr;
 		return (*fun)(input, mask, idx);
 	}
+
+  template <class FUNC, class RESULT_TYPE>
+  static inline RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+//    auto fun = (FUNC *)dataptr;
+//    return (*fun)(input, mask, idx);
+  }
 };
 
 template <class OP>
@@ -53,6 +74,12 @@ struct UnaryStringOperator {
 		auto vector = (Vector *)dataptr;
 		return OP::template Operation<INPUT_TYPE, RESULT_TYPE>(input, *vector);
 	}
+
+  template <class RESULT_TYPE>
+  static RESULT_TYPE OperationForValue(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
+//    auto vector = (Vector *)dataptr;
+//    return OP::template Operation<INPUT_TYPE, RESULT_TYPE>(input, *vector);
+  }
 };
 
 struct UnaryExecutor {
@@ -144,7 +171,7 @@ private:
 		}
 	}
 
-	template <class INPUT_TYPE, class RESULT_TYPE, class OPWRAPPER, class OP>
+	template <class RESULT_TYPE, class OPWRAPPER, class OP>
 	static inline void ExecuteFlatForValue(Vector &input, RESULT_TYPE *__restrict result_data, idx_t count,
 	                                       ValidityMask &mask, ValidityMask &result_mask, void *dataptr,
 	                                       bool adds_nulls) {
@@ -164,7 +191,7 @@ private:
 				if (ValidityMask::AllValid(validity_entry)) {
 					// all valid: perform operation
 					for (; base_idx < next; base_idx++) {
-						result_data[base_idx] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+						result_data[base_idx] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(
 						    input.GetValue(base_idx), result_mask, base_idx, dataptr);
 					}
 				} else if (ValidityMask::NoneValid(validity_entry)) {
@@ -177,7 +204,7 @@ private:
 					for (; base_idx < next; base_idx++) {
 						if (ValidityMask::RowIsValid(validity_entry, base_idx - start)) {
 							D_ASSERT(mask.RowIsValid(base_idx));
-							result_data[base_idx] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
+							result_data[base_idx] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(
 							    input.GetValue(base_idx), result_mask, base_idx, dataptr);
 						}
 					}
@@ -188,7 +215,7 @@ private:
 				result_mask.EnsureWritable();
 			}
 			for (idx_t i = 0; i < count; i++) {
-				result_data[i] = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(input.GetValue(i),
+				result_data[i] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(input.GetValue(i),
 				                                                                            result_mask, i, dataptr);
 			}
 		}
@@ -212,10 +239,10 @@ private:
 			ConstantVector::SetNull(result, false);
 			if (std::is_same<INPUT_TYPE, Value>()) {
 				// NOTE: construct data for function
-				Value v = input.GetValue(0);
-				*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
-				    v, ConstantVector::Validity(result), 0, dataptr);
-				break;
+//				Value v = input.GetValue(0);
+//				*result_data = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(
+//				    v, ConstantVector::Validity(result), 0, dataptr);
+//				break;
 			}
 
 			*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
@@ -228,8 +255,8 @@ private:
 			auto ldata = FlatVector::GetData<INPUT_TYPE>(input);
 
 			if (std::is_same<INPUT_TYPE, Value>()) {
-				ExecuteFlatForValue<Value, RESULT_TYPE, OPWRAPPER, OP>(
-				    input, result_data, FlatVector::Validity(input), FlatVector::Validity(result), dataptr, adds_nulls);
+				ExecuteFlatForValue<RESULT_TYPE, OPWRAPPER, OP>(
+				    input, result_data, count, FlatVector::Validity(input), FlatVector::Validity(result), dataptr, adds_nulls);
 				break;
 			}
 

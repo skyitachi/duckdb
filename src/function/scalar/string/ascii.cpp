@@ -14,6 +14,8 @@ struct AsciiOperator {
 		int utf8_bytes = 4;
 		return Utf8Proc::UTF8ToCodepoint(str, utf8_bytes);
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {};
 };
 
 void ASCII::RegisterFunction(BuiltinFunctions &set) {

@@ -8,6 +8,9 @@ struct ErrorOperator {
 	static inline TR Operation(const TA &input) {
 		throw Exception(input.GetString());
 	}
+  template <class TR>
+  static inline TR OperationForValue(Value input) {
+  }
 };
 
 void ErrorFun::RegisterFunction(BuiltinFunctions &set) {

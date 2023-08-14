@@ -33,6 +33,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::ExtractYear(enddate) - Date::ExtractYear(startdate);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct MonthOperator {
@@ -45,6 +47,8 @@ struct DateDiff {
 
 			return (end_year * 12 + end_month - 1) - (start_year * 12 + start_month - 1);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct DayOperator {
@@ -52,6 +56,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return TR(Date::EpochDays(enddate)) - TR(Date::EpochDays(startdate));
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct DecadeOperator {
@@ -59,6 +65,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::ExtractYear(enddate) / 10 - Date::ExtractYear(startdate) / 10;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct CenturyOperator {
@@ -66,6 +74,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::ExtractYear(enddate) / 100 - Date::ExtractYear(startdate) / 100;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct MilleniumOperator {
@@ -73,6 +83,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::ExtractYear(enddate) / 1000 - Date::ExtractYear(startdate) / 1000;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct QuarterOperator {
@@ -86,6 +98,8 @@ struct DateDiff {
 			return (end_year * 12 + end_month - 1) / Interval::MONTHS_PER_QUARTER -
 			       (start_year * 12 + start_month - 1) / Interval::MONTHS_PER_QUARTER;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct WeekOperator {
@@ -94,6 +108,8 @@ struct DateDiff {
 			return Date::Epoch(Date::GetMondayOfCurrentWeek(enddate)) / Interval::SECS_PER_WEEK -
 			       Date::Epoch(Date::GetMondayOfCurrentWeek(startdate)) / Interval::SECS_PER_WEEK;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct ISOYearOperator {
@@ -101,6 +117,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::ExtractISOYearNumber(enddate) - Date::ExtractISOYearNumber(startdate);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct MicrosecondsOperator {
@@ -108,6 +126,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::EpochMicroseconds(enddate) - Date::EpochMicroseconds(startdate);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct MillisecondsOperator {
@@ -116,6 +136,8 @@ struct DateDiff {
 			return Date::EpochMicroseconds(enddate) / Interval::MICROS_PER_MSEC -
 			       Date::EpochMicroseconds(startdate) / Interval::MICROS_PER_MSEC;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct SecondsOperator {
@@ -123,6 +145,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::Epoch(enddate) - Date::Epoch(startdate);
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct MinutesOperator {
@@ -131,6 +155,8 @@ struct DateDiff {
 			return Date::Epoch(enddate) / Interval::SECS_PER_MINUTE -
 			       Date::Epoch(startdate) / Interval::SECS_PER_MINUTE;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 
 	struct HoursOperator {
@@ -138,6 +164,8 @@ struct DateDiff {
 		static inline TR Operation(TA startdate, TB enddate) {
 			return Date::Epoch(enddate) / Interval::SECS_PER_HOUR - Date::Epoch(startdate) / Interval::SECS_PER_HOUR;
 		}
+    template <class TR>
+    static inline TR OperationForValue(Value input) {}
 	};
 };
 
