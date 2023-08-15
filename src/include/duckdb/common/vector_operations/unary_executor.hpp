@@ -191,7 +191,7 @@ private:
 				if (ValidityMask::AllValid(validity_entry)) {
 					// all valid: perform operation
 					for (; base_idx < next; base_idx++) {
-						result_data[base_idx] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(
+						result_data[base_idx] = OPWRAPPER::template Operation<OP, Value, RESULT_TYPE>(
 						    input.GetValue(base_idx), result_mask, base_idx, dataptr);
 					}
 				} else if (ValidityMask::NoneValid(validity_entry)) {
@@ -204,7 +204,7 @@ private:
 					for (; base_idx < next; base_idx++) {
 						if (ValidityMask::RowIsValid(validity_entry, base_idx - start)) {
 							D_ASSERT(mask.RowIsValid(base_idx));
-							result_data[base_idx] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(
+							result_data[base_idx] = OPWRAPPER::template Operation<OP, Value, RESULT_TYPE>(
 							    input.GetValue(base_idx), result_mask, base_idx, dataptr);
 						}
 					}
@@ -215,7 +215,7 @@ private:
 				result_mask.EnsureWritable();
 			}
 			for (idx_t i = 0; i < count; i++) {
-				result_data[i] = OPWRAPPER::template OperationForValue<OP, RESULT_TYPE>(input.GetValue(i),
+				result_data[i] = OPWRAPPER::template Operation<OP, Value, RESULT_TYPE>(input.GetValue(i),
 				                                                                            result_mask, i, dataptr);
 			}
 		}
