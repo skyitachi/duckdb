@@ -243,6 +243,8 @@ public:
 	DUCKDB_API bool operator>(const int64_t &rhs) const;
 	DUCKDB_API bool operator<=(const int64_t &rhs) const;
 	DUCKDB_API bool operator>=(const int64_t &rhs) const;
+	DUCKDB_API Value operator-() const;
+	DUCKDB_API Value operator/(const Value& rhs) const;
 
 	DUCKDB_API static bool FloatIsFinite(float value);
 	DUCKDB_API static bool DoubleIsFinite(double value);

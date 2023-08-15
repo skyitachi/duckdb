@@ -11,6 +11,9 @@ string TemplatedDecimalToString(SIGNED value, uint8_t width, uint8_t scale) {
 	return string(data.get(), len);
 }
 
+string Decimal::ToString(Value value, uint8_t width, uint8_t scale) {
+//	value.GetValue<>()
+}
 string Decimal::ToString(int16_t value, uint8_t width, uint8_t scale) {
 	return TemplatedDecimalToString<int16_t, uint16_t>(value, width, scale);
 }

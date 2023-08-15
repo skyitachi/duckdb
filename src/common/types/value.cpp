@@ -1554,6 +1554,16 @@ bool Value::operator>=(const int64_t &rhs) const {
 	return *this >= Value::Numeric(type_, rhs);
 }
 
+Value Value::operator-() const {
+  // TODO:
+	return *this;
+}
+
+Value Value::operator/(const Value& rhs) const {
+	// TODO:
+	return *this;
+}
+
 bool Value::TryCastAs(CastFunctionSet &set, GetCastFunctionInput &get_input, const LogicalType &target_type,
                       Value &new_value, string *error_message, bool strict) const {
 	if (type_ == target_type) {
