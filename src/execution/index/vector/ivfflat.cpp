@@ -92,6 +92,9 @@ bool IvfflatIndex::Scan(Transaction &transaction, DataTable &table, IndexScanSta
 bool IvfflatIndex::ScanWithBindData(Transaction &transaction, DataTable &table, TableScanBindData &bind_data, bool filtered) {
   faiss::SearchParametersIVF* params = nullptr;
   std::cout << "ivfflatindex_scanwithbinddata: " << bind_data.result_ids.size() << std::endl;
+  if (bind_data.is_index_scan && bind_data.result_ids.empty()) {
+		return true;
+  }
   unique_ptr<CustomIDSelector> id_selector = nullptr;
   if (filtered) {
     params = new faiss::SearchParametersIVF();

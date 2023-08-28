@@ -8,6 +8,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
+#include <cassert>
 
 using namespace duckdb;
 
@@ -413,13 +414,11 @@ int main() {
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
 
-	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
-	          "score limit 3")
-	    ->Print();
+//	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
+//	          "score limit 3")
+//	    ->Print();
 
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score "
-	          "limit 3")
-	    ->Print();
+	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score desc limit 3") ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
 	//
@@ -440,14 +439,11 @@ int main() {
 
 	//	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 
-	//	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d =
-	// 3)")->Print();
+		con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
 	//
-	//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by
-	//  score limit 3")->Print();
+	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score desc limit 3")->Print();
 	//
-	//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id <
-	//  100 and id > 90 order by score limit 3")->Print();
+//	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 and id > 90 order by score limit 3")->Print();
 
 	// NOTE: DataChunk output为什么是Dictionary Vector
 	//	con.Query("select * from list_table where c < 10")->Print();

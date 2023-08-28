@@ -69,20 +69,6 @@ struct list_entry_t {
 	void *data_ptr = nullptr;
 };
 
-struct list_data_t {
-	list_data_t() = default;
-	list_entry_t entry;
-	void *data_ptr = nullptr;
-	idx_t idx;
-
-  inline constexpr bool operator != (const list_data_t &other) const {
-    return !(*this == other);
-  }
-  inline constexpr bool operator == (const list_data_t &other) const {
-	  return entry == other.entry;
-  }
-};
-
 using union_tag_t = uint8_t;
 
 //===--------------------------------------------------------------------===//

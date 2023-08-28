@@ -418,7 +418,7 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
       auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
       if (index.type == IndexType::IVFFLAT) {
         auto &ivf = index.Cast<IvfflatIndex>();
-		    ivf.ScanWithBindData(transaction, storage, bind_data, true);
+		    ivf.ScanWithBindData(transaction, storage, bind_data, bind_data.is_index_scan);
         bind_data.is_index_scan = true;
         // NOTE: important
         get.function = TableScanFunction::GetIndexScanFunction();
