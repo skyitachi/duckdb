@@ -210,13 +210,6 @@ private:
 				break;
 			}
 			ConstantVector::SetNull(result, false);
-			if (std::is_same<INPUT_TYPE, Value>()) {
-				// NOTE: construct data for function
-				Value v = input.GetValue(0);
-				*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
-				    v, ConstantVector::Validity(result), 0, dataptr);
-				break;
-			}
 
 			*result_data = OPWRAPPER::template Operation<OP, INPUT_TYPE, RESULT_TYPE>(
 			    *ldata, ConstantVector::Validity(result), 0, dataptr);
@@ -226,12 +219,6 @@ private:
 			result.SetVectorType(VectorType::FLAT_VECTOR);
 			auto result_data = FlatVector::GetData<RESULT_TYPE>(result);
 			auto ldata = FlatVector::GetData<INPUT_TYPE>(input);
-
-			if (std::is_same<INPUT_TYPE, Value>()) {
-				ExecuteFlatForValue<Value, RESULT_TYPE, OPWRAPPER, OP>(
-				    input, result_data, FlatVector::Validity(input), FlatVector::Validity(result), dataptr, adds_nulls);
-				break;
-			}
 
 			ExecuteFlat<INPUT_TYPE, RESULT_TYPE, OPWRAPPER, OP>(ldata, result_data, count, FlatVector::Validity(input),
 			                                                    FlatVector::Validity(result), dataptr, adds_nulls);

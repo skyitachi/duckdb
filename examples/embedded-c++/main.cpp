@@ -380,13 +380,6 @@ int main() {
 	//
 	con.CreateScalarFunction<bool, int>("bigger_than_four", &bigger_than_four);
 
-	try {
-    con.CreateScalarFunction<bool, Value>("bigger_than_five", &bigger_than_five);
-
-	} catch (const std::runtime_error& e) {
-	  std::cout << e.what() << '\n';
-	}
-
 	//	con.CreateAggregateFunction<MySumAggr, my_sum_t<int>, int, int>("my_sum", LogicalType::INTEGER,
 	//	                                                                LogicalType::INTEGER);
 

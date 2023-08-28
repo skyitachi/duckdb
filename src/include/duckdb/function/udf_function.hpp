@@ -140,14 +140,7 @@ private:
 			auto udf = (unary_function_t)dataptr;
 			return udf(input);
 		}
-//    TODO:
-//		template <class INPUT_TYPE, class RESULT_TYPE>
-//    static RESULT_TYPE Operation(Value input, ValidityMask &mask, idx_t idx, void *dataptr) {
-//      typedef RESULT_TYPE (*unary_function_t)(Value);
-//      auto udf = (unary_function_t)dataptr;
-//      return udf(input);
-//    }
-	;
+	};
 
 	template <typename TR, typename TA>
 	static scalar_function_t CreateUnaryFunction(const string &name, TR (*udf_func)(TA)) {
@@ -344,7 +337,6 @@ private:
 		case LogicalTypeId::LIST:
 			return std::is_same<T, list_entry_t>();
 		default: // LCOV_EXCL_START
-			std::cout << "udf_function type: " <<  sql_type.ToString() << std::endl;
 			throw std::runtime_error("Type is not supported!");
 		} // LCOV_EXCL_STOP
 	}
