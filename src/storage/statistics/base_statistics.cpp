@@ -349,6 +349,7 @@ string BaseStatistics::ToString() const {
 }
 
 void BaseStatistics::Verify(Vector &vector, const SelectionVector &sel, idx_t count) const {
+	std::cout << "vector type: " << vector.GetType().ToString() << ", statistics type: " << this->type.ToString() << std::endl;
 	D_ASSERT(vector.GetType() == this->type);
 	switch (GetStatsType()) {
 	case StatisticsType::NUMERIC_STATS:

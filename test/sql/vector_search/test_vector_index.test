@@ -13,4 +13,15 @@ require json
 statement ok
 copy list_table from 'test/sql/vector_search/embedding.json';
 
+statement ok
+CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3);
 
+statement ok
+select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score desc limit 3;
+
+query I
+select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 3;
+----
+1
+2
+3
