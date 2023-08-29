@@ -1,4 +1,11 @@
 #include "duckdb/catalog/catalog_entry/duck_table_entry.hpp"
+
+#include "duckdb/common/index_map.hpp"
+#include "duckdb/execution/index/art/art.hpp"
+#include "duckdb/function/table/table_scan.hpp"
+#include "duckdb/parser/constraints/list.hpp"
+#include "duckdb/parser/expression/function_expression.hpp"
+#include "duckdb/parser/parsed_expression_iterator.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/planner/constraints/bound_check_constraint.hpp"
 #include "duckdb/planner/constraints/bound_foreign_key_constraint.hpp"
@@ -10,13 +17,7 @@
 #include "duckdb/planner/parsed_data/bound_create_table_info.hpp"
 #include "duckdb/planner/table_filter.hpp"
 #include "duckdb/storage/storage_manager.hpp"
-#include "duckdb/common/index_map.hpp"
-#include "duckdb/execution/index/art/art.hpp"
-#include "duckdb/parser/parsed_expression_iterator.hpp"
-#include "duckdb/parser/constraints/list.hpp"
-#include "duckdb/function/table/table_scan.hpp"
 #include "duckdb/storage/table_storage_info.hpp"
-#include "duckdb/parser/expression/function_expression.hpp"
 
 #include <iostream>
 namespace duckdb {
@@ -714,41 +715,41 @@ const vector<unique_ptr<BoundConstraint>> &DuckTableEntry::GetBoundConstraints()
 }
 
 TableFunction DuckTableEntry::GetScanFunction(ClientContext &context, unique_ptr<FunctionData> &bind_data,
-                                              const vector<unique_ptr<ParsedExpression>>& selection_list) {
+                                              const vector<unique_ptr<ParsedExpression>> &selection_list) {
 	bind_data = make_uniq<TableScanBindData>(this);
-	BindVectorIndexInfo(context, bind_data, selection_list);
+//	// 这里是为了设置is_vector_search_index？？？
+//	BindVectorIndexInfo(context, bind_data, selection_list);
 	return TableScanFunction::GetFunction();
 }
 
-void DuckTableEntry::BindVectorIndexInfo(ClientContext& context, unique_ptr<FunctionData>& input,
-                         const vector<unique_ptr<ParsedExpression>>& selection_list) {
-	auto& table_scan_data = input->Cast<TableScanBindData>();
-	for(auto& expr: selection_list) {
+void DuckTableEntry::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData> &input,
+                                         const vector<unique_ptr<ParsedExpression>> &selection_list) {
+	auto &table_scan_data = input->Cast<TableScanBindData>();
+	for (auto &expr : selection_list) {
 		std::cout << "bind_vector: " << expr->GetName() << std::endl;
 		// selection_ist 是unbound的状态
 		if (expr->GetExpressionClass() == ExpressionClass::FUNCTION) {
-			auto& fn_expr = expr->Cast<FunctionExpression>();
+			auto &fn_expr = expr->Cast<FunctionExpression>();
 			if (fn_expr.function_name == "list_distance") {
 				table_scan_data.is_vector_index_scan = true;
 				if (fn_expr.children[1]->GetExpressionClass() == ExpressionClass::FUNCTION) {
-          auto& list_value_expr = fn_expr.children[1]->Cast<FunctionExpression>();
-		      // 这里必须是bound expression才行
-		      if (list_value_expr.function_name == "list_value") {
-//            ExpressionExecutor expr_executor(context, list_value_expr);
-//            DataChunk chunk;
-//            vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
-//            chunk.Initialize(context, return_types);
-//            // NOTE: 终于获取到参数了
-//            expr_executor.Execute(chunk);
+					auto &list_value_expr = fn_expr.children[1]->Cast<FunctionExpression>();
+					// 这里必须是bound expression才行
+					if (list_value_expr.function_name == "list_value") {
+						auto binder = Binder::CreateBinder(context);
 
-			    }
 
+						//            DataChunk chunk;
+						//            vector<LogicalType> return_types = {LogicalType::LIST(LogicalType::FLOAT)};
+						//            chunk.Initialize(context, return_types);
+						//            // NOTE: 终于获取到参数了
+						//            expr_executor.Execute(chunk);
+					}
 				}
 			}
-
 		}
 	}
-//  std::cout << "selection_list: " << selection_list.size() << std::endl;
+	//  std::cout << "selection_list: " << selection_list.size() << std::endl;
 }
 
 TableStorageInfo DuckTableEntry::GetStorageInfo(ClientContext &context) {

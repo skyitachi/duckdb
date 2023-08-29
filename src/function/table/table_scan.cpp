@@ -284,7 +284,6 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 		return;
 	}
   bool found_filter = false;
-	// TODO: 区分普通索引和向量索引
 	storage.info->indexes.Scan([&](Index &index) {
     if (index.type == IndexType::IVFFLAT) {
 		  // ignore vector index this phase
@@ -412,8 +411,10 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 	  return;
 	}
   if (bind_data.is_vector_index_scan) {
+	  // 这里做的是index_match的工作
     std::cout << "TableScanPushdownComplexFilter vector index called" << std::endl;
     storage.info->indexes.Scan([&](Index &index) {
+		  // 用RewriteIndexExpression 判断是否命中索引
 		  std::cout << "in the indexes Scan Loop, index_type: " << int(index.type) << std::endl;
       auto &transaction = Transaction::Get(context, *bind_data.table->catalog);
       if (index.type == IndexType::IVFFLAT) {

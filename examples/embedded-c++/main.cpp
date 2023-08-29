@@ -443,6 +443,9 @@ int main() {
 	//
 	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score desc limit 3")->Print();
 
+	  // 这个case 失败
+	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 order by score desc limit 3")->Print();
+
 	  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 3")->Print();
 	//
 //	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 and id > 90 order by score limit 3")->Print();
