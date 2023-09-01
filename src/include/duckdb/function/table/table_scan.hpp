@@ -35,8 +35,6 @@ struct TableScanBindData : public TableFunctionData {
 
 	idx_t limit;
 
-	unique_ptr<ParsedExpression> input_vector_expr;
-
 	vector<float> input_vectors;
 
 public:
