@@ -95,6 +95,7 @@ void Iterator::FindMinimum(Node &node) {
 			pos++;
 		}
 		cur_key.Push(pos);
+		// 序列化和反序列化的过程
 		next = (Node *)n256.children[pos].Unswizzle(*art);
 		break;
 	}

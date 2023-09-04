@@ -1,14 +1,14 @@
 #include "duckdb.hpp"
 #include "duckdb/common/types/vector.hpp"
-#include "duckdb/function/udf_function.hpp"
 #include "duckdb/execution/index/art/art_key.hpp"
+#include "duckdb/function/udf_function.hpp"
 
+#include <cassert>
 #include <iostream>
 #include <numeric>
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
-#include <cassert>
 
 using namespace duckdb;
 
@@ -327,12 +327,30 @@ void list_value_demo() {
 	}
 }
 
-void art_index_demo(ClientContext& db) {
+void art_index_demo(ClientContext &db) {
 	ArenaAllocator arena_allocator(Allocator::Get(db));
-	uint16_t v = (1 << 8 | 2);
-	auto u16v = Value::USMALLINT(v);
-	auto key = Key::CreateKey<uint16_t>(arena_allocator, u16v.type(), u16v);
-	std::cout << "origin key: " << v << ", art key: " << *reinterpret_cast<uint16_t*>(key.data) << std::endl;
+	{
+    int32_t v32 = 10;
+    auto i32v = Value::INTEGER(v32);
+	  auto ikey = Key::CreateKey<int32_t>(arena_allocator, i32v.type(), i32v);
+	  std::cout << "ikey len: " << ikey.len << std::endl;
+
+	  for(int i = 0; i < ikey.len; i++) {
+			std::cout << "byte value: " << uint32_t(ikey.data[i]) << std::endl;
+	  }
+//	  std::cout << "origin key: " << v32 << ", art key: " << reinterpret_cast<int32_t>(*ikey.data) << std::endl;
+
+
+	  v32 = 1;
+	  i32v = Value::INTEGER(v32);
+    ikey = Key::CreateKey<int32_t>(arena_allocator, i32v.type(), i32v);
+
+//	  std::cout << "origin key: " << v32 << ", art key: " << *reinterpret_cast<int32_t *>(ikey.data) << std::endl;
+
+
+	}
+
+
 }
 
 void value_demo() {
@@ -344,15 +362,16 @@ void value_demo() {
 	assert(values.size() == real_values.size());
 	printf("\n");
 
-  // create LogicalType First
-  Value fv(LogicalType::FLOAT);
-  fv = fv.CreateValue(1);
-  std::cout << "create value: " << fv.ToString() << ", " << fv.ToSQLString() << std::endl;
+	// create LogicalType First
+	Value fv(LogicalType::FLOAT);
+	fv = fv.CreateValue(1);
+	std::cout << "create value: " << fv.ToString() << ", " << fv.ToSQLString() << std::endl;
 
-  Value iv(LogicalType::SMALLINT);
-  iv = iv.CreateValue(10000000);
+	Value iv(LogicalType::SMALLINT);
+	iv = iv.CreateValue(10000000);
 
-  std::cout << "create value: " << iv.ToString() << ", " << iv.ToSQLString() << ", type: " << iv.type().ToString()<< std::endl;
+	std::cout << "create value: " << iv.ToString() << ", " << iv.ToSQLString() << ", type: " << iv.type().ToString()
+	          << std::endl;
 
 	std::cout << "------------------------------------" << '\n';
 }
@@ -407,6 +426,15 @@ int main() {
 
 	con.Query("create INDEX idx_id on list_table(id)")->Print();
 
+	std::cout << "[Debug] case for art index\n";
+	con.Query("select * from list_table where id < 10")->Print();
+	std::cout << "[Debug] end case for art index\n";
+
+
+	std::cout << "[Debug case for art index\n]";
+  con.Query("select * from list_table where id = 10")->Print();
+  std::cout << "[Debug] end case for art index\n";
+
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
 	//	con.Query("select * from list_table where bigger_than_four(id)")->Print();
@@ -414,11 +442,12 @@ int main() {
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
 
-//	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by "
-//	          "score limit 3")
-//	    ->Print();
+	//	con.Query("select id, my_list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by
+	//" 	          "score limit 3")
+	//	    ->Print();
 
-	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by score desc limit 3") ->Print();
+	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score, embedding from list_table order by
+	//score desc limit 3") ->Print();
 
 	//  con.Query("select id, embedding from list_table order by c limit 3")->Print();
 	//
@@ -439,16 +468,36 @@ int main() {
 
 	//	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 
-		con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")->Print();
+	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")
+	    ->Print();
 	//
-	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score desc limit 3")->Print();
+	std::cout << "case1: -----------------------\n";
+	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score "
+	          "desc limit 3")
+	    ->Print();
+	std::cout << "end of case1: -----------------------\n";
 
-	  // 这个case 失败
-	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 order by score desc limit 3")->Print();
 
-	  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 3")->Print();
+	// 这个case 失败
+	std::cout << "case2: ------------------------\n";
+	// 不能命中索引的原因是art index 返回的是空
+	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 "
+	          "order by score desc limit 3")
+	    ->Print();
+	std::cout << "end of case2: ---------------------------\n";
+
+  std::cout << "case3: ------------------------\n";
+  // 不能命中索引的原因是art index 返回的是空
+  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 1000 and id > 200"
+            "order by score desc limit 3")
+      ->Print();
+  std::cout << "end of case3: ---------------------------\n";
+
+	//	  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id <
+	//3")->Print();
 	//
-//	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 100 and id > 90 order by score limit 3")->Print();
+	//	  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id <
+	//100 and id > 90 order by score limit 3")->Print();
 
 	// NOTE: DataChunk output为什么是Dictionary Vector
 	//	con.Query("select * from list_table where c < 10")->Print();

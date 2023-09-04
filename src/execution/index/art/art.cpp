@@ -781,6 +781,7 @@ bool ART::SearchLess(ARTIndexScanState *state, Key &upper_bound, bool inclusive,
 	}
 	// now continue the scan until we reach the upper bound
 	auto success = it->Scan(upper_bound, max_count, result_ids, inclusive);
+	std::cout << "[Debug] [ART] success: " << success << ", art index: prefix size " << tree->prefix.Size() << std::endl;
 	IncreaseAndVerifyMemorySize(old_memory_size);
 	return success;
 }
@@ -821,6 +822,7 @@ bool ART::Scan(Transaction &transaction, DataTable &table, IndexScanState &table
 	D_ASSERT(state->values[0].type().InternalType() == types[0]);
 	ArenaAllocator arena_allocator(Allocator::Get(db));
 	auto key = CreateKey(arena_allocator, types[0], state->values[0]);
+	std::cout << "[Debug] search key: " << state->values[0].ToString() << std::endl;
 
 	if (state->values[1].IsNull()) {
 
@@ -828,7 +830,9 @@ bool ART::Scan(Transaction &transaction, DataTable &table, IndexScanState &table
 		lock_guard<mutex> l(lock);
 		switch (state->expressions[0]) {
 		case ExpressionType::COMPARE_EQUAL:
+			// search equal 没什么问题
 			success = SearchEqual(key, max_count, row_ids);
+      std::cout << "[Debug ] [ART] search equal: " << success << " " << std::endl;
 			break;
 		case ExpressionType::COMPARE_GREATERTHANOREQUALTO:
 			success = SearchGreater(state, key, true, max_count, row_ids);
@@ -857,6 +861,7 @@ bool ART::Scan(Transaction &transaction, DataTable &table, IndexScanState &table
 		bool left_inclusive = state->expressions[0] == ExpressionType ::COMPARE_GREATERTHANOREQUALTO;
 		bool right_inclusive = state->expressions[1] == ExpressionType ::COMPARE_LESSTHANOREQUALTO;
 		success = SearchCloseRange(state, key, upper_bound, left_inclusive, right_inclusive, max_count, row_ids);
+
 	}
 
 	if (!success) {

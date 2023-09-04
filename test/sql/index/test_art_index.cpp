@@ -96,6 +96,61 @@ int full_scan(T *keys, idx_t size, T low, T high) {
 	return sum;
 }
 
+TEST_CASE("ART Integer Small", "[art-integer-small]") {
+	duckdb::unique_ptr<QueryResult> result;
+	DuckDB db(nullptr);
+	Connection con(db);
+	// Will use 100 keys
+	idx_t n = 10000;
+	auto keys = duckdb::unique_ptr<int32_t[]>(new int32_t[n]);
+	REQUIRE_NO_FAIL(con.Query("CREATE TABLE numbers(i Integer)"));
+	// 1...10000
+	for (idx_t i = 0; i < n; i++) {
+		keys[i] = i + 1;
+	}
+	// Insert values and create index
+	REQUIRE_NO_FAIL(con.Query("BEGIN TRANSACTION"));
+	for (idx_t i = 0; i < n; i++) {
+		REQUIRE_NO_FAIL(con.Query("INSERT INTO numbers VALUES (" + to_string(keys[i]) + ")"));
+	}
+	REQUIRE_NO_FAIL(con.Query("COMMIT"));
+	REQUIRE_NO_FAIL(con.Query("CREATE INDEX i_index ON numbers(i)"));
+	{
+		int answer = full_scan(keys.get(), n, 0, 9);
+		std::cout << "smaller than 10 counts: " << answer << std::endl;
+		string query = "SELECT COUNT(i) FROM numbers WHERE i < 10;";
+		result = con.Query(query);
+		if (!CHECK_COLUMN(result, 0, {answer})) {
+			cout << "Wrong answer on floating point real-small!" << std::endl << "Queries to reproduce:" << std::endl;
+			cout << "CREATE TABLE numbers(i BIGINT);" << std::endl;
+			for (idx_t k = 0; k < n; k++) {
+				cout << "INSERT INTO numbers VALUES (" << keys[k] << ");" << std::endl;
+			}
+			cout << query << std::endl;
+			REQUIRE(false);
+		}
+	}
+	//  for (idx_t i = 0; i < min_values.size(); i++) {
+	//    int64_t low = Radix::EncodeFloat(min_values[i]);
+	//    int64_t high = Radix::EncodeFloat(max_values[i]);
+	//    int answer = full_scan<int64_t>(keys.get(), n, low, high);
+	//    string query =
+	//        "SELECT COUNT(i) FROM numbers WHERE i >= " + to_string(low) + " and i <= " + to_string(high) + ";";
+	//    result = con.Query(query);
+	//    if (!CHECK_COLUMN(result, 0, {answer})) {
+	//      cout << "Wrong answer on floating point real-small!" << std::endl << "Queries to reproduce:" << std::endl;
+	//      cout << "CREATE TABLE numbers(i BIGINT);" << std::endl;
+	//      for (idx_t k = 0; k < n; k++) {
+	//        cout << "INSERT INTO numbers VALUES (" << keys[k] << ");" << std::endl;
+	//      }
+	//      cout << query << std::endl;
+	//      REQUIRE(false);
+	//    }
+	//  }
+	REQUIRE_NO_FAIL(con.Query("DROP INDEX i_index"));
+	REQUIRE_NO_FAIL(con.Query("DROP TABLE numbers"));
+}
+
 TEST_CASE("ART Floating Point Small", "[art-float-small]") {
 	duckdb::unique_ptr<QueryResult> result;
 	DuckDB db(nullptr);

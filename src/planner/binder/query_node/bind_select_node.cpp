@@ -576,6 +576,8 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 	auto &selection_list = bound_select_node->select_list;
 	auto &table_scan_data = input->Cast<TableScanBindData>();
 	table_scan_data.limit = 1;
+  std::cout << "[Debug] BindVectorIndexInfo in bind select node: selection list length: " <<
+	    selection_list.size() << std::endl;
 
 	bool found_order_by = false;
 	for (auto &modifier : bound_select_node->modifiers) {
@@ -600,6 +602,7 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 	if (!found_order_by) { return; }
 
 	for (auto &expr : selection_list) {
+		std::cout << expr->ToString() << " type: " << ExpressionClassToString(expr->GetExpressionClass()) << std::endl;
 		if (expr->GetExpressionClass() == ExpressionClass::BOUND_FUNCTION) {
 			auto &bound_func_expr = expr->Cast<BoundFunctionExpression>();
 			auto func_name = bound_func_expr.function.name;
@@ -607,10 +610,6 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 
 			D_ASSERT(bound_func_expr.children.size() == 2);
 
-			if (bound_func_expr.children[1]->GetExpressionClass() != ExpressionClass::BOUND_CAST) {
-        std::cout << "bound_func_expr.children[1]: " << ExpressionClassToString(bound_func_expr.children[1]->GetExpressionClass()) << std::endl;
-
-			}
 //			D_ASSERT(bound_func_expr.children[1]->GetExpressionClass() == ExpressionClass::BOUND_CAST);
 //			auto &bound_cast_expr = bound_func_expr.children[1]->Cast<BoundCastExpression>();
       auto& child_expr = *bound_func_expr.children[1];
@@ -626,6 +625,7 @@ void Binder::BindVectorIndexInfo(ClientContext &context, unique_ptr<FunctionData
 			// NOTE: 终于获取到参数了
 			expr_executor.Execute(chunk);
 			table_scan_data.is_vector_index_scan = true;
+			std::cout << "[Debug] [bind_select_node]: set is_vector_scan \n";
 			table_scan_data.input_vectors = GetData(context, chunk);
 			break;
 		}

@@ -32,6 +32,7 @@ unique_ptr<LogicalOperator> FilterPushdown::PushdownGet(unique_ptr<LogicalOperat
 		}
 		filters.clear();
 
+		// NOTE: logical plan will call this filter
 		get.function.pushdown_complex_filter(optimizer.context, get, get.bind_data.get(), expressions);
 
 		if (expressions.empty()) {

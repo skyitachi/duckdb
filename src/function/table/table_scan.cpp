@@ -397,6 +397,8 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 				bind_data.is_index_scan = true;
 				get.function = TableScanFunction::GetIndexScanFunction();
 			} else {
+				// TODO: 什么情况这里会返回false
+				std::cout << "[Debug] index can return false: result_size: " << bind_data.result_ids.size() << std::endl;
 				bind_data.result_ids.clear();
 				// look for storage
 				bind_data.is_vector_index_scan = false;

@@ -25,3 +25,6 @@ select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table wh
 1
 2
 3
+
+query I
+select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 order by score desc limit 3;
