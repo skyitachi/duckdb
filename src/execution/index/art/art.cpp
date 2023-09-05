@@ -779,9 +779,14 @@ bool ART::SearchLess(ARTIndexScanState *state, Key &upper_bound, bool inclusive,
 			return true;
 		}
 	}
+  std::cout << "[Debug] minium art index: current key size " << it->cur_key.key.size() << std::endl;
+  for (idx_t i = 0; i < it->cur_key.key.size(); i++) {
+    std::cout << uint32_t(it->cur_key.key[i]) << " " << std::endl;
+  }
 	// now continue the scan until we reach the upper bound
 	auto success = it->Scan(upper_bound, max_count, result_ids, inclusive);
-	std::cout << "[Debug] [ART] success: " << success << ", art index: prefix size " << tree->prefix.Size() << std::endl;
+
+	std::cout << "[Debug] success: " << success << std::endl;
 	IncreaseAndVerifyMemorySize(old_memory_size);
 	return success;
 }

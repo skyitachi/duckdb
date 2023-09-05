@@ -36,7 +36,7 @@ public:
 	bool operator>=(const Key &k) const;
 	bool operator==(const Key &k) const;
 
-private:
+public:
 	//! The current key position
 	idx_t cur_key_pos = 0;
 	//! The current key of the Leaf Node

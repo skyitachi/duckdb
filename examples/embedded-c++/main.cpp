@@ -431,9 +431,9 @@ int main() {
 	std::cout << "[Debug] end case for art index\n";
 
 
-	std::cout << "[Debug case for art index\n]";
-  con.Query("select * from list_table where id = 10")->Print();
-  std::cout << "[Debug] end case for art index\n";
+//	std::cout << "[Debug case for art index\n]";
+//  con.Query("select * from list_table where id = 10")->Print();
+//  std::cout << "[Debug] end case for art index\n";
 
 	//	con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) from list_table where id % 2 == 0 limit 3")
 	//	    ->Print();
@@ -468,30 +468,30 @@ int main() {
 
 	//	con.Query("select count(*) from list_table where id < 20000 and id > 19900")->Print();
 
-	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")
-	    ->Print();
-	//
-	std::cout << "case1: -----------------------\n";
-	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score "
-	          "desc limit 3")
-	    ->Print();
-	std::cout << "end of case1: -----------------------\n";
-
-
-	// 这个case 失败
-	std::cout << "case2: ------------------------\n";
-	// 不能命中索引的原因是art index 返回的是空
-	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 "
-	          "order by score desc limit 3")
-	    ->Print();
-	std::cout << "end of case2: ---------------------------\n";
-
-  std::cout << "case3: ------------------------\n";
-  // 不能命中索引的原因是art index 返回的是空
-  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 1000 and id > 200"
-            "order by score desc limit 3")
-      ->Print();
-  std::cout << "end of case3: ---------------------------\n";
+//	con.Query("CREATE INDEX idx_v ON list_table USING ivfflat(embedding vector_ip_ops) WITH (oplists = 1, d = 3)")
+//	    ->Print();
+//	//
+//	std::cout << "case1: -----------------------\n";
+//	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table order by score "
+//	          "desc limit 3")
+//	    ->Print();
+//	std::cout << "end of case1: -----------------------\n";
+//
+//
+//	// 这个case 失败
+//	std::cout << "case2: ------------------------\n";
+//	// 不能命中索引的原因是art index 返回的是空
+//	con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 10 "
+//	          "order by score desc limit 3")
+//	    ->Print();
+//	std::cout << "end of case2: ---------------------------\n";
+//
+//  std::cout << "case3: ------------------------\n";
+//  // 不能命中索引的原因是art index 返回的是空
+//  con.Query("select id, embedding, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id < 1000 and id > 200"
+//            "order by score desc limit 3")
+//      ->Print();
+//  std::cout << "end of case3: ---------------------------\n";
 
 	//	  con.Query("select id, list_distance(embedding, [2.0, 1.2, 2.0]) as score from list_table where id <
 	//3")->Print();

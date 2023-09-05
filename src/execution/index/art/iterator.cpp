@@ -68,6 +68,8 @@ void Iterator::FindMinimum(Node &node) {
 	}
 	switch (node.type) {
 	case NodeType::NLeaf:
+		// leaf 需要push
+    nodes.push(IteratorEntry(&node, DConstants::INVALID_INDEX));
 		last_leaf = (Leaf *)&node;
 		return;
 	case NodeType::N4: {
@@ -122,6 +124,11 @@ void Iterator::PushKey(Node *cur_node, uint16_t pos) {
 }
 
 bool Iterator::Scan(Key &bound, idx_t max_count, vector<row_t> &result_ids, bool is_inclusive) {
+  std::cout << "[Debug] minium art index iterator scan: current key size " << cur_key.key.size() << std::endl;
+  for (idx_t i = 0; i < cur_key.key.size(); i++) {
+    std::cout << uint32_t(cur_key.key[i]) << " ";
+  }
+  std::cout << "\n";
 	bool has_next;
 	do {
 		if (!bound.Empty()) {
@@ -155,6 +162,7 @@ void Iterator::PopNode() {
 	nodes.pop();
 }
 
+// TODO: 这里还是有问题
 bool Iterator::Next() {
 	if (!nodes.empty()) {
 		auto cur_node = nodes.top().node;
@@ -185,6 +193,7 @@ bool Iterator::Next() {
 				cur_key.Push(next_node->prefix[i]);
 			}
 			// next node found: push it
+			// 这里push NLeaf结点
 			nodes.push(IteratorEntry(next_node, DConstants::INVALID_INDEX));
 		} else {
 			// no node found: move up the tree and Pop prefix and key of current node
