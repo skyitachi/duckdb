@@ -79,6 +79,7 @@ void Iterator::FindMinimum(Node &node) {
 	}
 
 	// found the minimum
+	// root 结点是prefix结点
 	if (node.GetType() == NType::LEAF || node.GetType() == NType::LEAF_INLINED) {
 		last_leaf = node;
 		return;

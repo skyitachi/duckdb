@@ -56,10 +56,12 @@ void PartitionedTupleData::AppendUnified(PartitionedTupleDataAppendState &state,
 	const idx_t actual_append_count = append_count == DConstants::INVALID_INDEX ? input.size() : append_count;
 
 	// Compute partition indices and store them in state.partition_indices
+	// 向量化操作设置每行数据归属于哪个partition
 	ComputePartitionIndices(state, input);
 
 	// Build the selection vector for the partitions
 	BuildPartitionSel(state, append_sel, actual_append_count);
+	// state.partition_entries记录了每个partition有多少数据
 
 	// Early out: check if everything belongs to a single partition
 	optional_idx partition_index;
@@ -72,6 +74,7 @@ void PartitionedTupleData::AppendUnified(PartitionedTupleDataAppendState &state,
 			partition_index = state.partition_entries.begin()->first;
 		}
 	}
+	// 只有一个partition的情况
 	if (partition_index.IsValid()) {
 		auto &partition = *partitions[partition_index.GetIndex()];
 		auto &partition_pin_state = *state.partition_pin_states[partition_index.GetIndex()];
@@ -86,9 +89,11 @@ void PartitionedTupleData::AppendUnified(PartitionedTupleDataAppendState &state,
 		}
 
 		// Build the buffer space
+		// 这里会会为每个partition　写数据
 		BuildBufferSpace(state);
 
 		// Now scatter everything in one go
+		// NOTE: 为什么需要scatter
 		partitions[0]->Scatter(state.chunk_state, input, state.partition_sel, actual_append_count);
 	}
 

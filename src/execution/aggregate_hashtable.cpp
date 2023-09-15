@@ -225,6 +225,7 @@ idx_t GroupedAggregateHashTable::AddChunk(DataChunk &groups, DataChunk &payload,
 
 idx_t GroupedAggregateHashTable::AddChunk(DataChunk &groups, DataChunk &payload, const unsafe_vector<idx_t> &filter) {
 	Vector hashes(LogicalType::HASH);
+	// 向量操作
 	groups.Hash(hashes);
 
 	return AddChunk(groups, hashes, payload, filter);

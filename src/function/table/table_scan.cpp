@@ -400,10 +400,12 @@ void TableScanPushdownComplexFilter(ClientContext &context, LogicalGet &get, Fun
 			}
 			if (index.Scan(transaction, storage, *index_state, STANDARD_VECTOR_SIZE, bind_data.result_ids)) {
 				// use an index scan!
+        std::cout << "[Debug] index scan return true: " << bind_data.result_ids.size() << std::endl;
 				bind_data.is_index_scan = true;
 				get.function = TableScanFunction::GetIndexScanFunction();
 			} else {
 				bind_data.result_ids.clear();
+				std::cout << "[Debug] index scan return false\n";
 			}
 			return true;
 		}

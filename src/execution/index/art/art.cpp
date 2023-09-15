@@ -307,6 +307,7 @@ bool Construct(ART &art, vector<ARTKey> &keys, row_t *row_ids, Node &node, KeySe
 		}
 
 		reference<Node> ref_node(node);
+		// ref_node指向的结点已经变了
 		Prefix::New(art, ref_node, start_key, prefix_start, start_key.len - prefix_start);
 		if (single_row_id) {
 			Leaf::New(ref_node, row_ids[key_section.start]);
