@@ -674,6 +674,7 @@ void RadixHTLocalSourceState::Scan(RadixHTGlobalSinkState &sink, RadixHTGlobalSo
 	D_ASSERT(task == RadixHTSourceTaskType::SCAN);
 	D_ASSERT(scan_status != RadixHTScanStatus::DONE);
 
+	// scan这里只读取了该线程对应的partition
 	auto &partition = *sink.partitions[task_idx];
 	D_ASSERT(partition.finalized);
 	auto &data_collection = *partition.data;

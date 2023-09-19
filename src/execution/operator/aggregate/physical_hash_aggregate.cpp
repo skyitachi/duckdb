@@ -15,6 +15,8 @@
 #include "duckdb/planner/expression/bound_constant_expression.hpp"
 #include "duckdb/planner/expression/bound_reference_expression.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 HashAggregateGroupingData::HashAggregateGroupingData(GroupingSet &grouping_set_p,
@@ -130,6 +132,9 @@ PhysicalHashAggregate::PhysicalHashAggregate(ClientContext &context, vector<Logi
 		}
 		grouping_sets.push_back(std::move(set));
 	}
+
+	std::cout << "[Debug] grouping_set size: " << grouping_sets.size() << std::endl;
+
 	input_group_types = CreateGroupChunkTypes(groups_p);
 
 	grouped_aggregate_data.InitializeGroupby(std::move(groups_p), std::move(expressions),
@@ -353,6 +358,9 @@ SinkResultType PhysicalHashAggregate::Sink(ExecutionContext &context, DataChunk 
 	if (CanSkipRegularSink()) {
 		return SinkResultType::NEED_MORE_INPUT;
 	}
+
+	std::cout << "[Debug]: data_chunk size: " << chunk.size() << std::endl;
+	chunk.Print();
 
 	DataChunk &aggregate_input_chunk = llstate.aggregate_input_chunk;
 
