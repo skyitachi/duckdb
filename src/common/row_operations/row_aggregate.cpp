@@ -13,6 +13,7 @@
 #include <iostream>
 namespace duckdb {
 
+// 这里完成了单个row_aggregate的初始化
 void RowOperations::InitializeStates(TupleDataLayout &layout, Vector &addresses, const SelectionVector &sel,
                                      idx_t count) {
 	if (count == 0) {
