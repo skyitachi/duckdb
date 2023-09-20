@@ -262,6 +262,7 @@ idx_t GroupedAggregateHashTable::AddChunk(DataChunk &groups, Vector &group_hashe
 		}
 		D_ASSERT(i == filter[filter_idx]);
 
+		// NOTE: update states　完成了aggr的计算
 		if (aggr.aggr_type != AggregateType::DISTINCT && aggr.filter) {
 			RowOperations::UpdateFilteredStates(row_state, filter_set.GetFilterData(i), aggr, state.addresses, payload,
 			                                    payload_idx);

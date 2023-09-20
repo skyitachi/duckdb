@@ -10,6 +10,7 @@
 #include "duckdb/common/types/row/tuple_data_layout.hpp"
 #include "duckdb/execution/operator/aggregate/aggregate_object.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 void RowOperations::InitializeStates(TupleDataLayout &layout, Vector &addresses, const SelectionVector &sel,
@@ -108,10 +109,12 @@ void RowOperations::FinalizeStates(RowOperationsState &state, TupleDataLayout &l
 	VectorOperations::AddInPlace(addresses_copy, layout.GetAggrOffset(), result.size());
 
 	auto &aggregates = layout.GetAggregates();
+	std::cout << "[Debug] aggregates size: " << aggregates.size() << ", aggr_result: " << result.size() << std::endl;
 	for (idx_t i = 0; i < aggregates.size(); i++) {
 		auto &target = result.data[aggr_idx + i];
 		auto &aggr = aggregates[i];
 		AggregateInputData aggr_input_data(aggr.GetFunctionData(), state.allocator);
+		// 这里完成了aggregate函数
 		aggr.function.finalize(addresses_copy, aggr_input_data, target, result.size(), 0);
 
 		// Move to the next aggregate state

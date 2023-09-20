@@ -360,7 +360,7 @@ SinkResultType PhysicalHashAggregate::Sink(ExecutionContext &context, DataChunk 
 	}
 
 	std::cout << "[Debug]: data_chunk size: " << chunk.size() << std::endl;
-	chunk.Print();
+//	chunk.Print();
 
 	DataChunk &aggregate_input_chunk = llstate.aggregate_input_chunk;
 

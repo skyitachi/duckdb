@@ -11,6 +11,7 @@
 #include "duckdb/parallel/event.hpp"
 #include "duckdb/planner/expression/bound_reference_expression.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 RadixPartitionedHashTable::RadixPartitionedHashTable(GroupingSet &grouping_set_p, const GroupedAggregateData &op_p)
@@ -653,6 +654,7 @@ void RadixHTLocalSourceState::Finalize(RadixHTGlobalSinkState &sink, RadixHTGlob
 		ht->ResetCount();
 	}
 
+	std::cout << "[Debug] partition data size: " << partition.data->Count() << std::endl;
 	// Now combine the uncombined data using this thread's HT
 	ht->Combine(*partition.data);
 	ht->UnpinData();
@@ -730,6 +732,9 @@ void RadixHTLocalSourceState::Scan(RadixHTGlobalSinkState &sink, RadixHTGlobalSo
 		chunk.data[radix_ht.op.GroupCount() + radix_ht.op.aggregates.size() + i].Reference(radix_ht.grouping_values[i]);
 	}
 	chunk.SetCardinality(scan_chunk);
+	// 这里已经完成了分组
+	std::cout << "[Debug] radix_partitioned scan: " << chunk.size() << ", group count: " << radix_ht.op.GroupCount()
+	          << " scan chunk: " << scan_chunk.size() << std::endl;
 	D_ASSERT(chunk.size() != 0);
 }
 
