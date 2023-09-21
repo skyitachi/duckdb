@@ -351,6 +351,7 @@ idx_t GroupedAggregateHashTable::FindOrCreateGroupsInternal(DataChunk &groups, V
 	state.group_chunk.SetCardinality(groups);
 
 	// convert all vectors to unified format
+	// state.append_state.chunk_state 非常重要
 	auto &chunk_state = state.append_state.chunk_state;
 	TupleDataCollection::ToUnifiedFormat(chunk_state, state.group_chunk);
 	if (!state.group_data) {
@@ -403,6 +404,7 @@ idx_t GroupedAggregateHashTable::FindOrCreateGroupsInternal(DataChunk &groups, V
 				auto &entry = entries[ht_offsets[index]];
 
 				entry.SetPointer(row_location);
+				// address的初始化是有row_location决定的
 				addresses[index] = row_location;
 			}
 		}
