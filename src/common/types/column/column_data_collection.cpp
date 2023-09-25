@@ -21,6 +21,7 @@ struct ColumnDataCopyFunction {
 	vector<ColumnDataCopyFunction> child_functions;
 };
 
+// 只记录了元信息，没有存储实际内容?
 struct ColumnDataMetaData {
 	ColumnDataMetaData(ColumnDataCopyFunction &copy_function, ColumnDataCollectionSegment &segment,
 	                   ColumnDataAppendState &state, ChunkMetaData &chunk_data, VectorDataIndex vector_data_index)
@@ -713,6 +714,7 @@ static bool IsComplexType(const LogicalType &type) {
 	};
 }
 
+// 哪里有落盘的操作了。。。
 void ColumnDataCollection::Append(ColumnDataAppendState &state, DataChunk &input) {
 	D_ASSERT(!finished_append);
 	D_ASSERT(types == input.GetTypes());

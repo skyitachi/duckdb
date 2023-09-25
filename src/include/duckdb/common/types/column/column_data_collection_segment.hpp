@@ -78,6 +78,7 @@ struct ChunkMetaData {
 	uint16_t count;
 };
 
+// 基于disk的数据结构
 class ColumnDataCollectionSegment {
 public:
 	ColumnDataCollectionSegment(shared_ptr<ColumnDataAllocator> allocator, vector<LogicalType> types_p);

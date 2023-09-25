@@ -14,6 +14,8 @@
 #include "duckdb/storage/buffer_manager.hpp"
 #include "duckdb/storage/storage_manager.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 PhysicalHashJoin::PhysicalHashJoin(LogicalOperator &op, unique_ptr<PhysicalOperator> left,
@@ -375,6 +377,7 @@ SinkFinalizeType PhysicalHashJoin::Finalize(Pipeline &pipeline, Event &event, Cl
 			auto new_event = make_shared<HashJoinPartitionEvent>(pipeline, sink, sink.local_hash_tables);
 			event.InsertEvent(std::move(new_event));
 		} else {
+			// merge local hash table to global
 			for (auto &local_ht : sink.local_hash_tables) {
 				ht.Merge(*local_ht);
 			}
@@ -455,6 +458,7 @@ unique_ptr<OperatorState> PhysicalHashJoin::GetOperatorState(ExecutionContext &c
 	return std::move(state);
 }
 
+// 这里完成主要的probe
 OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, DataChunk &input, DataChunk &chunk,
                                                      GlobalOperatorState &gstate, OperatorState &state_p) const {
 	auto &state = state_p.Cast<HashJoinOperatorState>();
@@ -477,6 +481,7 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 
 	if (sink.perfect_join_executor) {
 		D_ASSERT(!sink.external);
+		// lineitem customer 会命中这个
 		return sink.perfect_join_executor->ProbePerfectHashTable(context, input, chunk, *state.perfect_hash_join_state);
 	}
 
@@ -505,6 +510,7 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 		state.scan_structure = sink.hash_table->ProbeAndSpill(state.join_keys, input, *sink.probe_spill,
 		                                                      state.spill_state, state.spill_chunk);
 	} else {
+		std::cout << "[Debug] ExecuteInternal probe: " << input.size() << std::endl;
 		state.scan_structure = sink.hash_table->Probe(state.join_keys);
 	}
 	state.scan_structure->Next(state.join_keys, input, chunk);
@@ -871,6 +877,7 @@ void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, Hash
 	}
 
 	// Perform the probe
+	std::cout << "[Debug] local source state perform probe: " << chunk.size() << std::endl;
 	scan_structure = sink.hash_table->Probe(join_keys, precomputed_hashes);
 	scan_structure->Next(join_keys, payload, chunk);
 }

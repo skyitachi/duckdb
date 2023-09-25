@@ -3,20 +3,13 @@
 using namespace duckdb;
 
 int main() {
-	DuckDB db(nullptr);
+	DuckDB db("/Users/shiping.yao/lab/duckdb/cmake-build-debug/lineitem");
 
 	Connection con(db);
 
-	con.Query("CREATE TABLE integers(i INTEGER)");
-	con.Query("INSERT INTO integers VALUES (3)");
-  con.Query("INSERT INTO integers VALUES (1)");
-  con.Query("INSERT INTO integers VALUES (2)");
-  con.Query("INSERT INTO integers VALUES (4)");
-  con.Query("INSERT INTO integers VALUES (3)");
+	// perfect join
+	auto result = con.Query("select * from a join b on c_a2 = c_b2");
 
-	con.Query("create index idx_i on integers(i)");
-	auto result = con.Query("SELECT * FROM integers");
-  result->Print();
+	result->Print();
 
-	con.Query("select avg(i) from integers group by i")->Print();
 }

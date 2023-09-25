@@ -7,6 +7,7 @@
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/storage/buffer_manager.hpp"
 
+#include <iostream>
 namespace duckdb {
 
 using ValidityBytes = JoinHashTable::ValidityBytes;
@@ -98,6 +99,7 @@ void JoinHashTable::ApplyBitmask(Vector &hashes, idx_t count) {
 	}
 }
 
+// 这里设置了hash_map的entry
 void JoinHashTable::ApplyBitmask(Vector &hashes, const SelectionVector &sel, idx_t count, Vector &pointers) {
 	UnifiedVectorFormat hdata;
 	hashes.ToUnifiedFormat(count, hdata);
@@ -208,6 +210,7 @@ void JoinHashTable::Build(PartitionedTupleDataAppendState &append_state, DataChu
 
 	// hash the keys and obtain an entry in the list
 	// note that we only hash the keys used in the equality comparison
+	// 存的并不是offset，就是单纯的Hash
 	Vector hash_values(LogicalType::HASH);
 	Hash(keys, *current_sel, added_count, hash_values);
 
@@ -234,6 +237,7 @@ void JoinHashTable::Build(PartitionedTupleDataAppendState &append_state, DataChu
 	if (added_count < keys.size()) {
 		source_chunk.Slice(*current_sel, added_count);
 	}
+	// keys + payload + found + hash
 	sink_collection->Append(append_state, source_chunk);
 }
 
@@ -252,6 +256,7 @@ static inline void InsertHashesLoop(atomic<data_ptr_t> pointers[], const hash_t 
 			// set prev in current key to the value (NOTE: this will be nullptr if there is none)
 			Store<data_ptr_t>(pointers[index], key_locations[i] + pointer_offset);
 
+			// 这个更像是linked list, 而不是linear probe
 			// set pointer to current tuple
 			pointers[index] = key_locations[i];
 		}

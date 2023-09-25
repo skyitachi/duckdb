@@ -113,6 +113,7 @@ static void ComputeGroupLocation(Vector &group, Value &min, uintptr_t *address_d
 }
 
 void PerfectAggregateHashTable::AddChunk(DataChunk &groups, DataChunk &payload) {
+	std::cout << "[Debug] perfect aggregate: \n";
 	// first we need to find the location in the HT of each of the groups
 	auto address_data = FlatVector::GetData<uintptr_t>(addresses);
 	// zero-initialize the address data
