@@ -832,6 +832,7 @@ bool HashJoinLocalSourceState::TaskFinished() {
 
 void HashJoinLocalSourceState::ExternalBuild(HashJoinGlobalSinkState &sink, HashJoinGlobalSourceState &gstate) {
 	D_ASSERT(local_stage == HashJoinSourceStage::BUILD);
+	std::cout << "[Debug] HashJoinLocalSourceState.ExternalBuild\n";
 
 	auto &ht = *sink.hash_table;
 	ht.Finalize(build_chunk_idx_from, build_chunk_idx_to, true);
@@ -843,6 +844,8 @@ void HashJoinLocalSourceState::ExternalBuild(HashJoinGlobalSinkState &sink, Hash
 void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, HashJoinGlobalSourceState &gstate,
                                              DataChunk &chunk) {
 	D_ASSERT(local_stage == HashJoinSourceStage::PROBE && sink.hash_table->finalized);
+
+  std::cout << "[Debug] HashJoinLocalSourceState.ExternalProbe\n";
 
 	if (scan_structure) {
 		// Still have elements remaining (i.e. we got >STANDARD_VECTOR_SIZE elements in the previous probe)
@@ -885,6 +888,8 @@ void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, Hash
 void HashJoinLocalSourceState::ExternalScanHT(HashJoinGlobalSinkState &sink, HashJoinGlobalSourceState &gstate,
                                               DataChunk &chunk) {
 	D_ASSERT(local_stage == HashJoinSourceStage::SCAN_HT);
+
+  std::cout << "[Debug] HashJoinLocalSourceState.ExternalScanHT\n";
 
 	if (!full_outer_scan_state) {
 		full_outer_scan_state = make_uniq<JoinHTScanState>(sink.hash_table->GetDataCollection(),
