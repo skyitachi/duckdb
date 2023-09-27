@@ -1,4 +1,6 @@
 #include "duckdb.hpp"
+#include <memory>
+#include <string>
 
 using namespace duckdb;
 
@@ -11,5 +13,4 @@ int main() {
 	auto result = con.Query("select * from a join b on c_a2 = c_b2");
 
 	result->Print();
-
 }

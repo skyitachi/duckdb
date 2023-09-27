@@ -78,7 +78,8 @@ else()
       duckdb_mbedtls)
 
   add_library(duckdb SHARED ${ALL_OBJECT_FILES}
-          include/duckdb/execution/join_hashtable.hpp)
+          include/duckdb/execution/join_hashtable.hpp
+          include/duckdb/storage/block_manager.hpp)
   target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
