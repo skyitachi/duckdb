@@ -656,12 +656,14 @@ void RadixHTLocalSourceState::Finalize(RadixHTGlobalSinkState &sink, RadixHTGlob
 
 	std::cout << "[Debug] partition data size: " << partition.data->Count() << std::endl;
 	// Now combine the uncombined data using this thread's HT
+	// NOTE: 这里的combine 还会需要分区吗，和partition.data->Combine有什么区别
 	ht->Combine(*partition.data);
 	ht->UnpinData();
 
 	// Move the combined data back to the partition
 	partition.data =
 	    make_uniq<TupleDataCollection>(BufferManager::GetBufferManager(gstate.context), sink.radix_ht.GetLayout());
+	// NOTE: 这里为何也要Combine
 	partition.data->Combine(*ht->GetPartitionedData()->GetPartitions()[0]);
 
 	// Mark partition as ready to scan
