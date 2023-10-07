@@ -1,16 +1,14 @@
 #include "duckdb.hpp"
-#include <memory>
-#include <string>
 
 using namespace duckdb;
 
 int main() {
-	DuckDB db("/Users/shiping.yao/lab/duckdb/cmake-build-debug/lineitem");
+	DuckDB db(nullptr);
 
 	Connection con(db);
 
-	// perfect join
-	auto result = con.Query("select * from a join b on c_a2 = c_b2");
-
+	con.Query("CREATE TABLE integers(i INTEGER)");
+	con.Query("INSERT INTO integers VALUES (3)");
+	auto result = con.Query("SELECT * FROM integers");
 	result->Print();
 }
