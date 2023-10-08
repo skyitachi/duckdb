@@ -399,10 +399,11 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			// operator
 			StartOperator(current_operator);
 			// 什么情况下才会需要执行Execute
+			// pipeline operator长度大于2的情况, 可以根据pipeline.Print()结果中pipeline operators的数目来判断
 //			std::cout << "[Debug] PipelineExecutor.Execute: " << current_operator.GetName() << ", operators size: "
 //			          << pipeline.operators.size() << std::endl;
-
-			pipeline.Print();
+//			pipeline.Print();
+//			std::cout << "[Debug] end pipeline.Print\n";
 
 			auto result = current_operator.Execute(context, prev_chunk, current_chunk, *current_operator.op_state,
 			                                       *intermediate_states[current_intermediate - 1]);

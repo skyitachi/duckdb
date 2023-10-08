@@ -381,10 +381,13 @@ void RadixPartitionedHashTable::Sink(ExecutionContext &context, DataChunk &chunk
 		gstate.active_threads++;
 	}
 
+	// NOTE: group_chunk 也是原始数据 经过projection之后的, 相当于group by 用到的列
 	auto &group_chunk = lstate.group_chunk;
+	// NOTE: 这里只是调整下group和chunk 中data对应的数据，实际上还是同一份数据
 	PopulateGroupChunk(group_chunk, chunk);
 
 	auto &ht = *lstate.ht;
+	// NOTE: 为什么还需要payload_input, payload_input 相当于在aggregate中用到不同于 group by中用到的列
 	ht.AddChunk(group_chunk, payload_input, filter);
 
 	if (ht.Count() + STANDARD_VECTOR_SIZE < ht.ResizeThreshold()) {

@@ -173,6 +173,7 @@ PhysicalHashAggregate::PhysicalHashAggregate(ClientContext &context, vector<Logi
 
 	distinct_collection_info = DistinctAggregateCollectionInfo::Create(grouped_aggregate_data.aggregates);
 
+	// NOTE: 初始化了每个group 对应的RadixPartitionedHashTable
 	for (idx_t i = 0; i < grouping_sets.size(); i++) {
 		groupings.emplace_back(grouping_sets[i], grouped_aggregate_data, distinct_collection_info);
 	}
@@ -359,7 +360,6 @@ SinkResultType PhysicalHashAggregate::Sink(ExecutionContext &context, DataChunk 
 		return SinkResultType::NEED_MORE_INPUT;
 	}
 
-	std::cout << "[Debug]: data_chunk size: " << chunk.size() << std::endl;
 //	chunk.Print();
 
 	DataChunk &aggregate_input_chunk = llstate.aggregate_input_chunk;
@@ -387,6 +387,9 @@ SinkResultType PhysicalHashAggregate::Sink(ExecutionContext &context, DataChunk 
 			aggregate_input_chunk.data[aggregate_input_idx++].Reference(chunk.data[it->second]);
 		}
 	}
+
+//  std::cout << "[Debug]: data_chunk size: " << chunk.size() << ", columns: " << chunk.ColumnCount()
+//            << ", aggregate input chunk columns : " << aggregate_input_chunk.ColumnCount() << "\n";
 
 	aggregate_input_chunk.SetCardinality(chunk.size());
 	aggregate_input_chunk.Verify();
