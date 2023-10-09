@@ -79,7 +79,9 @@ else()
 
   add_library(duckdb SHARED ${ALL_OBJECT_FILES}
           include/duckdb/execution/join_hashtable.hpp
-          include/duckdb/storage/block_manager.hpp)
+          include/duckdb/storage/block_manager.hpp
+          include/duckdb/execution/radix_partitioned_hashtable.hpp
+          include/duckdb/common/types/row/partitioned_tuple_data.hpp)
   target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
