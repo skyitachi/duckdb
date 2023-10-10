@@ -171,6 +171,7 @@ void TopNSortState::Scan(TopNScanState &state, DataChunk &chunk) {
 	auto limit = heap.limit;
 	D_ASSERT(is_sorted);
 	while (chunk.size() == 0) {
+		// 这里已经排好序了
 		state.scanner->Scan(chunk);
 		if (chunk.size() == 0) {
 			break;
@@ -469,7 +470,7 @@ SinkFinalizeType PhysicalTopN::Finalize(Pipeline &pipeline, Event &event, Client
 }
 
 //===--------------------------------------------------------------------===//
-// Source
+// Sourc order by i limit 2e
 //===--------------------------------------------------------------------===//
 class TopNOperatorState : public GlobalSourceState {
 public:
