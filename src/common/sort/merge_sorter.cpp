@@ -63,6 +63,7 @@ void MergeSorter::MergePartition() {
 		const idx_t next = MinValue(l_remaining + r_remaining, (idx_t)STANDARD_VECTOR_SIZE);
 		if (l_remaining != 0 && r_remaining != 0) {
 			// Compute the merge (not needed if one side is exhausted)
+			// 只计算一次Compare
 			ComputeMerge(next, left_smaller);
 		}
 		// Actually merge the data (radix, blob, and payload)
@@ -111,6 +112,7 @@ void MergeSorter::GetNextPartition() {
 	// Create slices of the data that this thread must merge
 	left->SetIndices(0, 0);
 	right->SetIndices(0, 0);
+	// 这里分slice的目的是什么
 	left_input = left_block.CreateSlice(state.l_start, l_end, left->entry_idx);
 	right_input = right_block.CreateSlice(state.r_start, r_end, right->entry_idx);
 	left->sb = left_input.get();
