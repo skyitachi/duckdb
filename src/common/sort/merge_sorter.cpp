@@ -2,6 +2,8 @@
 #include "duckdb/common/sort/comparators.hpp"
 #include "duckdb/common/sort/sort.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 MergeSorter::MergeSorter(GlobalSortState &state, BufferManager &buffer_manager)
