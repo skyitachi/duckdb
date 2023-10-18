@@ -392,6 +392,7 @@ SinkFinalizeType PhysicalHashJoin::Finalize(Pipeline &pipeline, Event &event, Cl
 			ht.Merge(*local_ht);
 		}
 		sink.local_hash_tables.clear();
+		// 这里会将sink_collection data 写入到data_collection
 		ht.Unpartition();
 	}
 

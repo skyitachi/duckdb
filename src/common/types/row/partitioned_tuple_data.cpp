@@ -93,7 +93,8 @@ void PartitionedTupleData::AppendUnified(PartitionedTupleDataAppendState &state,
 		BuildBufferSpace(state);
 
 		// Now scatter everything in one go
-		// NOTE: 为什么需要scatter
+		// NOTE: 为什么需要scatter,
+		// 列式数据转化成行式数据
 		partitions[0]->Scatter(state.chunk_state, input, state.partition_sel, actual_append_count);
 	}
 
