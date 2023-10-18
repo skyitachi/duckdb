@@ -382,6 +382,7 @@ SinkFinalizeType PhysicalHashJoin::Finalize(Pipeline &pipeline, Event &event, Cl
 				ht.Merge(*local_ht);
 			}
 			sink.local_hash_tables.clear();
+      // 这里会将sink_collection data 写入到data_collection
 			sink.hash_table->PrepareExternalFinalize();
 			sink.ScheduleFinalize(pipeline, event);
 		}
@@ -482,7 +483,6 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 
 	if (sink.perfect_join_executor) {
 		D_ASSERT(!sink.external);
-		// lineitem customer 会命中这个
 		return sink.perfect_join_executor->ProbePerfectHashTable(context, input, chunk, *state.perfect_hash_join_state);
 	}
 
@@ -511,7 +511,6 @@ OperatorResultType PhysicalHashJoin::ExecuteInternal(ExecutionContext &context, 
 		state.scan_structure = sink.hash_table->ProbeAndSpill(state.join_keys, input, *sink.probe_spill,
 		                                                      state.spill_state, state.spill_chunk);
 	} else {
-		std::cout << "[Debug] ExecuteInternal probe: " << input.size() << std::endl;
 		state.scan_structure = sink.hash_table->Probe(state.join_keys);
 	}
 	state.scan_structure->Next(state.join_keys, input, chunk);

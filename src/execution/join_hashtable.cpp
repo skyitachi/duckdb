@@ -323,6 +323,7 @@ void JoinHashTable::Finalize(idx_t chunk_idx_from, idx_t chunk_idx_to, bool para
 		for (idx_t i = 0; i < count; i++) {
 			hash_data[i] = Load<hash_t>(row_locations[i] + pointer_offset);
 		}
+		// 这里还是会有冲突的，但是用的是cas操作来避免锁, 多线程构建hashmap
 		InsertHashes(hashes, count, row_locations, parallel);
 	} while (iterator.Next());
 }

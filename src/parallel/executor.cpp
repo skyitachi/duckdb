@@ -343,6 +343,26 @@ void Executor::InitializeInternal(PhysicalOperator &plan) {
 		root_pipeline->Build(*physical_plan);
 		root_pipeline->Ready();
 
+		vector<shared_ptr<Pipeline>> no_recursive_pipelines;
+		root_pipeline->GetPipelines(no_recursive_pipelines, false);
+
+		std::cout << "[Debug] no_recursive_pipelines\n";
+
+
+		for(auto &pipeline: no_recursive_pipelines) {
+			pipeline->Print();
+		}
+
+    vector<shared_ptr<Pipeline>> recursive_pipelines;
+    root_pipeline->GetPipelines(recursive_pipelines, true);
+
+    std::cout << "[Debug] recursive_pipelines\n";
+
+    for(auto &pipeline: recursive_pipelines) {
+      pipeline->Print();
+    }
+
+
 		// ready recursive cte pipelines too
 		for (auto &rec_cte_ref : recursive_ctes) {
 			auto &rec_cte = rec_cte_ref.get().Cast<PhysicalRecursiveCTE>();

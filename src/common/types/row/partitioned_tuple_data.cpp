@@ -89,7 +89,6 @@ void PartitionedTupleData::AppendUnified(PartitionedTupleDataAppendState &state,
 		}
 
 		// Build the buffer space
-		// 这里会会为每个partition　写数据
 		BuildBufferSpace(state);
 
 		// Now scatter everything in one go
