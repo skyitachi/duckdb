@@ -83,7 +83,8 @@ else()
           include/duckdb/execution/radix_partitioned_hashtable.hpp
           include/duckdb/common/types/row/partitioned_tuple_data.hpp
           include/duckdb/execution/operator/order/physical_top_n.hpp
-          include/duckdb/common/sort/sort.hpp)
+          include/duckdb/common/sort/sort.hpp
+          include/duckdb/common/types/row/tuple_data_collection.hpp)
   target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
