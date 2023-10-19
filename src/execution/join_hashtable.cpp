@@ -105,6 +105,7 @@ void JoinHashTable::ApplyBitmask(Vector &hashes, const SelectionVector &sel, idx
 	hashes.ToUnifiedFormat(count, hdata);
 
 	auto hash_data = UnifiedVectorFormat::GetData<hash_t>(hdata);
+	// 为什么是unsigned char ***
 	auto result_data = FlatVector::GetData<data_ptr_t *>(pointers);
 	auto main_ht = reinterpret_cast<data_ptr_t *>(hash_map.get());
 	for (idx_t i = 0; i < count; i++) {
@@ -453,6 +454,7 @@ void ScanStructure::AdvancePointers(const SelectionVector &sel, idx_t sel_count)
 
 void ScanStructure::InitializeSelectionVector(const SelectionVector *&current_sel) {
 	idx_t non_empty_count = 0;
+	// 这里为什么unsigned char**
 	auto ptrs = FlatVector::GetData<data_ptr_t>(pointers);
 	auto cnt = count;
 	for (idx_t i = 0; i < cnt; i++) {
@@ -511,6 +513,7 @@ void ScanStructure::NextInnerJoin(DataChunk &keys, DataChunk &left, DataChunk &r
 			D_ASSERT(vector.GetType() == ht.build_types[i]);
 			GatherResult(vector, result_vector, result_count, i + ht.condition_types.size());
 		}
+		// 相当于相同hash的情况下需要移动 entry到下一个地址
 		AdvancePointers();
 	}
 }

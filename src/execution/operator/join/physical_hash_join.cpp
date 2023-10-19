@@ -845,8 +845,7 @@ void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, Hash
                                              DataChunk &chunk) {
 	D_ASSERT(local_stage == HashJoinSourceStage::PROBE && sink.hash_table->finalized);
 
-  std::cout << "[Debug] HashJoinLocalSourceState.ExternalProbe\n";
-
+	// 终于和ExecuteInternal中的Probe连接起来了，这里相当于第二轮的probe
 	if (scan_structure) {
 		// Still have elements remaining (i.e. we got >STANDARD_VECTOR_SIZE elements in the previous probe)
 		scan_structure->Next(join_keys, payload, chunk);
