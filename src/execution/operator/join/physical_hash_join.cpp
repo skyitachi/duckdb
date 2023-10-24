@@ -688,6 +688,7 @@ void HashJoinGlobalSourceState::PrepareBuild(HashJoinGlobalSinkState &sink) {
 	auto &ht = *sink.hash_table;
 
 	// Try to put the next partitions in the block collection of the HT
+	// 这里完成了每次external的分区操作
 	if (!sink.external || !ht.PrepareExternalFinalize()) {
 		global_stage = HashJoinSourceStage::DONE;
 		return;
@@ -835,6 +836,7 @@ void HashJoinLocalSourceState::ExternalBuild(HashJoinGlobalSinkState &sink, Hash
 	std::cout << "[Debug] HashJoinLocalSourceState.ExternalBuild\n";
 
 	auto &ht = *sink.hash_table;
+	// thread safe
 	ht.Finalize(build_chunk_idx_from, build_chunk_idx_to, true);
 
 	lock_guard<mutex> guard(gstate.lock);
@@ -845,7 +847,6 @@ void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, Hash
                                              DataChunk &chunk) {
 	D_ASSERT(local_stage == HashJoinSourceStage::PROBE && sink.hash_table->finalized);
 
-	// 终于和ExecuteInternal中的Probe连接起来了，这里相当于第二轮的probe
 	if (scan_structure) {
 		// Still have elements remaining (i.e. we got >STANDARD_VECTOR_SIZE elements in the previous probe)
 		scan_structure->Next(join_keys, payload, chunk);
@@ -879,7 +880,6 @@ void HashJoinLocalSourceState::ExternalProbe(HashJoinGlobalSinkState &sink, Hash
 	}
 
 	// Perform the probe
-	std::cout << "[Debug] local source state perform probe: " << chunk.size() << std::endl;
 	scan_structure = sink.hash_table->Probe(join_keys, precomputed_hashes);
 	scan_structure->Next(join_keys, payload, chunk);
 }
